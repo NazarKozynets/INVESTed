@@ -1,0 +1,165 @@
+.auth-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  gap: 160px;
+
+  @media (max-width: 1600px) {
+    gap: 50px;
+  }
+}
+
+.info-form {
+  padding: 60px;
+  max-width: 1012px;
+  width: 50%;
+  height: 60%;
+}
+
+.auth-form {
+  padding: 97px 40px 30px;
+  max-width: 480px;
+  width: 40%;
+  height: 80%;
+}
+
+.info-form-content {
+  height: 100%;
+
+  #title {
+    margin: 0;
+    font-size: 36px;
+    font-weight: 600;
+  }
+
+  #subtitle {
+    margin: 0;
+    font-size: 18px;
+  }
+
+  #desc {
+    margin-top: 60px;
+    font-size: 20px;
+    font-weight: 400;
+  }
+}
+
+.auth-form-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  #title-block {
+    display: flex;
+    flex-direction: column;
+
+    #title {
+      margin: 0;
+      font-size: 36px;
+      font-weight: 600;
+    }
+
+    #subtitle {
+      margin: 0;
+      font-size: 18px;
+    }
+  }
+
+  #inputs-block {
+    margin-top: 25px;
+
+    #input {
+      margin-top: 25px;
+    }
+
+    #confirm-password-input {
+      margin-top: 15px;
+    }
+  }
+
+  #buttons-block {
+    margin-top: 35px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    #forgot-pass-btn {
+      cursor: pointer;
+    }
+
+    .reset-password-btn {
+      background: linear-gradient(
+                      120deg,
+                      #E948C5 0%,
+                      #CD407B 53%,
+                      #75042D 100%
+      );
+      background-size: 120% 120%;
+      transition: background-size 0.3s ease, background-position 0.3s ease;
+
+      &:hover {
+        background-size: 100% 100%;
+        background-position: 100% 100%;
+      }
+    }
+  }
+
+  #another-auth-ways {
+    margin-top: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+
+    #line-block {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+
+      #line {
+        flex: 1;
+        height: 1px;
+        background-color: #4D4D4D;
+        margin: 0 10px;
+      }
+
+      #or-text {
+        font-size: 16px;
+        color: #4D4D4D;
+        padding: 0 10px;
+      }
+    }
+
+    #icons-block {
+    display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+
+      img {
+        cursor: pointer;
+        transition: opacity 0.3s;
+
+        &:hover {
+          opacity: 0.8;
+        }
+      }
+    }
+  }
+
+  #change-auth-form-type {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: auto;
+
+    p {
+      cursor: pointer;
+    }
+  }
+}

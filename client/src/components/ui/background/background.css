@@ -1,0 +1,15 @@
+.gradient-background {
+    background: linear-gradient(
+            180deg,
+            #080424 10%,
+            #07065F 31%,
+            #020277 50%,
+            #050480 62%,
+            #07065F 73%,
+            #07043E 82%,
+            #080424 90%
+    );
+    height: 100%;
+    width: 100%;
+    position: relative;
+}
