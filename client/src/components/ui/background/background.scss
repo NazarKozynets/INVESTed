@@ -1,0 +1,115 @@
+.background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: -1;
+    .bg-wrapper {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        animation: rotation 60s linear infinite;
+
+        @keyframes rotation {
+            0% {
+                transform: rotate(0deg);
+            } 100% {
+                  transform: rotate(360deg);
+              }
+        }
+    }
+    .bg-circles-content {
+        position: absolute;
+        z-index: -1;
+        top: 20vh;
+        left: 20vw;
+        width: 60vw;
+        height: 100vh;
+
+        .bg-circle {
+            position: absolute;
+            border-radius: 50%;
+            animation: pulse 9s ease infinite;
+            filter: blur(70px);
+
+            @keyframes pulse {
+                0% {
+                    transform: scale(1);
+                } 50% {
+                      transform: scale(1.5);
+                  } 100% {
+                        transform: scale(1);
+                    }
+            }
+
+            &_1 {
+                top: 5%;
+                left: -10%;
+                width: 100px;
+                height: 100px;
+                background-color: var(--sub-color);
+                animation-delay: 0s;
+            }
+
+            &_2 {
+                top: 65%;
+                right: -20%;
+                width: 200px;
+                height: 200px;
+                background-color: var(--sub-color);
+                animation-delay: 3s;
+            }
+
+            &_3 {
+                top: -15%;
+                right: 20%;
+                width: 75px;
+                height: 75px;
+                background-color: var(--base-color);
+                animation-delay: 6s;
+            }
+
+            &_5 {
+                top: 60%;
+                right: 60%;
+                width: 110px;
+                height: 110px;
+                background-color: var(--base-color);
+                animation-delay: 3s;
+            }
+
+            &_4 {
+                top: 20%;
+                right: -20%;
+                width: 100px;
+                height: 100px;
+                background-color: var(--sub-color);
+                animation-delay: 3s;
+            }
+
+            &_6 {
+                top: 100%;
+                right: -50%;
+                width: 100px;
+                height: 100px;
+                background-color: var(--base-color);
+                animation-delay: 3s;
+            }
+
+            &_7 {
+                top: 80%;
+                left: 0%;
+                width: 100px;
+                height: 100px;
+                background-color: var(--sub-color);
+                animation-delay: 3s;
+            }
+        }
+    }
+
+}
+
+
+

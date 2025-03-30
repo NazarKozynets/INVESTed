@@ -9,15 +9,23 @@
   font-weight: 400;
 
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #080424;
+  --base-color: #1F1CC7;
+  --sub-color: #6562EF;
+  --dark-color-0: #090A0B;
 }
 
 body {
   margin: 0;
   padding: 0;
-  min-width: 320px;
+  background-color: var(--dark-color-0);
   min-height: 100vh;
-  font-family: inherit;
-  overflow-y: auto;
+  color: var(--white-color);
+  font-size: 14px;
+  letter-spacing: .035em;
+  position: relative;
+  #root {
+    min-height: 100vh;
+    position: relative;
+  }
 }
+

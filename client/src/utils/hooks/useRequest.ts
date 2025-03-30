@@ -16,7 +16,6 @@ export const useRequest = async (
             url: `${import.meta.env.VITE_API_URL}/${requestUrl}`,
             data: requestData,
         });
-        console.log("response 145", response);
         return response.data;
     } catch (error) {
         console.error('Error making request', error);

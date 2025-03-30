@@ -1,0 +1,50 @@
+.about-us-content-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  height: 300px;
+  margin-top: 5%;
+}
+
+.about-us-nav-btn {
+  border: 1px solid white;
+  border-radius: 20px;
+  height: 100%;
+  background: transparent;
+  width: 45px;
+  transition: 0.4s all;
+  font-size: 20px;
+  font-weight: bold;
+
+  &:hover {
+    transform: scale(1.05);
+  }
+}
+
+.about-us-content-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+  gap: 10px;
+}
+
+.pagination-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #ccc;
+  cursor: pointer;
+  transition: all 0.3s;
+
+  &:hover {
+    background-color: #aaa;
+  }
+
+  &.active {
+    width: 12px;
+    height: 12px;
+    background-color: white;
+  }
+}

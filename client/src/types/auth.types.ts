@@ -15,3 +15,9 @@ export interface AuthResponseData {
     };
     token: string;
 }
+
+export interface AuthFormProps {
+    emailInput: string;
+    setEmailInput: (input: string) => void;
+    setIsSignup: (input: boolean) => void;
+}

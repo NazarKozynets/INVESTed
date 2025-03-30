@@ -1,0 +1,38 @@
+.header {
+  background-color: transparent;
+  height: 70px;
+  padding: 0 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  #logo {
+    width: 55px;
+    height: 55px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  #links {
+    display: flex;
+    justify-content: space-between;
+    width: 35%;
+
+    a {
+      text-decoration: none;
+      color: white;
+      font-size: 18px;
+      transition: 0.2s;
+
+      &.links-current {
+        color: #6562EF;
+        font-weight: bold;
+      }
+
+      &:hover {
+        color: #6562EF;
+      }
+    }
+  }
+}

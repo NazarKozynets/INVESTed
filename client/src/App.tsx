@@ -5,6 +5,7 @@ import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
 import {ToastContainer, Zoom} from "react-toastify";
 import {AuthProvider, useAuth} from "./context/AuthContext.tsx";
 import {ProtectedRoute} from "./navigation/ProtectedRoute.tsx";
+import {Header} from "./components/features/header/Header.tsx";
 
 const AdvancedToastContainer = () => {
     return <ToastContainer
@@ -32,34 +33,34 @@ export const App = () => {
     })
 
     const NotFoundRedirect = () => {
-        const { authState } = useAuth();
-        return <Navigate to={authState?.token ? "/home" : "/"} replace />;
+        const {authState} = useAuth();
+        return <Navigate to={authState?.token ? "/home" : "/"} replace/>;
     };
 
     return (
         <QueryClientProvider client={queryClient}>
             <AuthProvider>
                 <Router>
-                    <Background>
-                        <Routes>
-                            {routes.map(({path, component: Component, isProtected}, index) => (
-                                <Route
-                                    key={index}
-                                    path={path}
-                                    element={
-                                        isProtected ? (
-                                            <ProtectedRoute>
-                                                <Component />
-                                            </ProtectedRoute>
-                                        ) : (
-                                            <Component />
-                                        )
-                                    }
-                                />
-                            ))}
-                            <Route path="*" element={<NotFoundRedirect />} />
-                        </Routes>
-                    </Background>
+                    <Routes>
+                        {routes.map(({path, component: Component, isProtected}, index) => (
+                            <Route
+                                key={index}
+                                path={path}
+                                element={
+                                    isProtected ? (
+                                        <ProtectedRoute>
+                                            <Header/>
+                                            <Component/>
+                                        </ProtectedRoute>
+                                    ) : (
+                                        <Component/>
+                                    )
+                                }
+                            />
+                        ))}
+                        <Route path="*" element={<NotFoundRedirect/>}/>
+                    </Routes>
+                    <Background/>
                 </Router>
                 <AdvancedToastContainer/>
             </AuthProvider>
