@@ -4,7 +4,7 @@ import {motion, AnimatePresence} from "framer-motion";
 import {LoginForm} from "../../components/layout/auth-page/LoginForm.tsx";
 import {SignupForm} from "../../components/layout/auth-page/SignupForm.tsx";
 import {useAuth} from "../../context/AuthContext.tsx";
-import {useNavigate} from "react-router-dom";
+import {useLocation, useNavigate} from "react-router-dom";
 
 export const contentForInfoForm = [
     {
@@ -32,16 +32,18 @@ export const contentForInfoForm = [
 export const AuthPage = () => {
     const { authState } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
 
     const [currentInfoFormContent, setCurrentInfoFormContent] = useState(0)
     const [isSignup, setIsSignup] = useState(false)
     const [emailInput, setEmailInput] = useState("");
 
     useEffect(() => {
-        if (authState?.token) {
-            navigate("/home", {replace: true});
+        if (authState.isAuthenticated) {
+            const from = (location.state as { from?: { pathname: string } })?.from?.pathname || "/home";
+            navigate(from, { replace: true });
         }
-    }, [authState?.token, navigate]);
+    }, [authState.isAuthenticated, navigate, location]);
 
     useEffect(() => {
         const interval = setInterval(() => {

@@ -4,6 +4,7 @@ export type TypeRootStackParamList = {
     Auth: undefined
     Home: undefined
     About: undefined
+    Profile: { userId: string }
 }
 
 export interface IRoute {

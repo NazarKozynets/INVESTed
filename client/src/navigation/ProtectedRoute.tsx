@@ -1,12 +1,22 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.tsx";
-import {ReactNode} from "react";
+import { LoadingOverlay } from "../components/ui/loading-overlay/LoadingOverlay.tsx";
+import { ReactNode } from "react";
 
-export const ProtectedRoute = ({ children }: { children: ReactNode }) => {
-    const { authState } = useAuth();
+interface ProtectedRouteProps {
+    children: ReactNode;
+}
 
-    if (!authState?.token) {
-        return <Navigate to="/" replace />;
+export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
+    const { authState, isLoading } = useAuth();
+    const location = useLocation();
+
+    if (isLoading) {
+        return <LoadingOverlay />;
+    }
+
+    if (!authState.isAuthenticated) {
+        return <Navigate to="/" state={{ from: location }} replace />;
     }
 
     return children;

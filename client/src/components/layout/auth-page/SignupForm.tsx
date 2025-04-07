@@ -7,6 +7,7 @@ import googleIcon from "../../../assets/devicon_google.svg";
 import githubIcon from "../../../assets/bi_github.svg";
 import facebookIcon from "../../../assets/logos_facebook.svg";
 import {AuthFormProps} from "../../../types/auth.types.ts";
+import {validateEmail, validatePassword} from "../../../utils/functions/validations.ts";
 
 export const SignupForm = ({emailInput, setEmailInput, setIsSignup}: AuthFormProps) => {
     const { onRegister } = useAuth();
@@ -18,8 +19,30 @@ export const SignupForm = ({emailInput, setEmailInput, setIsSignup}: AuthFormPro
     const handleSignup = async () => {
         if (!onRegister) return;
 
+        // Clear previous errors
+        toast.dismiss();
+
+        // Client-side validation
+        if (!usernameInput.trim()) {
+            toast.error("Username is required", { toastId: "username-error" });
+            return;
+        }
+
+        if (!validateEmail(emailInput)) {
+            toast.error("Please enter a valid email address", { toastId: "email-error" });
+            return;
+        }
+
+        if (!validatePassword(passwordInput)) {
+            toast.error(
+                "Password must be: 8+ characters, 1 letter, 1 number, 1 special character",
+                { toastId: "password-error" }
+            );
+            return;
+        }
+
         if (passwordInput !== confirmPassword) {
-            toast.warn("Passwords do not match!");
+            toast.error("Passwords do not match", { toastId: "confirm-password-error" });
             return;
         }
 
@@ -31,14 +54,38 @@ export const SignupForm = ({emailInput, setEmailInput, setIsSignup}: AuthFormPro
                 userRole: "client"
             });
 
-            if (result && result.token) {
-                toast.success('Congratulations! Now you can use our platform')
-            } else {
-                throw new Error("token is empty");
+            if (result?.userData) {
+                toast.success('Registration successful! Welcome!', {
+                    autoClose: 3000,
+                    toastId: "signup-success"
+                });
+                // Optionally redirect user here
             }
         } catch (error) {
-            toast.error("Something went wrong!");
-            console.error("Signup failed", error);
+            let errorMessage = "Registration failed";
+
+            if (error instanceof Error) {
+                // Handle specific field errors
+                if (error.message.startsWith("username:")) {
+                    errorMessage = error.message.replace("username: ", "");
+                }
+                else if (error.message.startsWith("email:")) {
+                    errorMessage = error.message.replace("email: ", "");
+                }
+                else if (error.message.startsWith("password:")) {
+                    errorMessage = error.message.replace("password: ", "");
+                }
+                else {
+                    errorMessage = error.message;
+                }
+            }
+
+            toast.error(errorMessage, {
+                autoClose: 5000,
+                toastId: "signup-error"
+            });
+
+            console.error("Signup error:", error);
         }
     };
 

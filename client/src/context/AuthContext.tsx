@@ -1,87 +1,153 @@
-import {createContext, ReactNode, useCallback, useContext, useState} from "react";
-import {loginUser, registerUser} from "../services/auth/auth.api.ts";
-import {AuthRequestData, AuthResponseData} from "../types/auth.types.ts";
+import { createContext, ReactNode, useCallback, useContext, useState, useEffect } from "react";
+import { checkAuth, loginUser, logoutUser, registerUser } from "../services/auth/auth.api.ts";
+import { AuthRequestData, AuthResponseData, UserData } from "../types/auth.types.ts";
 
 interface AuthContextProps {
-    authState?: { token: string | null; userData: any | null};
-    onRegister?: ( data: AuthRequestData ) => Promise<AuthResponseData>;
-    onLogin?: ( data: AuthRequestData ) => Promise<AuthResponseData>;
-    onLogout?: () => void;
+    authState: {
+        userData: UserData | null;
+        isAuthenticated: boolean;
+    };
+    isLoading: boolean;
+    onRegister: (data: AuthRequestData) => Promise<AuthResponseData>;
+    onLogin: (data: AuthRequestData) => Promise<AuthResponseData>;
+    onLogout: () => Promise<void>;
+    checkSession: () => Promise<void>;
 }
 
 interface AuthState {
-    token: string | null;
-    userData: any | null;
+    userData: UserData | null;
+    isAuthenticated: boolean;
 }
 
-const AuthContext = createContext<AuthContextProps>({});
+const AuthContext = createContext<AuthContextProps>({
+    authState: {
+        userData: null,
+        isAuthenticated: false
+    },
+    isLoading: false,
+    onRegister: async () => { throw new Error("Not implemented"); },
+    onLogin: async () => { throw new Error("Not implemented"); },
+    onLogout: async () => { throw new Error("Not implemented"); },
+    checkSession: async () => { throw new Error("Not implemented"); }
+});
 
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-    const [authState, setAuthState] = useState<AuthState>(() => {
-        const token = localStorage.getItem('authToken');
-        const userData = localStorage.getItem('userData');
-        return {
-            token: token || null,
-            userData: userData ? JSON.parse(userData) : null
-        };
+    const [authState, setAuthState] = useState<AuthState>({
+        userData: null,
+        isAuthenticated: false
     });
+    const [isLoading, setIsLoading] = useState(true);
+
+    const isTokenValid = (expiryDate: string | undefined): boolean => {
+        if (!expiryDate) return false;
+
+        try {
+            const normalizedDate = expiryDate.endsWith('Z') ? expiryDate : expiryDate + 'Z';
+            const expiry = new Date(normalizedDate);
+
+            return expiry.getTime() > Date.now();
+        } catch (e) {
+            console.error("Invalid date format:", expiryDate, e);
+            return false;
+        }
+    };
+
+
+    const updateAuthState = (userData: UserData | null) => {
+        console.log("userData updateAuthState", userData);
+        const isAuthenticated = Boolean(userData && isTokenValid(userData.expiresIn));
+        setAuthState({ userData, isAuthenticated });
+
+        if (userData) {
+            sessionStorage.setItem('userData', JSON.stringify(userData));
+        } else {
+            sessionStorage.removeItem('userData');
+        }
+    };
+
+    useEffect(() => {
+        const verifySession = async () => {
+            setIsLoading(true);
+            try {
+                const { userData } = await checkAuth();
+                console.log("userData", JSON.stringify(userData));
+                updateAuthState(userData && isTokenValid(userData.expiresIn) ? userData : null);
+            } catch (error) {
+                updateAuthState(null);
+                console.error("Session verification failed:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        verifySession();
+    }, []);
 
     const onRegister = useCallback(async (data: AuthRequestData) => {
         try {
+            setIsLoading(true);
             const response = await registerUser(data);
-            if (response.token && response.userData) {
-                const newAuthState = {
-                    token: response.token,
-                    userData: response.userData
-                };
-                setAuthState(newAuthState);
-                localStorage.setItem('authToken', response.token);
-                localStorage.setItem('userData', JSON.stringify(response.userData));
-            } else {
-                throw new Error("Unable to register");
-            }
-
+            updateAuthState(response.userData || null);
             return response;
         } catch (error) {
-            console.error("Registration failed", error);
+            updateAuthState(null);
             throw error;
+        } finally {
+            setIsLoading(false);
         }
     }, []);
 
     const onLogin = useCallback(async (data: AuthRequestData) => {
         try {
+            setIsLoading(true);
             const response = await loginUser(data);
-
-            if (response.token && response.userData) {
-                const newAuthState = {
-                    token: response.token,
-                    userData: response.userData
-                };
-                setAuthState(newAuthState);
-                localStorage.setItem('authToken', response.token);
-                localStorage.setItem('userData', JSON.stringify(response.userData));
-            } else {
-                throw new Error("Login failed");
+            if (!response?.userData || !isTokenValid(response.userData.expiresIn)) {
+                throw new Error("Authentication failed");
             }
-
+            updateAuthState(response.userData);
             return response;
         } catch (error) {
-            console.error("Login failed", error);
+            updateAuthState(null);
             throw error;
+        } finally {
+            setIsLoading(false);
         }
     }, []);
 
-    const onLogout = useCallback(() => {
-        setAuthState({ token: null, userData: null });
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('userData');
+    const onLogout = useCallback(async () => {
+        try {
+            setIsLoading(true);
+            await logoutUser();
+            updateAuthState(null);
+        } catch (error) {
+            console.error("Logout failed:", error);
+            throw error;
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
+
+    const checkSession = useCallback(async () => {
+        try {
+            const { userData } = await checkAuth();
+            updateAuthState(userData && isTokenValid(userData.expiresIn) ? userData : null);
+        } catch {
+            updateAuthState(null);
+        }
     }, []);
 
     return (
-        <AuthContext.Provider value={{ authState, onRegister, onLogin, onLogout }}>
+        <AuthContext.Provider value={{
+            authState,
+            isLoading,
+            onRegister,
+            onLogin,
+            onLogout,
+            checkSession
+        }}>
             {children}
         </AuthContext.Provider>
     );
-}
+};

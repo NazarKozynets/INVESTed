@@ -2,6 +2,7 @@ import {IRoute} from "./navigation.types.ts";
 import {AuthPage} from "../pages/auth/AuthPage.tsx";
 import {HomePage} from "../pages/home/HomePage.tsx";
 import {AboutUsPage} from "../pages/about/AboutUsPage.tsx";
+import {Profile} from "../pages/profile/Profile.tsx";
 
 export const routes: IRoute[] = [
     {
@@ -20,6 +21,12 @@ export const routes: IRoute[] = [
         name: 'About',
         path: '/about',
         component: AboutUsPage,
+        isProtected: true
+    },
+    {
+        name: 'Profile',
+        path: '/profile/:username',
+        component: Profile,
         isProtected: true
     }
 ]

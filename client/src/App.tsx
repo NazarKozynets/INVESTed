@@ -3,7 +3,7 @@ import {Background} from "./components/ui/background/Background.tsx";
 import {routes} from "./navigation/routes.ts";
 import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
 import {ToastContainer, Zoom} from "react-toastify";
-import {AuthProvider, useAuth} from "./context/AuthContext.tsx";
+import {AuthProvider} from "./context/AuthContext.tsx";
 import {ProtectedRoute} from "./navigation/ProtectedRoute.tsx";
 import {Header} from "./components/features/header/Header.tsx";
 
@@ -32,37 +32,32 @@ export const App = () => {
         }
     })
 
-    const NotFoundRedirect = () => {
-        const {authState} = useAuth();
-        return <Navigate to={authState?.token ? "/home" : "/"} replace/>;
-    };
-
     return (
         <QueryClientProvider client={queryClient}>
             <AuthProvider>
                 <Router>
                     <Routes>
-                        {routes.map(({path, component: Component, isProtected}, index) => (
+                        {routes.map(({ path, component: Component, isProtected }, index) => (
                             <Route
                                 key={index}
                                 path={path}
                                 element={
                                     isProtected ? (
                                         <ProtectedRoute>
-                                            <Header/>
-                                            <Component/>
+                                            <Header />
+                                            <Component />
                                         </ProtectedRoute>
                                     ) : (
-                                        <Component/>
+                                        <Component />
                                     )
                                 }
                             />
                         ))}
-                        <Route path="*" element={<NotFoundRedirect/>}/>
+                        <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>
-                    <Background/>
+                    <Background />
                 </Router>
-                <AdvancedToastContainer/>
+                <AdvancedToastContainer />
             </AuthProvider>
         </QueryClientProvider>
     );

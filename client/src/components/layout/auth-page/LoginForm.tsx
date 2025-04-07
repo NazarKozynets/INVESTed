@@ -7,9 +7,12 @@ import githubIcon from "../../../assets/bi_github.svg";
 import facebookIcon from "../../../assets/logos_facebook.svg";
 import {AuthFormProps} from "../../../types/auth.types.ts";
 import {toast} from "react-toastify";
+import {useNavigate} from "react-router-dom";
 
 export const LoginForm = ({ emailInput, setEmailInput, setIsSignup }: AuthFormProps) => {
     const { onLogin } = useAuth();
+
+    const navigate = useNavigate();
 
     const [passwordInput, setPasswordInput] = useState("");
     const [isForgotPassword, setIsForgotPassword] = useState(false);
@@ -27,19 +30,17 @@ export const LoginForm = ({ emailInput, setEmailInput, setIsSignup }: AuthFormPr
         if (!onLogin) return;
 
         try {
-            const result =  await onLogin({
+            const result = await onLogin({
                 email: emailInput,
                 password: passwordInput,
-            })
+            });
 
-            if (result && result.token) {
-                toast.success('Congratulations! You successfully logged in!');
-            } else {
-                throw new Error("token is empty");
+            if (result.userData) {
+                toast.success('Login successful! Redirecting...');
+                navigate("/home");
             }
         } catch (error) {
-            toast.error("Login failed");
-            console.error("Login Failed", error);
+            setPasswordInput("");
         }
     };
 
