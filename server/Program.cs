@@ -1,36 +1,68 @@
+using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using server.services.auth;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using server;
 using server.Services.DataBase;
+using server.services.auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
+var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>()
+                     ?? new[] { "http://localhost:5173", "http://localhost:5174" };
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.AllowAnyOrigin()   
-            .AllowAnyMethod()  
-            .AllowAnyHeader(); 
+        policy.WithOrigins(allowedOrigins)
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials();
     });
 });
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                context.Token = context.Request.Cookies["accessToken"];
+                return Task.CompletedTask;
+            }
+        };
+    });
+
+builder.Services.AddAuthorization();
+
+builder.Services.AddSingleton<MongoDbService>();
+builder.Services.AddScoped<AuthService>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.Converters.Add(new DateTimeUTCConverter());
         options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
     });
 
-//Время жизни: Объект создается один раз на весь срок жизни приложения (AddSingleton)
-builder.Services.AddSingleton<MongoDbService>();
-
-//Объект создается для каждого HTTP-запроса (AddScoped)
-builder.Services.AddScoped<AuthService>();
-
 var app = builder.Build();
 
-app.UseCors("AllowAll");
+app.UseCors("AllowFrontend");
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapControllers();
 
 app.Run();

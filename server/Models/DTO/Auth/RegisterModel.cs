@@ -2,10 +2,10 @@
 
 namespace server.Models.DTO.Auth;
 
-public class RegisterModel : UserModel
+public class RegisterModel
 {
-    public RegisterModel(string username, string password, string email, UserRole role)
-        : base(username, password, email, role)
-    {
-    }
+    public string Username { get; set; }
+    public string Password { get; set; }
+    public string Email { get; set; }
+    public UserRole Role { get; set; }
 }

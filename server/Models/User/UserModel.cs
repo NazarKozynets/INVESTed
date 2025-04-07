@@ -11,7 +11,7 @@ public enum UserRole
     Admin = 2
 }
 
-public abstract class UserModel
+public class UserModel
 {
     [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]
@@ -29,7 +29,10 @@ public abstract class UserModel
     [BsonElement("role")]
     public UserRole Role { get; set; }
     
-    protected UserModel(string username, string password, string email, UserRole role)
+    public string? RefreshToken { get; set; }
+    public DateTime? RefreshTokenExpiry { get; set; }
+    
+    public UserModel(string username, string password, string email, UserRole role)
     {
         Username = username;
         Password = password;

@@ -46,3 +46,4 @@ D:\Курсовая_2_курс\server\bin\Debug\net9.0\SharpCompress.dll
 D:\Курсовая_2_курс\server\bin\Debug\net9.0\Snappier.dll
 D:\Курсовая_2_курс\server\bin\Debug\net9.0\ZstdSharp.dll
 D:\Курсовая_2_курс\server\bin\Debug\net9.0\BCrypt.Net-Next.dll
+D:\Курсовая_2_курс\server\obj\Debug\net9.0\server.sourcelink.json

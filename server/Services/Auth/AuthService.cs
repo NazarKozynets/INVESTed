@@ -1,68 +1,162 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using MongoDB.Driver;
 using server.models.user;
 using server.Services.DataBase;
-using Microsoft.Extensions.Logging;
 using server.Models.DTO.Auth;
 
 namespace server.services.auth;
 
-public class AuthService(IConfiguration configuration, MongoDbService mongoDbService, ILogger<AuthService> logger)
+public class AuthService
 {
-    private readonly IMongoCollection<UserModel> _usersCollection = mongoDbService.GetCollection<UserModel>("Users");
+    private readonly IConfiguration _configuration;
+    private readonly IMongoCollection<UserModel> _usersCollection;
+    private readonly ILogger<AuthService> _logger;
 
-    public bool RegisterNewUser(RegisterModel user)
+    public AuthService(
+        IConfiguration configuration, 
+        MongoDbService mongoDbService, 
+        ILogger<AuthService> logger)
     {
-        var existingUser = _usersCollection.Find(u => u.Username == user.Username).FirstOrDefault();
-        if (existingUser != null)
-        {
-            logger.LogWarning("User with username {Username} already exists", user.Username);
-            return false; 
-        }
+        _configuration = configuration;
+        _usersCollection = mongoDbService.GetCollection<UserModel>("Users");
+        _logger = logger;
+    }
 
-        user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
-        
-        _usersCollection.InsertOne(user);
-        return true;
-    }
-    
-    public ClientUser? AuthenticateUser(string email, string password)
+    public (bool success, string? userId, string? error) RegisterNewUser(RegisterModel user)
     {
-        var user = _usersCollection.Find(u => u.Email == email).FirstOrDefault();
-        if (user != null && BCrypt.Net.BCrypt.Verify(password, user.Password))
+        try
         {
-            return user; 
+            var existingUser = _usersCollection
+                .Find(u => u.Username == user.Username || u.Email == user.Email)
+                .FirstOrDefault();
+
+            if (existingUser != null)
+            {
+                var error = existingUser.Email == user.Email 
+                    ? "EMAIL_EXISTS" 
+                    : "USERNAME_EXISTS";
+                return (false, null, error);
+            }
+
+            var newUser = new UserModel(
+                user.Username,
+                BCrypt.Net.BCrypt.HashPassword(user.Password),
+                user.Email,
+                user.Role
+            );
+
+            _usersCollection.InsertOne(newUser);
+            return (true, newUser.Id, null);
         }
-        return null;
+        catch (Exception e)
+        {
+            _logger.LogError("Registration error: {Message}", e.Message);
+            throw;
+        }
     }
-    
-    public string GenerateJwtToken(string username, UserRole userRole)
+
+    public UserModel? AuthenticateUser(string email, string password)
     {
-        string key = configuration["Jwt:Key"] ?? throw new ArgumentNullException("Jwt:Key", "JWT key is missing in configuration");
-        string issuer = configuration["Jwt:Issuer"] ?? throw new ArgumentNullException("Jwt:Issuer", "JWT issuer is missing in configuration");
-        string audience = configuration["Jwt:Audience"] ?? throw new ArgumentNullException("Jwt:Audience", "JWT audience is missing in configuration");
+        try
+        {
+            var user = _usersCollection
+                .Find(u => u.Email == email)
+                .FirstOrDefault();
+
+            return user != null && BCrypt.Net.BCrypt.Verify(password, user.Password) 
+                ? user 
+                : null;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("Auth error: {Message}", e.Message);
+            throw;
+        }
+    }
+
+    public (string token, DateTime expires) GenerateJwtToken(
+        string username, 
+        UserRole role, 
+        string userId)
+    {
+        var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!);
+        var expires = DateTime.UtcNow.AddMinutes(
+            _configuration.GetValue<int>("Jwt:AccessTokenExpiryInMinutes", 30));
 
         var claims = new[]
         {
+            new Claim(ClaimTypes.NameIdentifier, userId),
             new Claim(ClaimTypes.Name, username),
-            new Claim(ClaimTypes.Role, userRole.ToString()),
+            new Claim(ClaimTypes.Role, role.ToString()),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
-        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
-        var creds = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+        var credentials = new SigningCredentials(
+            new SymmetricSecurityKey(key),
+            SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
-            issuer: issuer,
-            audience: audience,
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(30),
-            signingCredentials: creds
-        );
+            expires: expires,
+            signingCredentials: credentials);
 
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        return (new JwtSecurityTokenHandler().WriteToken(token), expires);
     }
 
+    public string GenerateRefreshToken()
+    {
+        var randomNumber = new byte[64];
+        using var rng = RandomNumberGenerator.Create();
+        rng.GetBytes(randomNumber);
+        return Convert.ToBase64String(randomNumber);
+    }
+
+    public async Task UpdateRefreshToken(UserModel user, string? refreshToken)
+    {
+        try
+        {
+            user.RefreshToken = refreshToken;
+            user.RefreshTokenExpiry = refreshToken != null 
+                ? DateTime.UtcNow.AddDays(
+                    _configuration.GetValue<int>("Jwt:RefreshTokenExpiryInDays", 7)) 
+                : null;
+
+            await _usersCollection.ReplaceOneAsync(u => u.Id == user.Id, user);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("Refresh token error: {Message}", e.Message);
+            throw;
+        }
+    }
+
+    public ClaimsPrincipal? GetPrincipalFromExpiredToken(string token)
+    {
+        try
+        {
+            var tokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!)),
+                ValidateIssuer = false,
+                ValidateAudience = false,
+                ValidateLifetime = false
+            };
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            return tokenHandler.ValidateToken(
+                token, 
+                tokenValidationParameters, 
+                out _);
+        }
+        catch
+        {
+            return null;
+        }
+    }
 }
