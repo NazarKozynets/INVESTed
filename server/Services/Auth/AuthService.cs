@@ -17,8 +17,8 @@ public class AuthService
     private readonly ILogger<AuthService> _logger;
 
     public AuthService(
-        IConfiguration configuration, 
-        MongoDbService mongoDbService, 
+        IConfiguration configuration,
+        MongoDbService mongoDbService,
         ILogger<AuthService> logger)
     {
         _configuration = configuration;
@@ -26,70 +26,78 @@ public class AuthService
         _logger = logger;
     }
 
-    public (bool success, string? userId, string? error) RegisterNewUser(RegisterModel user)
+    public async Task<(bool success, string? userId, string? error)> RegisterNewUserAsync(RegisterModel user)
     {
         try
         {
-            var existingUser = _usersCollection
+            var existingUser = await _usersCollection
                 .Find(u => u.Username == user.Username || u.Email == user.Email)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (existingUser != null)
             {
-                var error = existingUser.Email == user.Email 
-                    ? "EMAIL_EXISTS" 
+                var error = existingUser.Email == user.Email
+                    ? "EMAIL_EXISTS"
                     : "USERNAME_EXISTS";
                 return (false, null, error);
             }
 
             var newUser = new UserModel(
                 user.Username,
-                BCrypt.Net.BCrypt.HashPassword(user.Password),
+                BCrypt.Net.BCrypt.HashPassword(user.Password), 
                 user.Email,
                 user.Role
             );
 
-            _usersCollection.InsertOne(newUser);
+            await _usersCollection.InsertOneAsync(newUser);
             return (true, newUser.Id, null);
         }
         catch (Exception e)
         {
-            _logger.LogError("Registration error: {Message}", e.Message);
-            throw;
+            _logger.LogError(e, "Registration error");
+            return (false, null, "SERVER_ERROR");
         }
     }
 
-    public UserModel? AuthenticateUser(string email, string password)
+    public async Task<(UserModel? user, string? error)> AuthenticateUserAsync(
+        string email,
+        string password)
     {
         try
         {
-            var user = _usersCollection
+            var user = await _usersCollection
                 .Find(u => u.Email == email)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
-            return user != null && BCrypt.Net.BCrypt.Verify(password, user.Password) 
-                ? user 
-                : null;
+            if (user is null)
+                return (null, "EMAIL_NOT_FOUND");
+
+            if (!BCrypt.Net.BCrypt.Verify(password, user.Password))
+                return (null, "INVALID_PASSWORD");
+
+            return (user, null);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            _logger.LogError("Auth error: {Message}", e.Message);
-            throw;
+            _logger.LogError(ex, "Auth error");
+            return (null, "SERVER_ERROR");
         }
     }
 
     public (string token, DateTime expires) GenerateJwtToken(
-        string username, 
-        UserRole role, 
+        string username,
+        string email,
+        UserRole role,
         string userId)
     {
         var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!);
         var expires = DateTime.UtcNow.AddMinutes(
-            _configuration.GetValue<int>("Jwt:AccessTokenExpiryInMinutes", 30));
+            _configuration.GetValue<int>("Jwt:AccessTokenExpiryInMinutes", 60));
 
         var claims = new[]
         {
             new Claim(ClaimTypes.NameIdentifier, userId),
+            new Claim(ClaimTypes.Email, email),
             new Claim(ClaimTypes.Name, username),
             new Claim(ClaimTypes.Role, role.ToString()),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
@@ -115,47 +123,38 @@ public class AuthService
         return Convert.ToBase64String(randomNumber);
     }
 
-    public async Task UpdateRefreshToken(UserModel user, string? refreshToken)
+    public async Task UpdateRefreshTokenAsync(UserModel user, string? refreshToken)
     {
         try
         {
             user.RefreshToken = refreshToken;
-            user.RefreshTokenExpiry = refreshToken != null 
+            user.RefreshTokenExpiry = refreshToken is not null
                 ? DateTime.UtcNow.AddDays(
-                    _configuration.GetValue<int>("Jwt:RefreshTokenExpiryInDays", 7)) 
+                    _configuration.GetValue<int>("Jwt:RefreshTokenExpiryInDays", 7))
                 : null;
 
             await _usersCollection.ReplaceOneAsync(u => u.Id == user.Id, user);
         }
         catch (Exception e)
         {
-            _logger.LogError("Refresh token error: {Message}", e.Message);
+            _logger.LogError(e, "Refresh token error");
             throw;
         }
     }
 
-    public ClaimsPrincipal? GetPrincipalFromExpiredToken(string token)
+    public async Task<UserModel?> GetUserFromClaimsAsync(ClaimsPrincipal claimsPrincipal)
     {
         try
         {
-            var tokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(
-                    Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!)),
-                ValidateIssuer = false,
-                ValidateAudience = false,
-                ValidateLifetime = false
-            };
+            var userId = claimsPrincipal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return null;
 
-            var tokenHandler = new JwtSecurityTokenHandler();
-            return tokenHandler.ValidateToken(
-                token, 
-                tokenValidationParameters, 
-                out _);
+            return await _usersCollection.Find(u => u.Id == userId).FirstOrDefaultAsync();
         }
-        catch
+        catch (Exception e)
         {
+            _logger.LogError(e, "Error getting user from claims");
             return null;
         }
     }

@@ -2,7 +2,7 @@
 
 namespace server.models.user;
 
-public class ClientUser : UserModel, IProfileManagement
+public class ClientUser : UserModel
 {
     public ClientUser(string username, string password, string email, UserRole role)
         : base(username, password, email, role)

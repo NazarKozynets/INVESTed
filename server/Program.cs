@@ -3,11 +3,14 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using server;
+using server.Middlewares;
+using server.Services;
 using server.Services.DataBase;
 using server.services.auth;
+using server.Services.Idea;
+using server.Services.Profile;
 
 var builder = WebApplication.CreateBuilder(args);
-
 
 var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>()
                      ?? new[] { "http://localhost:5173", "http://localhost:5174" };
@@ -48,8 +51,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
+builder.Services.AddSingleton<WebSocketConnectionManager>();
 builder.Services.AddSingleton<MongoDbService>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<ProfileService>();
+builder.Services.AddScoped<IdeaService>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -59,8 +65,21 @@ builder.Services.AddControllers()
     });
 
 var app = builder.Build();
-
 app.UseCors("AllowFrontend");
+app.UseWebSockets(); 
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path == "/ws")
+    {
+        var manager = context.RequestServices.GetRequiredService<WebSocketConnectionManager>();
+        var middleware = new WebSocketMiddleware(next, manager);
+        await middleware.InvokeAsync(context);
+    }
+    else
+    {
+        await next(context);
+    }
+});
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

@@ -19,8 +19,8 @@ public class AuthController : ControllerBase
     private readonly IMongoCollection<UserModel> _usersCollection;
 
     public AuthController(
-        AuthService authService, 
-        ILogger<AuthController> logger, 
+        AuthService authService,
+        ILogger<AuthController> logger,
         MongoDbService mongoDbService)
     {
         _authService = authService;
@@ -34,20 +34,20 @@ public class AuthController : ControllerBase
         if (!HttpContext.User.Identity?.IsAuthenticated ?? true)
             return Unauthorized();
 
-        var expiresClaim = HttpContext.User.FindFirst(JwtRegisteredClaimNames.Exp)?.Value;
-        var expiresIn = expiresClaim != null 
-            ? DateTimeOffset.FromUnixTimeSeconds(long.Parse(expiresClaim)).DateTime 
-            : (DateTime?)null;
-
+        var expClaim = HttpContext.User.FindFirst(JwtRegisteredClaimNames.Exp)?.Value;
+        DateTime? exp = expClaim is not null
+            ? DateTimeOffset.FromUnixTimeSeconds(long.Parse(expClaim)).UtcDateTime
+            : null;
+        
         return Ok(new
         {
             userData = new
             {
-                userName = HttpContext.User.FindFirst(ClaimTypes.Name)?.Value,
+                username = HttpContext.User.FindFirst(ClaimTypes.Name)?.Value,
                 email = HttpContext.User.FindFirst(ClaimTypes.Email)?.Value,
                 role = HttpContext.User.FindFirst(ClaimTypes.Role)?.Value,
                 userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
-                expiresIn = expiresIn?.ToString("o")
+                expiresIn = exp?.ToString("o")
             }
         });
     }
@@ -59,39 +59,46 @@ public class AuthController : ControllerBase
         {
             if (string.IsNullOrWhiteSpace(registerData.Username))
                 return BadRequest(new { error = "USERNAME_REQUIRED" });
-            
-            if (string.IsNullOrWhiteSpace(registerData.Email) || 
+
+            if (string.IsNullOrWhiteSpace(registerData.Email) ||
                 !new EmailAddressAttribute().IsValid(registerData.Email))
                 return BadRequest(new { error = "INVALID_EMAIL" });
 
             if (string.IsNullOrWhiteSpace(registerData.Password))
                 return BadRequest(new { error = "PASSWORD_REQUIRED" });
 
-            var (success, userId, error) = _authService.RegisterNewUser(registerData);
+            var (success, userId, error) =
+                await _authService.RegisterNewUserAsync(registerData);
             if (!success)
-                return Conflict(new { error, message = error == "EMAIL_EXISTS" 
-                    ? "Email already exists" 
-                    : "Username already taken" });
+                return Conflict(new
+                {
+                    error,
+                    message = error == "EMAIL_EXISTS"
+                        ? "Email already exists"
+                        : "Username already taken"
+                });
 
-            var result = await GenerateAndSetTokens(
-                registerData.Username, 
-                registerData.Role, 
-                userId);
+            var tokens = await GenerateAndSetTokens(
+                registerData.Username,
+                registerData.Email,
+                registerData.Role,
+                userId!);
 
             return Ok(new
             {
-                userData = new { 
-                    userName = registerData.Username, 
-                    email = registerData.Email, 
-                    role = registerData.Role, 
+                userData = new
+                {
+                    username = registerData.Username,
+                    email = registerData.Email,
+                    role = registerData.Role,
                     userId,
-                    expiresIn = result.accessTokenExpiry.ToString("o") 
+                    expiresIn = tokens.accessTokenExpiry.ToString("o")
                 }
             });
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            _logger.LogError("Registration failed: {Message}", e.Message);
+            _logger.LogError(ex, "Registration failed");
             return StatusCode(500, new { error = "SERVER_ERROR" });
         }
     }
@@ -99,36 +106,38 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginModel login)
     {
-        try
+        if (string.IsNullOrWhiteSpace(login.Email) ||
+            string.IsNullOrWhiteSpace(login.Password))
+            return BadRequest(new { error = "INVALID_CREDENTIALS" });
+
+        var (user, error) = await _authService.AuthenticateUserAsync(login.Email, login.Password);
+
+        return error switch
         {
-            if (string.IsNullOrWhiteSpace(login.Email) || 
-                string.IsNullOrWhiteSpace(login.Password))
-                return BadRequest(new { error = "INVALID_CREDENTIALS" });
+            "EMAIL_NOT_FOUND"   => Unauthorized(new { error }),
+            "INVALID_PASSWORD"  => Unauthorized(new { error }),
+            "SERVER_ERROR"      => StatusCode(500, new { error }),
+            _ when user is null => Unauthorized(new { error = "AUTH_FAILED" }),
+            _ => await LoginSuccessAsync(user!)      
+        };
+    }
 
-            var user = _authService.AuthenticateUser(login.Email, login.Password);
-            if (user == null)
-                return Unauthorized(new { error = "AUTH_FAILED" });
+    private async Task<IActionResult> LoginSuccessAsync(UserModel user)
+    {
+        var tokens = await GenerateAndSetTokens(
+            user.Username, user.Email, user.Role, user.Id);
 
-            var result = await GenerateAndSetTokens(
-                user.Username, 
-                user.Role, 
-                user.Id);
-
-            return Ok(new {
-                userData = new {
-                    userId = user.Id,
-                    userName = user.Username,
-                    email = user.Email,
-                    role = user.Role,
-                    expiresIn = result.accessTokenExpiry.ToString("o")
-                }
-            });
-        }
-        catch (Exception e)
+        return Ok(new
         {
-            _logger.LogError("Login failed: {Message}", e.Message);
-            return StatusCode(500, new { error = "SERVER_ERROR" });
-        }
+            userData = new
+            {
+                userId = user.Id,
+                username = user.Username,
+                email = user.Email,
+                role = user.Role,
+                expiresIn = tokens.accessTokenExpiry.ToString("o")
+            }
+        });
     }
 
     [HttpPost("logout")]
@@ -140,9 +149,9 @@ public class AuthController : ControllerBase
             var user = await _usersCollection
                 .Find(u => u.Username == username)
                 .FirstOrDefaultAsync();
-            
-            if (user != null)
-                await _authService.UpdateRefreshToken(user, null);
+
+            if (user is not null)
+                await _authService.UpdateRefreshTokenAsync(user, null);
         }
 
         Response.Cookies.Delete("accessToken");
@@ -152,61 +161,57 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("refresh")]
-    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
+    public async Task<IActionResult> RefreshToken()
     {
         try
         {
-            if (string.IsNullOrEmpty(request.AccessToken) || 
-                string.IsNullOrEmpty(request.RefreshToken))
+            var refreshToken = Request.Cookies["refreshToken"];
+            if (string.IsNullOrEmpty(refreshToken))
                 return BadRequest(new { error = "TOKEN_REQUIRED" });
 
-            var principal = _authService.GetPrincipalFromExpiredToken(request.AccessToken);
-            var username = principal?.Identity?.Name;
-
-            if (string.IsNullOrEmpty(username))
-                return Unauthorized(new { error = "INVALID_TOKEN" });
-
             var user = await _usersCollection
-                .Find(u => u.Username == username)
+                .Find(u => u.RefreshToken == refreshToken)
                 .FirstOrDefaultAsync();
 
-            if (user == null || 
-                user.RefreshToken != request.RefreshToken || 
-                user.RefreshTokenExpiry <= DateTime.UtcNow)
+            if (user is null || user.RefreshTokenExpiry <= DateTime.UtcNow)
                 return Unauthorized(new { error = "INVALID_REFRESH_TOKEN" });
 
-            var result = await GenerateAndSetTokens(
-                user.Username, 
-                user.Role, 
+            var tokens = await GenerateAndSetTokens(
+                user.Username,
+                user.Email,
+                user.Role,
                 user.Id);
 
-            return Ok(new
-            {
-                expiresIn = result.accessTokenExpiry.ToString("o")
-            });
+            return Ok(new { expiresIn = tokens.accessTokenExpiry.ToString("o") });
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            _logger.LogError("Refresh failed: {Message}", e.Message);
+            _logger.LogError(ex, "Refresh failed");
             return Unauthorized(new { error = "REFRESH_FAILED" });
         }
     }
 
-    private async Task<(string accessToken, string refreshToken, DateTime accessTokenExpiry, DateTime refreshTokenExpiry)> 
-        GenerateAndSetTokens(string username, UserRole role, string userId)
+    private async Task<(string accessToken,
+                        string refreshToken,
+                        DateTime accessTokenExpiry,
+                        DateTime refreshTokenExpiry)>
+        GenerateAndSetTokens(string username, string email, UserRole role, string userId)
     {
-        var (accessToken, accessTokenExpiry) = _authService.GenerateJwtToken(
-            username, role, userId);
-        
+        var (accessToken, accessTokenExpiry) =
+            _authService.GenerateJwtToken(username, email, role, userId);
+
         var refreshToken = _authService.GenerateRefreshToken();
-        var refreshTokenExpiry = DateTime.UtcNow.AddDays(7);
+        var refreshTokenExpiry = DateTime.UtcNow
+            .AddDays(HttpContext.RequestServices
+                .GetRequiredService<IConfiguration>()
+                .GetValue<int>("Jwt:RefreshTokenExpiryInDays", 7));
 
         var user = await _usersCollection
-            .Find(u => u.Username == username)
+            .Find(u => u.Id == userId)
             .FirstOrDefaultAsync();
-        
-        if (user != null)
-            await _authService.UpdateRefreshToken(user, refreshToken);
+
+        if (user is not null)
+            await _authService.UpdateRefreshTokenAsync(user, refreshToken);
 
         Response.Cookies.Append("accessToken", accessToken, new CookieOptions
         {
