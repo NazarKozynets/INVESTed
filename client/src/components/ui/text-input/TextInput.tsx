@@ -1,6 +1,7 @@
 import './text-input.css';
+import { InputHTMLAttributes } from 'react';
 
-interface TextInputProps {
+interface TextInputProps extends InputHTMLAttributes<HTMLInputElement> {
     name: string;
     placeholder: string;
     value: string;
@@ -10,7 +11,7 @@ interface TextInputProps {
     id?: string;
 }
 
-export const TextInput = ({name, placeholder, value, setValue, type, className, id}: TextInputProps) => {
+export const TextInput = ({ name, placeholder, value, setValue, type, className, id, ...rest }: TextInputProps) => {
     return (
         <div className={`text-input-container ${className}`} id={id}>
             <input
@@ -23,6 +24,7 @@ export const TextInput = ({name, placeholder, value, setValue, type, className, 
                 style={{
                     width: '95%',
                 }}
+                {...rest}
             />
         </div>
     );

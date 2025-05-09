@@ -1,18 +1,30 @@
 export type UserRole = "client" | "moderator" | "admin";
 
 export const AuthError = {
-    INVALID_CREDENTIALS: "Invalid email or password",
     EMAIL_EXISTS: "Email already registered",
     USERNAME_EXISTS: "Username already taken",
+
+    EMAIL_NOT_FOUND: "Email not found",
+    INVALID_PASSWORD: "Invalid password",
+    INVALID_CREDENTIALS: "Invalid email or password",
+
     ACCOUNT_LOCKED: "Account temporarily locked",
     EMAIL_NOT_VERIFIED: "Please verify your email first",
 } as const;
 
 export type AuthErrorCode = keyof typeof AuthError;
 
+
+export const getAuthErrorMessage = (
+    code?: string,
+    fallback = "An unexpected error occurred. Please try again later."
+): string =>
+    code && code in AuthError ? AuthError[code as AuthErrorCode] : fallback;
+
+
 export interface UserData {
     userId: string;
-    userName: string;
+    username: string;
     email: string;
     role: UserRole;
     expiresIn?: string;
@@ -28,7 +40,7 @@ export interface AuthRequestData {
 export interface AuthResponseData {
     userData: {
         userId: string;
-        userName: string;
+        username: string;
         email: string;
         role: UserRole;
         expiresIn: string;

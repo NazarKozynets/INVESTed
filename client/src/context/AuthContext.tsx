@@ -54,9 +54,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
-
     const updateAuthState = (userData: UserData | null) => {
-        console.log("userData updateAuthState", userData);
         const isAuthenticated = Boolean(userData && isTokenValid(userData.expiresIn));
         setAuthState({ userData, isAuthenticated });
 
@@ -72,7 +70,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setIsLoading(true);
             try {
                 const { userData } = await checkAuth();
-                console.log("userData", JSON.stringify(userData));
                 updateAuthState(userData && isTokenValid(userData.expiresIn) ? userData : null);
             } catch (error) {
                 updateAuthState(null);

@@ -31,8 +31,8 @@ export const LoginForm = ({ emailInput, setEmailInput, setIsSignup }: AuthFormPr
 
         try {
             const result = await onLogin({
-                email: emailInput,
-                password: passwordInput,
+                email: emailInput.trim().toLowerCase(),
+                password: passwordInput.trim(),
             });
 
             if (result.userData) {
@@ -57,6 +57,11 @@ export const LoginForm = ({ emailInput, setEmailInput, setIsSignup }: AuthFormPr
                     value={emailInput}
                     setValue={setEmailInput}
                     type="text"
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                            handleLogin();
+                        }
+                    }}
                 />
             </div>
             <div id="buttons-block">
@@ -105,6 +110,11 @@ export const LoginForm = ({ emailInput, setEmailInput, setIsSignup }: AuthFormPr
                     setValue={setPasswordInput}
                     id="input"
                     type="password"
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                            handleLogin();
+                        }
+                    }}
                 />
             </div>
             <div id="buttons-block">

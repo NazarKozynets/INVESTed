@@ -8,9 +8,12 @@ import githubIcon from "../../../assets/bi_github.svg";
 import facebookIcon from "../../../assets/logos_facebook.svg";
 import {AuthFormProps} from "../../../types/auth.types.ts";
 import {validateEmail, validatePassword} from "../../../utils/functions/validations.ts";
+import {useNavigate} from "react-router-dom";
 
 export const SignupForm = ({emailInput, setEmailInput, setIsSignup}: AuthFormProps) => {
     const { onRegister } = useAuth();
+
+    const navigate = useNavigate();
 
     const [usernameInput, setUsernameInput] = useState("");
     const [passwordInput, setPasswordInput] = useState("");
@@ -19,10 +22,8 @@ export const SignupForm = ({emailInput, setEmailInput, setIsSignup}: AuthFormPro
     const handleSignup = async () => {
         if (!onRegister) return;
 
-        // Clear previous errors
         toast.dismiss();
 
-        // Client-side validation
         if (!usernameInput.trim()) {
             toast.error("Username is required", { toastId: "username-error" });
             return;
@@ -48,9 +49,9 @@ export const SignupForm = ({emailInput, setEmailInput, setIsSignup}: AuthFormPro
 
         try {
             const result = await onRegister({
-                username: usernameInput,
-                email: emailInput,
-                password: passwordInput,
+                username: usernameInput.trim(),
+                email: emailInput.trim().toLowerCase(),
+                password: passwordInput.trim(),
                 userRole: "client"
             });
 
@@ -59,13 +60,12 @@ export const SignupForm = ({emailInput, setEmailInput, setIsSignup}: AuthFormPro
                     autoClose: 3000,
                     toastId: "signup-success"
                 });
-                // Optionally redirect user here
+                navigate("/home");
             }
         } catch (error) {
             let errorMessage = "Registration failed";
 
             if (error instanceof Error) {
-                // Handle specific field errors
                 if (error.message.startsWith("username:")) {
                     errorMessage = error.message.replace("username: ", "");
                 }
@@ -118,6 +118,11 @@ export const SignupForm = ({emailInput, setEmailInput, setIsSignup}: AuthFormPro
                            value={confirmPassword}
                            setValue={setConfirmPassword}
                            id='confirm-password-input'
+                           onKeyDown={(e) => {
+                               if (e.key === 'Enter') {
+                                   handleSignup();
+                               }
+                           }}
                            type='password'/>
             </div>
             <div id='buttons-block'>

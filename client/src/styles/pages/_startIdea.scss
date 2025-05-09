@@ -1,0 +1,50 @@
+.section-start-idea {
+  width: 60%;
+  margin: 0 auto;
+
+  #header {
+    font-size: 22px;
+    margin-left: 15px;
+  }
+}
+
+.start-idea-form {
+  height: auto;
+  padding: 20px;
+  border-radius: 8px;
+
+  .form-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .form-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    label {
+      color: #ffffff;
+      font-size: 16px;
+    }
+
+    .hint-text {
+      color: #888888;
+      font-size: 12px;
+      margin: 0;
+    }
+  }
+
+  .form-input {
+    background-color: #2a2a2a;
+    border: 1px solid #444444;
+    border-radius: 4px;
+    padding: 5px;
+  }
+
+  .start-idea-submit-btn {
+    height: 50px;
+    margin-top: 10px;
+  }
+}

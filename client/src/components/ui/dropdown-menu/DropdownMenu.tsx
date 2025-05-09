@@ -1,16 +1,32 @@
-import { useState } from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import './dropdown-menu.css';
 
-export const DropdownMenu = () => {
+interface DropdownMenuProps {
+    options: string[];
+    placeholder?: string;
+    onSelect?: (e: any) => void;
+}
+
+export const DropdownMenu = ({options, placeholder = "SELECT OPTION", onSelect} : DropdownMenuProps) => {
     const [isOpen, setIsOpen] = useState(false);
     const [selectedOption, setSelectedOption] = useState<string | null>(null);
+    const dropdownMenuRef = useRef<HTMLDivElement>(null);
 
-    const options = [
-        "OPTION 1",
-        "OPTION 2",
-        "OPTION 3",
-        "OPTION 4"
-    ];
+    const handleClickOutside = useCallback((event: MouseEvent) => {
+        if (dropdownMenuRef.current && !dropdownMenuRef.current.contains(event.target as Node)) {
+            setIsOpen(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (isOpen) {
+            document.addEventListener('click', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('click', handleClickOutside);
+        };
+    }, [isOpen, handleClickOutside]);
 
     const toggleDropdown = () => {
         setIsOpen(!isOpen);
@@ -18,13 +34,14 @@ export const DropdownMenu = () => {
 
     const handleOptionClick = (option: string) => {
         setSelectedOption(option);
+        onSelect && onSelect(option);
         setIsOpen(false);
     };
 
     return (
-        <div className="dropdown-menu">
+        <div className="dropdown-menu" ref={dropdownMenuRef}>
             <div className={`dropdown-header ${isOpen ? 'open' : ''}`} onClick={toggleDropdown}>
-                {selectedOption || "SELECT OPTION"}
+                {selectedOption || placeholder}
                 <span className={`dropdown-arrow ${isOpen ? 'open' : ''}`}>▼</span>
             </div>
 

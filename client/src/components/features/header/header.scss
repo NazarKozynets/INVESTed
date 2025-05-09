@@ -17,6 +17,7 @@
   #links {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     width: 35%;
 
     a {
@@ -47,6 +48,7 @@
     }
 
     .dropdown-menu {
+      z-index: 100;
       position: absolute;
       top: 50px;
       right: 0;

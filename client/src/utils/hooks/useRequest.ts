@@ -1,41 +1,46 @@
 import axios from "axios";
-import {handleApiError} from "../../services/api/error.api.ts";
+import {AuthErrorCode} from "../../types/auth.types.ts";
 import {logoutUser, refreshTokens} from "../../services/auth/auth.api.ts";
+import {handleApiError} from "../../services/api/error.api.ts";
 
 export type HttpMethods = "get" | "post" | "put" | "delete" | "patch";
 
-export const useRequest = async <T = any>(
+const shouldTryRefresh = (err: unknown): boolean => {
+    if (!axios.isAxiosError(err) || err.response?.status !== 401) return false;
+
+    const code = (err.response?.data as { error?: string })?.error as
+        | AuthErrorCode
+        | undefined;
+
+    return !(code === "EMAIL_NOT_FOUND" || code === "INVALID_PASSWORD");
+};
+
+export const useRequest = async <T = unknown>(
     requestUrl: string,
     httpMethod: HttpMethods,
     requestData?: unknown
 ): Promise<T> => {
     try {
-        const response = await axios({
+        const { data } = await axios({
             method: httpMethod,
             url: `${import.meta.env.VITE_API_URL}/${requestUrl}`,
-            data: requestData,
+            data: requestData ?? {},
             withCredentials: true,
-            headers: {
-                "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
         });
-        return response.data as T;
+
+        return data as T;
     } catch (error) {
-        if (axios.isAxiosError(error) && error.response?.status === 401) {
+        if (shouldTryRefresh(error)) {
             try {
-                console.log('client tried to refresh token');
                 await refreshTokens();
                 return useRequest<T>(requestUrl, httpMethod, requestData);
-            } catch (refreshError) {
-                if (axios.isAxiosError(refreshError) && refreshError.response?.status === 401) {
-                    await logoutUser();
-                }
-                throw error;
+            } catch (refreshErr) {
+                await logoutUser();
             }
         }
 
         handleApiError(error);
-
         throw error;
     }
 };
