@@ -7,6 +7,7 @@ import {useStartIdeaStore} from "../../store/StartIdeaStore.ts";
 import {startIdea} from "../../services/idea/start-idea.api.ts";
 import {StartIdeaRequest} from "../../types/idea.types.ts";
 import {parse} from "date-fns";
+import {toast} from "react-toastify";
 
 export const StartIdea = () => {
     const {
@@ -19,6 +20,7 @@ export const StartIdea = () => {
         setDescription,
         setTargetAmount,
         setDeadline,
+        clear
     } = useStartIdeaStore();
 
     const isIdeaReady =
@@ -57,7 +59,13 @@ export const StartIdea = () => {
                 fundingDeadline: parsedDeadline,
                 creatorId: null
             };
-            await startIdea(startIdeaRequestBody);
+
+            const response = await startIdea(startIdeaRequestBody);
+
+            if (response?.id) {
+                clear()
+                toast.success("Idea created successfully.");
+            }
         } catch (error) {
             console.error(error);
         }

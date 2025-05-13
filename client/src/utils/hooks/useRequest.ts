@@ -18,7 +18,8 @@ const shouldTryRefresh = (err: unknown): boolean => {
 export const useRequest = async <T = unknown>(
     requestUrl: string,
     httpMethod: HttpMethods,
-    requestData?: unknown
+    requestData?: unknown,
+    refreshAttempt: number = 0
 ): Promise<T> => {
     try {
         const { data } = await axios({
@@ -31,10 +32,10 @@ export const useRequest = async <T = unknown>(
 
         return data as T;
     } catch (error) {
-        if (shouldTryRefresh(error)) {
+        if (shouldTryRefresh(error) && refreshAttempt < 2) {
             try {
                 await refreshTokens();
-                return useRequest<T>(requestUrl, httpMethod, requestData);
+                return useRequest<T>(requestUrl, httpMethod, requestData, refreshAttempt + 1);
             } catch (refreshErr) {
                 await logoutUser();
             }

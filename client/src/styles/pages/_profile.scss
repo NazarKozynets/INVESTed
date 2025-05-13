@@ -59,11 +59,22 @@
   }
 
   .account-own-ideas-form {
-    margin: 0 auto;
+    margin: 0 auto 50px;
     width: 50%;
     display: flex;
     flex-direction: column;
-    padding-bottom: 25px;
+    padding-bottom: 50px;
+
+    #header {
+      margin: 30px auto;
+    }
+
+    #ideas {
+      padding: 0 50px;
+      display: flex;
+      flex-direction: column;
+      gap: 35px;
+    }
   }
 
   .account-settings-form {

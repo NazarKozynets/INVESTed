@@ -1,10 +1,9 @@
+import {SortedIdeas} from "../../components/layout/home/SortedIdeas.tsx";
+
 export const HomePage = () => {
     return (
         <section className='home-page'>
-            <p>home page</p>
-            <p>home page</p>
-            <p>home page</p>
-            <p>home page</p>
+            <SortedIdeas/>
         </section>
     )
 }

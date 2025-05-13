@@ -4,6 +4,8 @@ import {HomePage} from "../pages/home/HomePage.tsx";
 import {AboutUsPage} from "../pages/about/AboutUsPage.tsx";
 import {Profile} from "../pages/profile/Profile.tsx";
 import {StartIdea} from "../pages/start-idea/StartIdea.tsx";
+import {IdeaDetails} from "../pages/idea-details/IdeaDetails.tsx";
+import {IdeasAll} from "../components/features/ideas/IdeasAll.tsx";
 
 export const routes: IRoute[] = [
     {
@@ -34,6 +36,18 @@ export const routes: IRoute[] = [
         name: 'StartIdea',
         path: '/ideas/start',
         component: StartIdea,
+        isProtected: true
+    },
+    {
+        name: "IdeaDetails",
+        path: '/ideas/details/:idea-id',
+        component: IdeaDetails,
+        isProtected: true
+    },
+    {
+        name: "IdeasAll",
+        path: "ideas/all",
+        component: IdeasAll,
         isProtected: true
     }
 ]

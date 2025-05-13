@@ -6,7 +6,6 @@ import {ToastContainer, Zoom} from "react-toastify";
 import {AuthProvider} from "./context/AuthContext.tsx";
 import {ProtectedRoute} from "./navigation/ProtectedRoute.tsx";
 import {Header} from "./components/features/header/Header.tsx";
-import {WebSocketProvider} from "./context/WebSocketProvider.tsx";
 
 const AdvancedToastContainer = () => {
     return <ToastContainer
@@ -36,7 +35,7 @@ export const App = () => {
     return (
         <QueryClientProvider client={queryClient}>
             <AuthProvider>
-                <WebSocketProvider>
+                {/*<WebSocketProvider>*/}
                     <Router>
                         <Routes>
                             {routes.map(({path, component: Component, isProtected}, index) => (
@@ -60,7 +59,7 @@ export const App = () => {
                         <Background/>
                     </Router>
                     <AdvancedToastContainer/>
-                </WebSocketProvider>
+                {/*</WebSocketProvider>*/}
             </AuthProvider>
         </QueryClientProvider>
     );

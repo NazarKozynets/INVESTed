@@ -1,14 +1,14 @@
-import { useEffect, useState, useRef } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import {useEffect, useState, useRef} from "react";
+import {NavLink, useLocation} from "react-router-dom";
 import "./header.scss";
 import logoImg from "../../../assets/logo.svg";
 import exitImg from "../../../assets/exit-2860.svg";
-import { useAuth } from "../../../context/AuthContext.tsx";
-import { UserProfileIcon } from "../profile-icon/UserProfileIcon.tsx";
-import { DropdownMenu } from "../../ui/dropdown-menu/DropdownMenu.tsx";
+import {useAuth} from "../../../context/AuthContext.tsx";
+import {UserProfileIcon} from "../profile-icon/UserProfileIcon.tsx";
+import {DropdownMenu} from "../../ui/dropdown-menu/DropdownMenu.tsx";
 
 export const Header = () => {
-    const { authState, onLogout } = useAuth();
+    const {authState, onLogout} = useAuth();
     const location = useLocation();
     const [profileMenuVisible, setProfileMenuVisible] = useState(false);
     const profileMenuRef = useRef<HTMLDivElement>(null);
@@ -52,7 +52,7 @@ export const Header = () => {
     return (
         <div className="header">
             <div id="logo">
-                <img src={logoImg} alt="logo" />
+                <img src={logoImg} alt="logo"/>
             </div>
             <div id="links">
                 <NavLink to="/" className={location.pathname === "/home" ? "links-current" : ""}>
@@ -74,18 +74,19 @@ export const Header = () => {
                     onSelect={(e) => {
                         e === "Start Idea"
                             ? (window.location.href = `/ideas/start`)
-                            : (window.location.href = `/${e.toLowerCase()}`);
+                            : e === "Ideas" ? (window.location.href = `/ideas/all`)
+                                : (window.location.href = `/${e.toLowerCase()}`);
                     }}
                 />
             </div>
             <div id="user-pfp" onClick={toggleProfileMenu}>
-                <UserProfileIcon username={authState.userData?.username!} />
+                <UserProfileIcon username={authState.userData?.username!}/>
                 {profileMenuVisible && (
                     <div className="dropdown-menu" ref={profileMenuRef}>
                         <NavLink to={`/profile/${authState.userData?.username}`}>My Profile</NavLink>
                         <button onClick={handleLogout}>
                             <p>Logout</p>
-                            <img src={exitImg} alt="" />
+                            <img src={exitImg} alt=""/>
                         </button>
                     </div>
                 )}

@@ -18,14 +18,42 @@ export interface StartIdeaRequest {
     creatorId: string | null,
 }
 
-export interface Idea {
+export interface IdeaType {
+    ideaId: string;
     ideaName: string;
     ideaDescription: string;
     targetAmount: number;
+    alreadyCollected: number;
     fundingDeadline: Date;
     canEdit?: boolean | false;
+    creatorUsername?: string | null;
 }
 
-export interface GetAllClientIdeasResponse {
-    ideas: Array<Idea>;
+export interface GetLimitedAmountOfSortedIdeasResponse {
+    ideas: Array<IdeaType>;
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
 }
+
+export const sortIdeasOptions = [
+    "Best Rated",         // Rating desc
+    "Newest",             // CreatedAt desc
+    "Lowest Target",      // TargetAmount asc
+    "Most Funded",        // AlreadyCollected desc
+    "Ending Soon",        // FundingDeadline asc
+] as const;
+
+export type SortIdeaOption = typeof sortIdeasOptions[number];
+
+export type SortIdeaByField = 'Rating' | 'CreatedAt' | 'TargetAmount' | 'AlreadyCollected' | 'FundingDeadline';
+export type SortIdeaOrder = 'asc' | 'desc';
+
+export const sortMappings: Record<SortIdeaOption, { sortBy: SortIdeaByField; sortOrder: SortIdeaOrder }> = { //backend sort mapping
+    "Best Rated": { sortBy: "Rating", sortOrder: "desc" },
+    "Newest": { sortBy: "CreatedAt", sortOrder: "desc" },
+    "Lowest Target": { sortBy: "TargetAmount", sortOrder: "asc" },
+    "Most Funded": { sortBy: "AlreadyCollected", sortOrder: "desc" },
+    "Ending Soon": { sortBy: "FundingDeadline", sortOrder: "asc" },
+};

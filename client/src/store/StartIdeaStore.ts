@@ -17,6 +17,7 @@ interface StartIdeaStore {
     setDescription: (value: string) => void;
     setTargetAmount: (value: string) => void;
     setDeadline: (value: string) => void;
+    clear: () => void;
 }
 
 const validateIdeaName = (value: string): string => {
@@ -87,6 +88,19 @@ export const useStartIdeaStore = create<StartIdeaStore>()(
                     },
                 }));
             },
+            clear: () =>
+                set(() => ({
+                    projectName: "",
+                    description: "",
+                    targetAmount: "",
+                    deadline: "",
+                    errors: {
+                        projectName: "",
+                        description: "",
+                        targetAmount: "",
+                        deadline: "",
+                    },
+                })),
         }),
         {
             name: "start-idea-store",

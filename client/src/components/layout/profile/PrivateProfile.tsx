@@ -10,14 +10,15 @@ import {toast} from "react-toastify";
 import {validateEmail} from "../../../utils/functions/validations.ts";
 import {LoadingOverlay} from "../../ui/loading-overlay/LoadingOverlay.tsx";
 import {getAllClientIdeas} from "../../../services/idea/get-ideas.api.ts";
-import {GetAllClientIdeasResponse} from "../../../types/idea.types.ts";
+import {IdeaType} from "../../../types/idea.types.ts";
+import {Idea} from "../../features/ideas/Idea.tsx";
 
 const AccountOwnIdeas = () => {
     const { authState } = useAuth();
 
     const id = authState?.userData?.userId;
 
-    const { data, isLoading, isError } = useQuery<GetAllClientIdeasResponse>({
+    const { data, isLoading, isError } = useQuery<Array<IdeaType>>({
         queryKey: ["clientIdeas", id],
         queryFn: () => getAllClientIdeas(id || ""),
         enabled: !!id,
@@ -43,25 +44,15 @@ const AccountOwnIdeas = () => {
     }
 
     return (
-        <Form className="account-own-ideas-form">
-            <div>
-                <h2>Your Ideas</h2>
-                {data.ideas.length > 0 ? (
-                    <ul>
-                        {data.ideas.map((idea, index) => (
-                            <li key={index}>
-                                <p><strong>Name:</strong> {idea.ideaName}</p>
-                                <p><strong>Description:</strong> {idea.ideaDescription}</p>
-                                <p><strong>Target Amount:</strong> ${idea.targetAmount}</p>
-                                <p><strong>Deadline:</strong> {new Date(idea.fundingDeadline).toLocaleDateString()}</p>
-                                <p><strong>Can Edit:</strong> {idea.canEdit ? "Yes" : "No"}</p>
-                            </li>
-                        ))}
-                    </ul>
-                ) : (
-                    <p>You have no ideas yet.</p>
-                )}
-            </div>
+        <Form className="account-own-ideas-form" style={{width: data.length === 0 ? '50%' : '60%'}}>
+                <h2 id="header">My Ideas</h2>
+               <div id="ideas">
+                   {data.length > 0 ? data.map((idea: IdeaType, index) => (
+                       <Idea key={index} idea={idea} />
+                   )) : (
+                       <p>You have no ideas yet.</p>
+                   )}
+               </div>
         </Form>
     );
 };

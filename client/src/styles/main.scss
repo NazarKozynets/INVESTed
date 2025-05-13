@@ -1,4 +1,6 @@
-@import "pages/authPage";
+@use "pages/authPage";
+@use "pages/profile";
+@use "pages/homePage";
 
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;500;600;700&display=swap');
 
@@ -30,7 +32,7 @@ body {
 
 .error-text {
   color: red;
-}
+ }
 
 .in-out-form-container {
   visibility: hidden;
