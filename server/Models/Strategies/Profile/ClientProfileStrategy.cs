@@ -6,9 +6,9 @@ namespace server.Models.Strategies;
 
 public class ClientProfileStrategy : IProfileStrategy
 {
-    public object GetProfile(UserModel targetUser, bool isOwner)
+    public GetUserProfileModel GetProfile(UserModel targetUser, bool isOwner)
     {
-        return new 
+        return new GetUserProfileModel
         {
             Username = targetUser.Username,
             Email = isOwner ? targetUser.Email : null, 

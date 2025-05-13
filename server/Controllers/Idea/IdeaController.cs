@@ -35,6 +35,58 @@ public class IdeaController : ControllerBase
             };
         }
 
-        return !string.IsNullOrWhiteSpace(createdIdeaId) ? Ok(new { id = createdIdeaId }) : StatusCode(500, new { error = "SERVER_ERROR" });
+        if (string.IsNullOrWhiteSpace(createdIdeaId))
+        {
+            return StatusCode(500, new { error = "SERVER_ERROR" });
+        }
+
+        return Created("idea/start", new { id = createdIdeaId });
+    }
+
+    // [AllowAnonymous]
+    [HttpGet("get/all/{userId}")]
+    public async Task<ActionResult<object>> GetAllUserIdeas(string userId)
+    {
+        var (ideas, error) = await _ideaService.GetAllUserIdeasAsync(userId, User);
+
+        if (error != null)
+        {
+            return error switch
+            {
+                "SERVER_ERROR" => StatusCode(500, new { error }),
+                _ => StatusCode(500, new { error }),
+            };
+        }
+        
+        return Ok(ideas);
+    }
+    
+    [HttpGet("get/sorted")]
+    public async Task<ActionResult<object>> GetLimitedAmountOfSortedIdeas(
+        [FromQuery] int page = 1,
+        [FromQuery] int limit = 10,
+        [FromQuery] string sortBy = "Rating",
+        [FromQuery] string sortOrder = "desc")
+    {
+        var (ideas, total, error) = await _ideaService.GetLimitedAmountOfSortedIdeasAsync(page, limit, sortBy, sortOrder, User);
+
+        if (error != null)
+        {
+            return error switch
+            {
+                "INVALID_PARAMETERS" => BadRequest(new { error }),
+                "SERVER_ERROR" => StatusCode(500, new { error }),
+                _ => StatusCode(500, new { error }),
+            };
+        }
+
+        return Ok(new
+        {
+            ideas,
+            total,
+            page,
+            limit,
+            totalPages = (int)Math.Ceiling((double)total / limit)
+        });
     }
 }

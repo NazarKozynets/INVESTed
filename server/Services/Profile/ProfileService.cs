@@ -25,7 +25,7 @@ public class ProfileService
         _authService = authService;
     }
 
-    public async Task<(object? data, string? error)> GetUserProfileAsync(string username, ClaimsPrincipal userClaims)
+    public async Task<(object? data, string? error)> GetUserProfileByUsernameAsync(string username, ClaimsPrincipal userClaims)
     {
         try
         {
@@ -53,6 +53,34 @@ public class ProfileService
         }
     }
 
+    public async Task<(object? data, string? error)> GetUserProfileByIdAsync(string id, ClaimsPrincipal userClaims)
+    {
+        try
+        {
+            var currentUser = await _authService.GetUserFromClaimsAsync(userClaims);
+
+            if (currentUser == null)
+                return (null, "INVALID_CREDENTIALS");
+        
+            var targetUser = await _usersCollection.Find(u => u.Id == id).FirstOrDefaultAsync();
+            if (targetUser == null)
+            {
+                _logger.LogWarning("User {id} doesn't exist", id);
+                return (null, "USER_NOT_FOUND");
+            }
+        
+            var strategy = ProfileStrategyFactory.GetProfileStrategy(currentUser.Role);
+            var profileData = strategy.GetProfile(targetUser, currentUser.Id == targetUser.Id);
+        
+            return (profileData, null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting user profile");
+            return (null, "SERVER_ERROR");
+        }
+    }
+    
     public async Task<(object? data, string? error)> UpdateUserProfileFieldsAsync(
         UpdateProfileFieldsModel data, ClaimsPrincipal userClaims)
     {

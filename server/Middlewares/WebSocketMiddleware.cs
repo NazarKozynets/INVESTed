@@ -1,55 +1,39 @@
 ﻿using System.Net.WebSockets;
-using System.Text;
-using server.Services;
+using System.Security.Claims;
+using server.WebSockets;
 
-namespace server.Middlewares
+public class WebSocketMiddleware
 {
-    public class WebSocketMiddleware
+    private readonly RequestDelegate _next;
+    private readonly WebSocketConnectionManager _manager;
+    private readonly WebSocketMessageRouter _router;
+
+    public WebSocketMiddleware(RequestDelegate next, WebSocketConnectionManager manager, WebSocketMessageRouter router)
     {
-        private readonly RequestDelegate _next;
-        private readonly WebSocketConnectionManager _manager;
+        _next = next;
+        _manager = manager;
+        _router = router;
+    }
 
-        public WebSocketMiddleware(RequestDelegate next, WebSocketConnectionManager manager)
+    public async Task InvokeAsync(HttpContext context)
+    {
+        if (!context.WebSockets.IsWebSocketRequest)
         {
-            _next = next;
-            _manager = manager;
+            await _next(context);
+            return;
         }
 
-        public async Task InvokeAsync(HttpContext context)
+        var socket = await context.WebSockets.AcceptWebSocketAsync();
+        var userId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(userId))
         {
-            if (!context.WebSockets.IsWebSocketRequest)
-            {
-                await _next(context);
-                return;
-            }
-
-            var socket = await context.WebSockets.AcceptWebSocketAsync();
-            var socketId = _manager.AddSocket(socket);
-
-            await Receive(socket, async (result, buffer) =>
-            {
-                if (result.MessageType == WebSocketMessageType.Text)
-                {
-                    var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                    // обработка сообщения
-                    await _manager.SendMessageToAllAsync($"{socketId}: {message}");
-                }
-                else if (result.MessageType == WebSocketMessageType.Close)
-                {
-                    await _manager.RemoveSocket(socketId);
-                }
-            });
+            await socket.CloseAsync(WebSocketCloseStatus.PolicyViolation, "Unauthorized", CancellationToken.None);
+            return;
         }
 
-        private async Task Receive(WebSocket socket, Action<WebSocketReceiveResult, byte[]> handleMessage)
-        {
-            var buffer = new byte[1024 * 4];
-
-            while (socket.State == WebSocketState.Open)
-            {
-                var result = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-                handleMessage(result, buffer);
-            }
-        }
+        _manager.AddSocket(userId, socket);
+        await _router.ListenAsync(socket);
+        await _manager.RemoveSocketAsync(userId);
     }
 }

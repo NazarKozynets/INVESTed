@@ -21,9 +21,9 @@ public class ProfileController : ControllerBase
     }
 
     [HttpGet("{username}")]
-    public async Task<ActionResult<object>> GetUser(string username)
+    public async Task<ActionResult<object>> GetUserByUsername(string username)
     {
-        var (data, error) = await _profileService.GetUserProfileAsync(username, User);
+        var (data, error) = await _profileService.GetUserProfileByUsernameAsync(username, User);
         return error switch
         {
             "INVALID_CREDENTIALS" => Unauthorized(new { error }),
