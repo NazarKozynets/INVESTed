@@ -26,3 +26,4 @@ export interface UpdateProfileFieldsRequestData {
     username?: string;
     email?: string;
 }
+

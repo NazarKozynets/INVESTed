@@ -2,6 +2,7 @@ import {ComponentType} from "react";
 
 export type TypeRootStackParamList = {
     Auth: undefined
+    ResetPassword: undefined
     Home: undefined
     About: undefined
     Profile: { userId: string }

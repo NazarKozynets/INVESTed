@@ -8,6 +8,8 @@ export const AuthError = {
     INVALID_PASSWORD: "Invalid password",
     INVALID_CREDENTIALS: "Invalid email or password",
 
+    INVALID_OR_EXPIRED_TOKEN_RESET_PASSWORD: "Failed to reset password. The link may be expired.",
+
     ACCOUNT_LOCKED: "Account temporarily locked",
     EMAIL_NOT_VERIFIED: "Please verify your email first",
 } as const;
@@ -59,4 +61,8 @@ export interface AuthFormProps {
     emailInput: string;
     setEmailInput: (input: string) => void;
     setIsSignup: (input: boolean) => void;
+}
+
+export interface ResetPasswordRequest {
+
 }

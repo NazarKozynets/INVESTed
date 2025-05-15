@@ -12,7 +12,7 @@ export const getAllClientIdeas = async (clientId: string): Promise<Array<IdeaTyp
 
 export const getLimitedAmountOfSortedIdeas = async (
     page: number = 1,
-    limit: number = 10,
+    limit: number = 6,
     sortBy: SortIdeaByField = 'Rating',
     sortOrder: SortIdeaOrder = 'desc'
 ): Promise<GetLimitedAmountOfSortedIdeasResponse> => {
@@ -23,7 +23,5 @@ export const getLimitedAmountOfSortedIdeas = async (
         sortOrder,
     }).toString();
 
-    const res = await useRequest<GetLimitedAmountOfSortedIdeasResponse>(`idea/get/sorted?${queryParams}`, 'get');
-    console.log(res)
-    return res;
+    return await useRequest<GetLimitedAmountOfSortedIdeasResponse>(`idea/get/sorted?${queryParams}`, 'get');
 };

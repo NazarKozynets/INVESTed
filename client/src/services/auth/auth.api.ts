@@ -21,3 +21,22 @@ export const refreshTokens = async (): Promise<RefreshTokenResponse> =>
 
 export const logoutUser = async (): Promise<void> =>
     await useRequest('auth/logout', "post");
+
+export const requestPasswordReset = async (email: string): Promise<boolean>  => {
+    const res: {message: string} = await useRequest(
+        'auth/forgot-password',
+        "post",
+        { email }
+    );
+    return res.message === "Password reset link sent to email";
+};
+
+export const resetPassword = async (token: string, newPassword: string): Promise<boolean> => {
+    const res: {message: string} = await useRequest(
+        'auth/reset-password',
+        "post",
+        { token, newPassword }
+    );
+
+    return res.message === "Password reset successfully";
+};

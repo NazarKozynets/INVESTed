@@ -8,9 +8,10 @@ import facebookIcon from "../../../assets/logos_facebook.svg";
 import {AuthFormProps} from "../../../types/auth.types.ts";
 import {toast} from "react-toastify";
 import {useNavigate} from "react-router-dom";
+import {requestPasswordReset} from "../../../services/auth/auth.api.ts";
 
-export const LoginForm = ({ emailInput, setEmailInput, setIsSignup }: AuthFormProps) => {
-    const { onLogin } = useAuth();
+export const LoginForm = ({emailInput, setEmailInput, setIsSignup}: AuthFormProps) => {
+    const {onLogin} = useAuth();
 
     const navigate = useNavigate();
 
@@ -44,6 +45,17 @@ export const LoginForm = ({ emailInput, setEmailInput, setIsSignup }: AuthFormPr
         }
     };
 
+    const handleForgotPasswordReset = async () => {
+        const res = await requestPasswordReset(emailInput.trim().toLowerCase());
+
+        if (res) {
+            toast.success('Password reset link sent to email');
+            setIsForgotPassword(false);
+        } else {
+            toast.error("Something went wrong");
+        } 
+    }
+
     return isForgotPassword ? (
         <div className="auth-form-content">
             <div id="title-block">
@@ -59,7 +71,7 @@ export const LoginForm = ({ emailInput, setEmailInput, setIsSignup }: AuthFormPr
                     type="text"
                     onKeyDown={(e) => {
                         if (e.key === 'Enter') {
-                            handleLogin();
+                            handleForgotPasswordReset();
                         }
                     }}
                 />
@@ -68,7 +80,7 @@ export const LoginForm = ({ emailInput, setEmailInput, setIsSignup }: AuthFormPr
                 <Button
                     text="Reset Password"
                     className="reset-password-btn"
-                    onClick={handleLogin}
+                    onClick={handleForgotPasswordReset}
                 />
             </div>
             <div id="another-auth-ways">
@@ -78,9 +90,9 @@ export const LoginForm = ({ emailInput, setEmailInput, setIsSignup }: AuthFormPr
                     <div id="line"></div>
                 </div>
                 <div id="icons-block">
-                    <img src={googleIcon} alt="Google" />
-                    <img src={githubIcon} alt="GitHub" />
-                    <img src={facebookIcon} alt="Facebook" />
+                    <img src={googleIcon} alt="Google"/>
+                    <img src={githubIcon} alt="GitHub"/>
+                    <img src={facebookIcon} alt="Facebook"/>
                 </div>
             </div>
             <div id="change-auth-form-type">
@@ -118,7 +130,7 @@ export const LoginForm = ({ emailInput, setEmailInput, setIsSignup }: AuthFormPr
                 />
             </div>
             <div id="buttons-block">
-                <Button text="Login" onClick={handleLogin} />
+                <Button text="Login" onClick={handleLogin}/>
                 <p
                     id="forgot-pass-btn"
                     onClick={handleForgotPassword}
@@ -133,9 +145,9 @@ export const LoginForm = ({ emailInput, setEmailInput, setIsSignup }: AuthFormPr
                     <div id="line"></div>
                 </div>
                 <div id="icons-block">
-                    <img src={googleIcon} alt="Google" />
-                    <img src={githubIcon} alt="GitHub" />
-                    <img src={facebookIcon} alt="Facebook" />
+                    <img src={googleIcon} alt="Google"/>
+                    <img src={githubIcon} alt="GitHub"/>
+                    <img src={facebookIcon} alt="Facebook"/>
                 </div>
             </div>
             <div id="change-auth-form-type">
