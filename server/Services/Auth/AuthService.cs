@@ -7,6 +7,7 @@ using MongoDB.Driver;
 using server.models.user;
 using server.Services.DataBase;
 using server.Models.DTO.Auth;
+using server.Services.Email;
 
 namespace server.services.auth;
 
@@ -15,14 +16,17 @@ public class AuthService
     private readonly IConfiguration _configuration;
     private readonly IMongoCollection<UserModel> _usersCollection;
     private readonly ILogger<AuthService> _logger;
+    private readonly IServiceProvider _provider;
 
     public AuthService(
         IConfiguration configuration,
         MongoDbService mongoDbService,
+        IServiceProvider provider,
         ILogger<AuthService> logger)
     {
         _configuration = configuration;
         _usersCollection = mongoDbService.GetCollection<UserModel>("Users");
+        _provider = provider;
         _logger = logger;
     }
 
@@ -84,6 +88,65 @@ public class AuthService
         }
     }
 
+    public async Task<(bool success, string? error)> InitiatePasswordResetAsync(string email)
+    {
+        try
+        {
+            var user = await _usersCollection
+                .Find(u => u.Email == email)
+                .FirstOrDefaultAsync();
+
+            if (user is null)
+                return (false, "EMAIL_NOT_FOUND");
+
+            var resetToken = GenerateRefreshToken();
+            var resetTokenExpiry = DateTime.UtcNow.AddHours(
+                _configuration.GetValue<int>("PasswordReset:TokenExpiryInHours", 24));
+
+            user.PasswordResetToken = resetToken;
+            user.PasswordResetTokenExpiry = resetTokenExpiry;
+
+            await _usersCollection.ReplaceOneAsync(u => u.Id == user.Id, user);
+
+            var res = await _provider.GetRequiredService<EmailService>().SendMailAboutResettingPasswordAsync(user.Email, resetToken);
+
+            if (res.error != null)
+                return (false, res.error);
+            
+            return (true, null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Password reset initiation failed");
+            return (false, "SERVER_ERROR");
+        }
+    }
+
+    public async Task<(bool success, string? error)> ResetPasswordAsync(string token, string newPassword)
+    {
+        try
+        {
+            var user = await _usersCollection
+                .Find(u => u.PasswordResetToken == token)
+                .FirstOrDefaultAsync();
+
+            if (user is null || user.PasswordResetTokenExpiry <= DateTime.UtcNow)
+                return (false, "INVALID_OR_EXPIRED_TOKEN");
+
+            user.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            user.PasswordResetToken = null;
+            user.PasswordResetTokenExpiry = null;
+
+            await _usersCollection.ReplaceOneAsync(u => u.Id == user.Id, user);
+            return (true, null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Password reset failed");
+            return (false, "SERVER_ERROR");
+        }
+    }
+    
     public (string token, DateTime expires) GenerateJwtToken(
         string username,
         string email,

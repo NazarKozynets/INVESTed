@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using server;
 using server.Services.DataBase;
 using server.services.auth;
+using server.Services.Email;
 using server.Services.Idea;
 using server.Services.Profile;
 using server.WebSockets;
@@ -54,6 +55,7 @@ builder.Services.AddSingleton<MongoDbService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ProfileService>();
 builder.Services.AddScoped<IdeaService>();
+builder.Services.AddScoped<EmailService>();
 builder.Services.AddSingleton<WebSocketConnectionManager>();
 builder.Services.AddSingleton<WebSocketMessageRouter>();
 

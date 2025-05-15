@@ -122,6 +122,50 @@ public class AuthController : ControllerBase
         };
     }
 
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordModel model)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(model.Email) ||
+                !new EmailAddressAttribute().IsValid(model.Email))
+                return BadRequest(new { error = "INVALID_EMAIL" });
+
+            var result = await _authService.InitiatePasswordResetAsync(model.Email);
+            if (!result.success)
+                return NotFound(new { error = result.error });
+
+            return Ok(new { message = "Password reset link sent to email" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Forgot password failed");
+            return StatusCode(500, new { error = "SERVER_ERROR" });
+        }
+    }
+
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordModel model)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(model.Token) ||
+                string.IsNullOrWhiteSpace(model.NewPassword))
+                return BadRequest(new { error = "INVALID_REQUEST" });
+
+            var result = await _authService.ResetPasswordAsync(model.Token, model.NewPassword);
+            if (!result.success)
+                return StatusCode(400, new { error = "INVALID_OR_EXPIRED_TOKEN_RESET_PASSWORD" });
+
+            return Ok(new { message = "Password reset successfully" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Password reset failed");
+            return StatusCode(500, new { error = "SERVER_ERROR" });
+        }
+    }
+    
     private async Task<IActionResult> LoginSuccessAsync(UserModel user)
     {
         var tokens = await GenerateAndSetTokens(
