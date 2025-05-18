@@ -31,14 +31,20 @@ export const UserProfileIcon = ({onClick, username, size = 40} : UserProfileIcon
     );
 };
 
-const generateColorFromString = (str: string) => {
+const generateColorFromString = (str: string): string => {
     const colors = [
         "#FF5733", "#33FF57", "#3357FF", "#F033FF", "#FF33A8",
-        "#33FFF5", "#8F33FF", "#FF8F33", "#33FF8F", "#FF3362"
+        "#33FFF5", "#8F33FF", "#FF8F33", "#33FF8F", "#FF3362",
+        "#FFD700", "#00CED1", "#DC143C", "#7B68EE", "#00FF7F",
+        "#FF69B4", "#CD5C5C", "#1E90FF", "#FF4500", "#ADFF2F"
     ];
 
-    if (!str || str.length === 0) return "#ccc";
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        hash = hash & hash;
+    }
 
-    const hash = str.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    return colors[hash % colors.length];
+    const index = Math.abs(hash) % colors.length;
+    return colors[index];
 };

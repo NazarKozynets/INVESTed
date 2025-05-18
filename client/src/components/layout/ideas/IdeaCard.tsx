@@ -4,6 +4,7 @@ import {IdeaType} from '../../../types/idea.types.ts';
 import {format} from 'date-fns';
 import './idea-card.scss';
 import {UserProfileIcon} from "../../features/profile-icon/UserProfileIcon.tsx";
+import {StarRating} from "../../ui/star-rating/StarRating.tsx";
 
 interface IdeaCardProps {
     idea: IdeaType;
@@ -21,7 +22,10 @@ export const IdeaCard = ({idea, progressPercentage}: IdeaCardProps) => {
     };
 
     return (
-        <div className="idea-card" onClick={() => window.location.href = `ideas/details/${idea.ideaId}`}>
+        <div className="idea-card"
+             onClick={() => {
+                 window.location.href = `ideas/details/${idea.ideaId}`
+             }}>
             <div className="idea-card__header">
                 <h2>"{idea.ideaName}"</h2>
                 {idea.creatorUsername && (
@@ -33,7 +37,7 @@ export const IdeaCard = ({idea, progressPercentage}: IdeaCardProps) => {
                         }}
                     >
                         <h3>{idea.creatorUsername}</h3>
-                        <UserProfileIcon username={idea.creatorUsername} />
+                        <UserProfileIcon username={idea.creatorUsername}/>
                     </div>
                 )}
             </div>
@@ -69,6 +73,8 @@ export const IdeaCard = ({idea, progressPercentage}: IdeaCardProps) => {
                     <p>TARGET SUM: {idea.targetAmount}$</p>
                     <p>EXPIRATION DATE: {format(new Date(idea.fundingDeadline), 'dd.MM.yyyy')}</p>
                 </div>
+
+                <StarRating rating={idea.averageRating}/>
             </div>
         </div>
     );

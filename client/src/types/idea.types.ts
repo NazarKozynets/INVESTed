@@ -1,5 +1,10 @@
 export const IdeaError = {
     IDEA_NAME_TAKEN: "Idea name already exists",
+
+    ALREADY_RATED: "You have already rated this idea!",
+    INVALID_RATING: "Invalid rate for this idea",
+
+    NOT_FOUND: "Idea not found.",
 } as const;
 
 export type IdeaErrorCode = keyof typeof IdeaError;
@@ -18,6 +23,11 @@ export interface StartIdeaRequest {
     creatorId: string | null,
 }
 
+export interface IdeaRatingType {
+    ratedBy: string,
+    rating: number
+}
+
 export interface IdeaType {
     ideaId: string;
     ideaName: string;
@@ -25,6 +35,8 @@ export interface IdeaType {
     targetAmount: number;
     alreadyCollected: number;
     fundingDeadline: Date;
+    rating: IdeaRatingType[];
+    averageRating: number;
     canEdit?: boolean | false;
     creatorUsername?: string | null;
 }
@@ -57,3 +69,9 @@ export const sortMappings: Record<SortIdeaOption, { sortBy: SortIdeaByField; sor
     "Most Funded": { sortBy: "AlreadyCollected", sortOrder: "desc" },
     "Ending Soon": { sortBy: "FundingDeadline", sortOrder: "asc" },
 };
+
+export interface RateIdeaRequest {
+    ideaId: string;
+    rate: number;
+    ratedBy: string;
+}

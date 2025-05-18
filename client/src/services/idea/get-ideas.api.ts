@@ -10,6 +10,10 @@ export const getAllClientIdeas = async (clientId: string): Promise<Array<IdeaTyp
     return await useRequest(`idea/get/all/${clientId}`, "get");
 }
 
+export const getIdea = async (ideaId: string): Promise<IdeaType> => {
+    return await useRequest(`idea/get/${ideaId}`, "get");
+}
+
 export const getLimitedAmountOfSortedIdeas = async (
     page: number = 1,
     limit: number = 6,

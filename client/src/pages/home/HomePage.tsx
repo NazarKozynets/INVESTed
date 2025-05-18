@@ -1,9 +1,9 @@
-import {SortedIdeas} from "../../components/layout/home/SortedIdeas.tsx";
+import {SortedIdeas} from "../../components/layout/ideas/SortedIdeas.tsx";
 
 export const HomePage = () => {
     return (
         <section className='home-page'>
-            <SortedIdeas/>
+            <SortedIdeas seeMoreBtnOnClick={() => window.location.href = "/ideas/all"}/>
         </section>
     )
 }

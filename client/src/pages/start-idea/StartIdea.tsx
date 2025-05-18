@@ -1,5 +1,5 @@
 import {Form} from "../../components/ui/form/Form.tsx";
-import "../../styles/pages/_startIdea.scss";
+import "../../styles/pages/_startIdeaPage.scss";
 import {TextInput} from "../../components/ui/text-input/TextInput.tsx";
 import Button from "../../components/ui/button/Button.tsx";
 import {formatDeadline} from "../../utils/functions/formatters.ts";
@@ -8,6 +8,7 @@ import {startIdea} from "../../services/idea/start-idea.api.ts";
 import {StartIdeaRequest} from "../../types/idea.types.ts";
 import {parse} from "date-fns";
 import {toast} from "react-toastify";
+import {useEffect} from "react";
 
 export const StartIdea = () => {
     const {
@@ -32,6 +33,12 @@ export const StartIdea = () => {
         !errors.description &&
         !errors.targetAmount &&
         !errors.deadline;
+
+    useEffect(() => {
+        return () => {
+            clear();
+        };
+    }, []);
 
     const handleSubmit = async () => {
         let formattedDeadlineString = deadline;

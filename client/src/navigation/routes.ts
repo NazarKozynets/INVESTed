@@ -47,7 +47,7 @@ export const routes: IRoute[] = [
     },
     {
         name: "IdeaDetails",
-        path: '/ideas/details/:idea-id',
+        path: '/ideas/details/:ideaId',
         component: IdeaDetails,
         isProtected: true
     },
