@@ -11,7 +11,7 @@ public class ClientProfileStrategy : IProfileStrategy
         return new GetUserProfileModel
         {
             Username = targetUser.Username,
-            Email = isOwner ? targetUser.Email : null, 
+            Email = isOwner ? targetUser.Email : null,
             CanEdit = isOwner,
         };
     }
@@ -20,17 +20,17 @@ public class ClientProfileStrategy : IProfileStrategy
     {
         return targetUser.Id == currentUser.Id;
     }
-    
+
     public void UpdateProfile(UserModel targetUser, UpdateProfileFieldsModel newProfileData)
     {
         if (!string.IsNullOrWhiteSpace(newProfileData.Username))
         {
-            targetUser.Username = newProfileData.Username;
+            targetUser.SetUsername(newProfileData.Username);
         }
 
         if (!string.IsNullOrWhiteSpace(newProfileData.Email))
         {
-            targetUser.Email = newProfileData.Email;
+            targetUser.SetEmail(newProfileData.Email);
         }
     }
 }

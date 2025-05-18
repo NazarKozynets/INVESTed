@@ -36,38 +36,53 @@ public class IdeaService
     {
         try
         {
-            var currentUserId = await _profileService.GetThisUserIdAsync(userClaims);
-            if (currentUserId.error != null || currentUserId.id == null)
-                return (null, currentUserId.error);
+            var currentUserIdResult = await _profileService.GetThisUserIdAsync(userClaims);
+            if (currentUserIdResult.error != null || currentUserIdResult.id == null)
+                return (null, currentUserIdResult.error);
 
-            var currentUserRole = await _profileService.GetThisUserRoleAsync(userClaims);
-            if (currentUserRole.error != null || currentUserRole.role == null)
-                return (null, currentUserRole.error);
+            var currentUserRoleResult = await _profileService.GetThisUserRoleAsync(userClaims);
+            if (currentUserRoleResult.error != null || currentUserRoleResult.role == null)
+                return (null, currentUserRoleResult.error);
 
-            var filter = Builders<IdeaModel>.Filter.Eq(idea => idea.IdeaName, data.IdeaName);
-            var isIdeaNameTaken = await _ideasCollection.Find(filter).AnyAsync();
-            if (isIdeaNameTaken)
+            var currentUserId = currentUserIdResult.id;
+            var currentUserRole = currentUserRoleResult.role.Value;
+
+            var isNameTaken = await _ideasCollection
+                .Find(Builders<IdeaModel>.Filter.Eq(i => i.IdeaName, data.IdeaName))
+                .AnyAsync();
+
+            if (isNameTaken)
             {
                 _logger.LogWarning("Attempt to create idea with already taken name: {IdeaName}", data.IdeaName);
                 return (null, "IDEA_NAME_TAKEN");
             }
 
-            if (data.FundingDeadline == DateTime.MinValue || data.FundingDeadline < DateTime.UtcNow)
-            {
-                _logger.LogWarning("Invalid funding deadline: {FundingDeadline}", data.FundingDeadline);
-                return (null, "INVALID_FUNDING_DEADLINE");
-            }
+            IdeaModel ideaObj;
 
-            var ideaObj = IdeaStrategyFactory.GetIdeaStrategy(currentUserRole.role.Value)
-                .StartIdea(data, data.CreatorId ?? currentUserId.id);
+            try
+            {
+                ideaObj = IdeaStrategyFactory
+                    .GetIdeaStrategy(currentUserRole)
+                    .StartIdea(data, data.CreatorId ?? currentUserId);
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "Validation failed while creating idea: {IdeaName}", data.IdeaName);
+                return (null, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error in strategy while creating idea: {IdeaName}", data.IdeaName);
+                return (null, "SERVER_ERROR");
+            }
 
             try
             {
                 await _ideasCollection.InsertOneAsync(ideaObj);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                _logger.LogError(e, "Error occurred while inserting new idea: {IdeaName}", data.IdeaName);
+                _logger.LogError(ex, "Error occurred while inserting idea: {IdeaName}", data.IdeaName);
                 return (null, "SERVER_ERROR");
             }
 
@@ -75,7 +90,7 @@ public class IdeaService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error in StartIdeaAsync for idea: {IdeaName}", data.IdeaName);
+            _logger.LogError(ex, "Unhandled error in StartIdeaAsync for idea: {IdeaName}", data.IdeaName);
             return (null, "SERVER_ERROR");
         }
     }
@@ -136,7 +151,7 @@ public class IdeaService
                 "TargetAmount" => Builders<IdeaModel>.Sort,
                 "AlreadyCollected" => Builders<IdeaModel>.Sort,
                 "FundingDeadline" => Builders<IdeaModel>.Sort,
-                _ => Builders<IdeaModel>.Sort 
+                _ => Builders<IdeaModel>.Sort
             };
 
             SortDefinition<IdeaModel> sortDefinition = sortBy switch
@@ -192,7 +207,7 @@ public class IdeaService
 
             var ideasToReturn = IdeaStrategyFactory
                 .GetIdeaStrategy(currentUserRole.role.Value)
-                .GetFormattedSortedIdeas(ideas);
+                .GetFormattedIdeas(ideas);
 
             return (ideasToReturn, (int)total, null);
         }
@@ -202,4 +217,45 @@ public class IdeaService
             return (null, 0, "SERVER_ERROR");
         }
     }
+
+    public async Task<(bool res, string? error)> RateIdeaAsync(RateIdeaRequestModel data, ClaimsPrincipal userClaims)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(data.IdeaId))
+                return (false, "INVALID_ID");
+
+            var idea = await _ideasCollection.Find(Builders<IdeaModel>.Filter.Eq(i => i.Id, data.IdeaId)).FirstOrDefaultAsync();
+            if (idea == null) return (false, "NOT_FOUND");
+            
+            var currentUserRole = await _profileService.GetThisUserRoleAsync(userClaims);
+            if (currentUserRole.error != null || currentUserRole.role == null)
+                return (false, currentUserRole.error);
+
+            var strategy = IdeaStrategyFactory.GetIdeaStrategy(currentUserRole.role.Value);
+                        
+            var result = strategy.RateIdea(idea, data.Rate, data.RatedBy);
+            return result switch
+            {
+                RateIdeaResult.Success => (true, null),
+                RateIdeaResult.AlreadyRated => (false, "ALREADY_RATED"),
+                RateIdeaResult.EmptyRatedBy => (false, "EMPTY_RATED_BY"),
+                RateIdeaResult.InvalidRating => (false, "INVALID_RATING"),
+                _ => (false, "UNKNOWN_ERROR")
+            };
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Unexpected error in RateIdeaAsync");
+            return (false, e.Message);
+        }
+    }
+}
+
+public enum RateIdeaResult
+{
+    Success,
+    AlreadyRated,
+    EmptyRatedBy,
+    InvalidRating
 }

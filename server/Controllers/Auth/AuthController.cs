@@ -78,11 +78,12 @@ public class AuthController : ControllerBase
                         : "Username already taken"
                 });
 
-            var tokens = await GenerateAndSetTokens(
+            var user = new UserModel(
                 registerData.Username,
+                registerData.Password,
                 registerData.Email,
-                registerData.Role,
-                userId!);
+                registerData.Role);
+            var tokens = await _authService.GenerateAndSetTokensAsync(user, Response);
 
             return Ok(new
             {
@@ -168,8 +169,7 @@ public class AuthController : ControllerBase
     
     private async Task<IActionResult> LoginSuccessAsync(UserModel user)
     {
-        var tokens = await GenerateAndSetTokens(
-            user.Username, user.Email, user.Role, user.Id);
+        var tokens = await _authService.GenerateAndSetTokensAsync(user, Response);
 
         return Ok(new
         {
@@ -194,8 +194,7 @@ public class AuthController : ControllerBase
                 .Find(u => u.Username == username)
                 .FirstOrDefaultAsync();
 
-            if (user is not null)
-                await _authService.UpdateRefreshTokenAsync(user, null);
+            user?.ClearRefreshToken();
         }
 
         Response.Cookies.Delete("accessToken");
@@ -220,11 +219,7 @@ public class AuthController : ControllerBase
             if (user is null || user.RefreshTokenExpiry <= DateTime.UtcNow)
                 return Unauthorized(new { error = "INVALID_REFRESH_TOKEN" });
 
-            var tokens = await GenerateAndSetTokens(
-                user.Username,
-                user.Email,
-                user.Role,
-                user.Id);
+            var tokens = await _authService.GenerateAndSetTokensAsync(user, Response);
 
             return Ok(new { expiresIn = tokens.accessTokenExpiry.ToString("o") });
         }
@@ -233,48 +228,5 @@ public class AuthController : ControllerBase
             _logger.LogError(ex, "Refresh failed");
             return Unauthorized(new { error = "REFRESH_FAILED" });
         }
-    }
-
-    private async Task<(string accessToken,
-                        string refreshToken,
-                        DateTime accessTokenExpiry,
-                        DateTime refreshTokenExpiry)>
-        GenerateAndSetTokens(string username, string email, UserRole role, string userId)
-    {
-        var (accessToken, accessTokenExpiry) =
-            _authService.GenerateJwtToken(username, email, role, userId);
-
-        var refreshToken = _authService.GenerateRefreshToken();
-        var refreshTokenExpiry = DateTime.UtcNow
-            .AddDays(HttpContext.RequestServices
-                .GetRequiredService<IConfiguration>()
-                .GetValue<int>("Jwt:RefreshTokenExpiryInDays", 7));
-
-        var user = await _usersCollection
-            .Find(u => u.Id == userId)
-            .FirstOrDefaultAsync();
-
-        if (user is not null)
-            await _authService.UpdateRefreshTokenAsync(user, refreshToken);
-
-        Response.Cookies.Append("accessToken", accessToken, new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = false,
-            SameSite = SameSiteMode.Lax,
-            Expires = accessTokenExpiry,
-            Path = "/"
-        });
-
-        Response.Cookies.Append("refreshToken", refreshToken, new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = false,
-            SameSite = SameSiteMode.Lax,
-            Expires = refreshTokenExpiry,
-            Path = "/"
-        });
-
-        return (accessToken, refreshToken, accessTokenExpiry, refreshTokenExpiry);
     }
 }

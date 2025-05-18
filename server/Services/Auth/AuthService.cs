@@ -103,8 +103,7 @@ public class AuthService
             var resetTokenExpiry = DateTime.UtcNow.AddHours(
                 _configuration.GetValue<int>("PasswordReset:TokenExpiryInHours", 24));
 
-            user.PasswordResetToken = resetToken;
-            user.PasswordResetTokenExpiry = resetTokenExpiry;
+            user.SetPasswordResetToken(resetToken, resetTokenExpiry);
 
             await _usersCollection.ReplaceOneAsync(u => u.Id == user.Id, user);
 
@@ -133,9 +132,8 @@ public class AuthService
             if (user is null || user.PasswordResetTokenExpiry <= DateTime.UtcNow)
                 return (false, "INVALID_OR_EXPIRED_TOKEN");
 
-            user.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
-            user.PasswordResetToken = null;
-            user.PasswordResetTokenExpiry = null;
+            user.SetPassword(BCrypt.Net.BCrypt.HashPassword(newPassword));
+            user.ClearPasswordResetToken();
 
             await _usersCollection.ReplaceOneAsync(u => u.Id == user.Id, user);
             return (true, null);
@@ -190,12 +188,9 @@ public class AuthService
     {
         try
         {
-            user.RefreshToken = refreshToken;
-            user.RefreshTokenExpiry = refreshToken is not null
-                ? DateTime.UtcNow.AddDays(
-                    _configuration.GetValue<int>("Jwt:RefreshTokenExpiryInDays", 7))
-                : null;
-
+            DateTime refreshTokenExpiry = DateTime.UtcNow.AddDays(_configuration.GetValue<int>("Jwt:RefreshTokenExpiryInDays", 7));
+            user.SetRefreshToken(refreshToken, refreshTokenExpiry);
+            
             await _usersCollection.ReplaceOneAsync(u => u.Id == user.Id, user);
         }
         catch (Exception e)
@@ -220,5 +215,38 @@ public class AuthService
             _logger.LogError(e, "Error getting user from claims");
             return null;
         }
+    }
+    
+    public async Task<(string accessToken, string refreshToken, DateTime accessTokenExpiry, DateTime refreshTokenExpiry)>
+        GenerateAndSetTokensAsync(UserModel user, HttpResponse response)
+    {
+        var (accessToken, accessTokenExpiry) = GenerateJwtToken(
+            user.Username, user.Email, user.Role, user.Id);
+
+        var refreshToken = GenerateRefreshToken();
+        var refreshTokenExpiry = DateTime.UtcNow.AddDays(
+            _configuration.GetValue<int>("Jwt:RefreshTokenExpiryInDays", 7));
+
+        await UpdateRefreshTokenAsync(user, refreshToken);
+
+        response.Cookies.Append("accessToken", accessToken, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = false,
+            SameSite = SameSiteMode.Lax,
+            Expires = accessTokenExpiry,
+            Path = "/"
+        });
+
+        response.Cookies.Append("refreshToken", refreshToken, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = false,
+            SameSite = SameSiteMode.Lax,
+            Expires = refreshTokenExpiry,
+            Path = "/"
+        });
+
+        return (accessToken, refreshToken, accessTokenExpiry, refreshTokenExpiry);
     }
 }

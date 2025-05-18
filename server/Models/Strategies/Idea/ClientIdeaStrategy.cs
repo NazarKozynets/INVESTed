@@ -20,7 +20,11 @@ public class ClientIdeaStrategy : IdeaStrategy
             idea.TargetAmount,
             idea.AlreadyCollected,
             idea.FundingDeadline,
+            idea.Rating,
+            idea.GetAverageRating(),
             canEdit: isOwner ?? false
         ));
     }
+    
+    
 }

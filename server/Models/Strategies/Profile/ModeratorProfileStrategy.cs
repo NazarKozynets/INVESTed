@@ -11,26 +11,26 @@ public class ModeratorProfileStrategy : IProfileStrategy
         return new GetUserProfileModel
         {
             Username = targetUser.Username,
-            Email = targetUser.Email, 
+            Email = targetUser.Email,
             CanEdit = true,
         };
     }
-    
+
     public bool CanUpdateProfile(UserModel targetUser, UserModel currentUser)
     {
         return targetUser.Role == UserRole.Client || targetUser.Id == currentUser.Id;
     }
-    
+
     public void UpdateProfile(UserModel targetUser, UpdateProfileFieldsModel newProfileData)
     {
         if (!string.IsNullOrWhiteSpace(newProfileData.Username))
         {
-            targetUser.Username = newProfileData.Username;
+            targetUser.SetUsername(newProfileData.Username);
         }
 
         if (!string.IsNullOrWhiteSpace(newProfileData.Email))
         {
-            targetUser.Email = newProfileData.Email;
+            targetUser.SetEmail(newProfileData.Email);
         }
     }
 }

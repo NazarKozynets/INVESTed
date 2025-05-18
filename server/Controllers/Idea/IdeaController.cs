@@ -89,4 +89,25 @@ public class IdeaController : ControllerBase
             totalPages = (int)Math.Ceiling((double)total / limit)
         });
     }
+
+    [HttpPut("rate")]
+    public async Task<ActionResult<object>> RateIdea(RateIdeaRequestModel data)
+    {
+        var (res, error) = await _ideaService.RateIdeaAsync(data, User);
+
+        if (res == false && error != null)
+        {
+            return error switch
+            {
+                "INVALID_ID" => BadRequest(new { error }),
+                "EMPTY_RATED_BY" => BadRequest(new { error }),
+                "INVALID_RATING" => BadRequest(new { error }),
+                "NOT_FOUND" => NotFound(new { error }),
+                "ALREADY_RATED" => Conflict(new { error }),
+                _ => StatusCode(500, new { error }) 
+            };
+        }
+
+        return Ok();
+    }
 }
