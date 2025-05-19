@@ -121,6 +121,41 @@ public class IdeaService
         }
     }
 
+    public async Task<(GetIdeaResponseModel? ideaToReturn, string? error)> GetIdeaByIdAsync(string ideaId,
+        ClaimsPrincipal userClaims)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(ideaId)) return (null, "INVALID_ID");
+
+            IdeaModel idea = await _ideasCollection.Find(idea => idea.Id == ideaId).FirstOrDefaultAsync();
+            if (idea == null) return (null, "NOT_FOUND");
+
+            var currentUserRole = await _profileService.GetThisUserRoleAsync(userClaims);
+            if (currentUserRole.error != null || currentUserRole.role == null)
+                return (null, currentUserRole.error);
+
+            var (data, error) = await _profileService.GetUserProfileByIdAsync(idea.CreatorId, userClaims);
+            if (error == null && data is GetUserProfileModel profile)
+            {
+                idea.CreatorUsername = profile.Username;
+            }
+            else
+            {
+                idea.CreatorUsername = null;
+            }
+
+            return (IdeaStrategyFactory
+                .GetIdeaStrategy(currentUserRole.role.Value)
+                .GetFormattedIdea(idea), null);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Unexpected error in GetIdeaByIdAsync");
+            return (null, "SERVER_ERROR");
+        }
+    }
+
     public async Task<(IEnumerable<GetIdeaResponseModel>? ideas, int total, string? error)>
         GetLimitedAmountOfSortedIdeasAsync(
             int page,
@@ -225,22 +260,45 @@ public class IdeaService
             if (string.IsNullOrWhiteSpace(data.IdeaId))
                 return (false, "INVALID_ID");
 
-            var idea = await _ideasCollection.Find(Builders<IdeaModel>.Filter.Eq(i => i.Id, data.IdeaId)).FirstOrDefaultAsync();
+            var idea = await _ideasCollection.Find(Builders<IdeaModel>.Filter.Eq(i => i.Id, data.IdeaId))
+                .FirstOrDefaultAsync();
             if (idea == null) return (false, "NOT_FOUND");
+
+            var currentUserIdResult = await _profileService.GetThisUserIdAsync(userClaims);
+            if (currentUserIdResult.error != null || currentUserIdResult.id == null)
+                return (false, currentUserIdResult.error);
             
             var currentUserRole = await _profileService.GetThisUserRoleAsync(userClaims);
             if (currentUserRole.error != null || currentUserRole.role == null)
                 return (false, currentUserRole.error);
 
             var strategy = IdeaStrategyFactory.GetIdeaStrategy(currentUserRole.role.Value);
-                        
-            var result = strategy.RateIdea(idea, data.Rate, data.RatedBy);
-            return result switch
+
+            var result = strategy.RateIdea(idea, data.Rate, currentUserIdResult.id, idea.CreatorId == currentUserIdResult.id);
+            
+            if (result is { newRate: not null, resultMes: RateIdeaResult.Success})
+            {
+                var update = Builders<IdeaModel>.Update.Push(i => i.Rating, result.newRate);
+                var updateResult = await _ideasCollection.UpdateOneAsync(
+                    Builders<IdeaModel>.Filter.Eq(i => i.Id, idea.Id),
+                    update
+                );
+
+                if (updateResult.MatchedCount == 0)
+                {
+                    _logger.LogWarning("Failed to update idea with ID {IdeaId}: Not found in database", idea.Id);
+                    return (false, "UPDATE_FAILED");
+                }
+            }
+            
+            return result.resultMes switch
             {
                 RateIdeaResult.Success => (true, null),
                 RateIdeaResult.AlreadyRated => (false, "ALREADY_RATED"),
                 RateIdeaResult.EmptyRatedBy => (false, "EMPTY_RATED_BY"),
                 RateIdeaResult.InvalidRating => (false, "INVALID_RATING"),
+                RateIdeaResult.YourIdea => (false, "YOUR_IDEA"),
+                RateIdeaResult.NotEnoughAccess => (false, "UNABLE_TO_RATE"),
                 _ => (false, "UNKNOWN_ERROR")
             };
         }
@@ -250,12 +308,78 @@ public class IdeaService
             return (false, e.Message);
         }
     }
+
+    public async Task<(IdeaCommentModel? createdComment, string? error)> AddCommentToIdeaAsync(AddCommentToIdeaModel data, ClaimsPrincipal userClaims)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(data.IdeaId))
+                return (null, "INVALID_ID");
+
+            var idea = await _ideasCollection.Find(Builders<IdeaModel>.Filter.Eq(i => i.Id, data.IdeaId))
+                .FirstOrDefaultAsync();
+            if (idea == null) return (null, "NOT_FOUND");
+
+            var currentUserIdResult = await _profileService.GetThisUserIdAsync(userClaims);
+            if (currentUserIdResult.error != null || currentUserIdResult.id == null)
+                return (null, currentUserIdResult.error);
+            
+            var currentUserRole = await _profileService.GetThisUserRoleAsync(userClaims);
+            if (currentUserRole.error != null || currentUserRole.role == null)
+                return (null, currentUserRole.error);
+
+            var strategy = IdeaStrategyFactory.GetIdeaStrategy(currentUserRole.role.Value);
+
+            var result = strategy.AddCommentToIdea(idea, data.CommentText, currentUserIdResult.id);
+            
+            if (result is { newComment: not null, resultMes: CommentIdeaResult.Success })
+            {
+                var update = Builders<IdeaModel>.Update.Push(i => i.Comments, result.newComment);
+                var updateResult = await _ideasCollection.UpdateOneAsync(
+                    Builders<IdeaModel>.Filter.Eq(i => i.Id, idea.Id),
+                    update
+                );
+
+                if (updateResult.MatchedCount == 0)
+                {
+                    _logger.LogWarning("Failed to update idea with ID {IdeaId}: Not found in database", idea.Id);
+                    return (null, "UPDATE_FAILED");
+                }
+            }
+
+            return result.resultMes switch
+            {
+                CommentIdeaResult.Success => (result.newComment, null),
+                CommentIdeaResult.EmptyComment => (null, "EMPTY_COMMENT"),
+                CommentIdeaResult.EmptyCommentedBy => (null, "EMPTY_COMMENT_BY"),
+                CommentIdeaResult.CommentTooLong => (null, "COMMENT_TOO_LONG"),
+                CommentIdeaResult.NotEnoughAccess => (null, "UNABLE_TO_COMMENT"),
+                _ => (null, "SERVER_ERROR")
+            };
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Unexpected error in AddCommentToIdeaAsync");
+            return (null, e.Message);
+        }
+    }
 }
 
 public enum RateIdeaResult
 {
     Success,
     AlreadyRated,
+    YourIdea,
     EmptyRatedBy,
-    InvalidRating
+    InvalidRating,
+    NotEnoughAccess,
+}
+
+public enum CommentIdeaResult
+{
+    Success,             
+    EmptyComment,        
+    EmptyCommentedBy,
+    NotEnoughAccess,     
+    CommentTooLong,      
 }

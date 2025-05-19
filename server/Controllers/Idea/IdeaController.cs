@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using server.Models.DTO.Idea;
@@ -60,6 +61,24 @@ public class IdeaController : ControllerBase
         
         return Ok(ideas);
     }
+
+    [HttpGet("get/{ideaId}")]
+    public async Task<ActionResult<object>> GetIdeaById(string ideaId)
+    {
+        var (idea, error) = await _ideaService.GetIdeaByIdAsync(ideaId, User);
+        
+        if (error != null)
+        {
+            return error switch
+            {
+                "INVALID_ID" => BadRequest(new { error }),
+                "NOT_FOUND" => NotFound(new { error }),
+                _ => StatusCode(500, new { error }) 
+            };
+        }
+        
+        return Ok(idea);
+    }
     
     [HttpGet("get/sorted")]
     public async Task<ActionResult<object>> GetLimitedAmountOfSortedIdeas(
@@ -90,7 +109,7 @@ public class IdeaController : ControllerBase
         });
     }
 
-    [HttpPut("rate")]
+    [HttpPost("rate")]
     public async Task<ActionResult<object>> RateIdea(RateIdeaRequestModel data)
     {
         var (res, error) = await _ideaService.RateIdeaAsync(data, User);
@@ -104,10 +123,34 @@ public class IdeaController : ControllerBase
                 "INVALID_RATING" => BadRequest(new { error }),
                 "NOT_FOUND" => NotFound(new { error }),
                 "ALREADY_RATED" => Conflict(new { error }),
+                "YOUR_IDEA" => Conflict(new { error }),
+                "UNABLE_TO_RATE" => StatusCode(403, new { error }),
                 _ => StatusCode(500, new { error }) 
             };
         }
 
         return Ok();
+    }
+    
+    [HttpPost("add-comment")]
+    public async Task<ActionResult<object>> AddCommentToIdea(AddCommentToIdeaModel data)
+    {
+        var (res, error) = await _ideaService.AddCommentToIdeaAsync(data, User);
+
+        if (res == null && error != null)
+        {
+            return error switch
+            {
+                "INVALID_ID" => BadRequest(new { error }),
+                "EMPTY_COMMENT" => BadRequest(new { error }),
+                "EMPTY_COMMENT_BY" => BadRequest(new { error }),
+                "COMMENT_TOO_LONG" => BadRequest(new { error }),
+                "NOT_FOUND" => NotFound(new { error }),
+                "UNABLE_TO_COMMENT" => StatusCode(403, new { error }),
+                _ => StatusCode(500, new { error }) 
+            };
+        }
+
+        return Ok(res);
     }
 }

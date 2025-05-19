@@ -1,7 +1,7 @@
 ﻿namespace server.Models.DTO.Idea;
 
-public class RateIdeaRequestModel
+public class AddCommentToIdeaModel
 {
-    public int Rate { get; set; }
     public string IdeaId { get; set; }
+    public string CommentText { get; set; }
 }

@@ -10,12 +10,24 @@ namespace server.Models.DTO.Idea
         public int TargetAmount { get; set; }
         public int AlreadyCollected { get; set; }
         public DateTime FundingDeadline { get; set; }
-        public List<IdeaRatingModel> Rating { get; set; } 
+        public List<IdeaRatingModel> Rating { get; set; }
         public double AverageRating { get; set; }
-        public bool CanEdit { get; set; }
-        public string CreatorUsername { get; set; }
+        public string? CreatorUsername { get; set; }
+        public bool CanEdit { get; set; } = false;
+        public List<IdeaCommentModel>? Comments { get; set; } = new();
 
-        public GetIdeaResponseModel(string ideaId, string ideaName, string ideaDescription, int targetAmount, int alreadyCollected, DateTime fundingDeadline, List<IdeaRatingModel> rating, double averageRating,bool canEdit = false, string creatorUsername = null)
+        public GetIdeaResponseModel(
+            string ideaId,
+            string ideaName,
+            string ideaDescription,
+            int targetAmount,
+            int alreadyCollected,
+            DateTime fundingDeadline,
+            List<IdeaRatingModel> rating,
+            double averageRating,
+            List<IdeaCommentModel>? comments = null,
+            bool canEdit = false,
+            string? creatorUsername = null)
         {
             IdeaId = ideaId;
             IdeaName = ideaName;
@@ -25,8 +37,10 @@ namespace server.Models.DTO.Idea
             FundingDeadline = fundingDeadline;
             Rating = rating;
             AverageRating = averageRating;
+            Comments = comments ?? new List<IdeaCommentModel>();
             CanEdit = canEdit;
             CreatorUsername = creatorUsername;
         }
+
     }
 }

@@ -5,6 +5,12 @@ using System.Security.Claims;
 
 namespace server.Models.Idea;
 
+public enum IdeaStatus
+{
+    Open,
+    Closed,
+}
+
 public class IdeaRatingModel
 {
     [BsonElement("ratedBy")]
@@ -21,9 +27,48 @@ public class IdeaRatingModel
 
     public void UpdateRate(int newRate)
     {
-        if (newRate < 0 || newRate > 5)
-            throw new ArgumentException("Rating needs to be between 0 and 5.");
         Rate = newRate;
+    }
+}
+
+public class IdeaCommentModel
+{
+    [BsonElement("commentText")]
+    public string CommentText { get; private set; }
+
+    [BsonElement("commentedBy")]
+    public string CommentedBy { get; init; }
+
+    [BsonElement("commentDate")]
+    public DateTime CommentDate { get; init; }
+
+    [BsonElement("replies")]
+    public List<IdeaCommentModel> Replies { get; private set; } = new List<IdeaCommentModel>();
+
+    public IdeaCommentModel(string commentText, string commentedBy)
+    {
+        if (string.IsNullOrWhiteSpace(commentText))
+            throw new ArgumentException("Comment text cannot be empty.");
+        if (string.IsNullOrWhiteSpace(commentedBy))
+            throw new ArgumentException("CommentedBy cannot be empty.");
+
+        CommentText = commentText;
+        CommentedBy = commentedBy;
+        CommentDate = DateTime.UtcNow;
+    }
+
+    public void UpdateCommentText(string newText)
+    {
+        if (string.IsNullOrWhiteSpace(newText))
+            throw new ArgumentException("Comment text cannot be empty.");
+        CommentText = newText;
+    }
+
+    public void AddReply(IdeaCommentModel reply)
+    {
+        if (reply == null)
+            throw new ArgumentNullException(nameof(reply));
+        Replies.Add(reply);
     }
 }
 
@@ -54,8 +99,14 @@ public class IdeaModel
     [BsonElement("rating")]
     public List<IdeaRatingModel> Rating { get; private set; } = new List<IdeaRatingModel>();
 
+    [BsonElement("comments")]
+    public List<IdeaCommentModel> Comments { get; private set; } = new List<IdeaCommentModel>();
+
     [BsonElement("createdAt")]
     public DateTime CreatedAt { get; private set; }
+    
+    [BsonElement("status")]
+    public IdeaStatus Status { get; private set; } = IdeaStatus.Open;
 
     [BsonIgnore]
     public string? CreatorUsername { get; set; }
@@ -79,8 +130,11 @@ public class IdeaModel
         TargetAmount = targetAmount;
         FundingDeadline = fundingDeadline;
         CreatedAt = DateTime.UtcNow;
+        Status = IdeaStatus.Open;
+        Rating = new List<IdeaRatingModel>();
+        Comments = new List<IdeaCommentModel>();
     }
-    
+
     public void UpdateIdeaName(string newName)
     {
         if (string.IsNullOrWhiteSpace(newName))
@@ -117,35 +171,75 @@ public class IdeaModel
             throw new ArgumentException("Collected amount cannot exceed target amount.");
         AlreadyCollected = amount;
     }
+    
+    public void CloseIdea()
+    {
+        if (Status != IdeaStatus.Open)
+            throw new InvalidOperationException("Idea is not open.");
+        Status = IdeaStatus.Closed;
+    }
+    
+    public bool IsFundingExpired()
+    {
+        return FundingDeadline <= DateTime.UtcNow;
+    }
 
-    public void AddRating(string ratedBy, int rating)
+    public IdeaRatingModel AddRating(string ratedBy, int rating)
     {
         var ratingModel = new IdeaRatingModel(ratedBy, rating);
         Rating.Add(ratingModel);
+        return ratingModel;
     }
 
-    public void UpdateRating(string ratedBy, int newRating)
-    {
-        var existingRating = Rating.FirstOrDefault(r => r.RatedBy == ratedBy);
-        if (existingRating != null)
-        {
-            existingRating.UpdateRate(newRating);
-        }
-        else
-        {
-            AddRating(ratedBy, newRating);
-        }
-    }
-    
     public double GetAverageRating()
     {
         double avg = (Rating.Count > 0)
             ? Rating.Average(r => r.Rate)
             : 0;
-        
+
         if (avg > 5) avg = 5.0;
         if (avg < 0) avg = 0.0;
-        
+
         return avg;
+    }
+
+    public IdeaCommentModel AddComment(string commentText, string commentedBy)
+    {
+        var commentModel = new IdeaCommentModel(commentText, commentedBy);
+        Comments.Add(commentModel);
+        return commentModel;
+    }
+
+    public void ReplyToComment(string parentCommentText, string replyText, string commentedBy)
+    {
+        if (string.IsNullOrWhiteSpace(parentCommentText))
+            throw new ArgumentException("Parent comment text cannot be empty.");
+        if (string.IsNullOrWhiteSpace(replyText))
+            throw new ArgumentException("Reply text cannot be empty.");
+        if (string.IsNullOrWhiteSpace(commentedBy))
+            throw new ArgumentException("CommentedBy cannot be empty.");
+
+        var parentComment = Comments.FirstOrDefault(c => c.CommentText == parentCommentText);
+        if (parentComment == null)
+            throw new ArgumentException("Parent comment not found.");
+
+        var reply = new IdeaCommentModel(replyText, commentedBy);
+        parentComment.AddReply(reply);
+    }
+
+    public void UpdateComment(string oldCommentText, string newCommentText, string commentedBy)
+    {
+        if (string.IsNullOrWhiteSpace(oldCommentText))
+            throw new ArgumentException("Old comment text cannot be empty.");
+        if (string.IsNullOrWhiteSpace(newCommentText))
+            throw new ArgumentException("New comment text cannot be empty.");
+        if (string.IsNullOrWhiteSpace(commentedBy))
+            throw new ArgumentException("CommentedBy cannot be empty.");
+
+        var comment = Comments.FirstOrDefault(c => c.CommentText == oldCommentText && c.CommentedBy == commentedBy);
+        if (comment == null)
+            throw new ArgumentException("Comment not found or not authored by this user.");
+
+        comment.UpdateCommentText(newCommentText);
     }
 }

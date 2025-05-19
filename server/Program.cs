@@ -59,6 +59,8 @@ builder.Services.AddScoped<EmailService>();
 builder.Services.AddSingleton<WebSocketConnectionManager>();
 builder.Services.AddSingleton<WebSocketMessageRouter>();
 
+builder.Services.AddHostedService<IdeaExpirationService>();
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {

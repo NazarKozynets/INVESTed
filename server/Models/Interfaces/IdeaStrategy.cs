@@ -29,6 +29,22 @@ public abstract class IdeaStrategy
         ));
     }
 
+    public GetIdeaResponseModel GetFormattedIdea(IdeaModel idea)
+    {
+        return new GetIdeaResponseModel(
+            ideaId: idea.Id,
+            idea.IdeaName,
+            idea.IdeaDescription,
+            idea.TargetAmount,
+            idea.AlreadyCollected,
+            idea.FundingDeadline,
+            idea.Rating,
+            idea.GetAverageRating(),
+            creatorUsername: idea.CreatorUsername ?? null,
+            comments: idea.Comments
+        );
+    }
+    
     public IEnumerable<GetIdeaResponseModel> GetFormattedIdeas(IEnumerable<IdeaModel> ideas)
     {
         return ideas.Select(idea => new GetIdeaResponseModel(
@@ -44,16 +60,13 @@ public abstract class IdeaStrategy
         ));
     }
 
-    public RateIdeaResult RateIdea(IdeaModel ideaToRate, int rate, string ratedBy)
+    public virtual (IdeaRatingModel? newRate, RateIdeaResult resultMes) RateIdea(IdeaModel ideaToRate, int rate, string ratedBy, bool isOwner)
     {
-        if (string.IsNullOrWhiteSpace(ratedBy))
-            return RateIdeaResult.EmptyRatedBy;
-        if (rate < 0 || rate > 5)
-            return RateIdeaResult.InvalidRating;
-        if (ideaToRate.Rating.Any(r => r.RatedBy == ratedBy))
-            return RateIdeaResult.AlreadyRated;
+        return (null, RateIdeaResult.NotEnoughAccess);
+    }
 
-        ideaToRate.UpdateRating(ratedBy, rate);
-        return RateIdeaResult.Success;
+    public virtual (IdeaCommentModel? newComment, CommentIdeaResult resultMes) AddCommentToIdea(IdeaModel ideaToAdd, string commentText, string commentedBy)
+    {
+        return (null, CommentIdeaResult.NotEnoughAccess);
     }
 }
