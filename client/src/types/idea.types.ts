@@ -3,6 +3,12 @@ export const IdeaError = {
 
     ALREADY_RATED: "You have already rated this idea!",
     INVALID_RATING: "Invalid rate for this idea",
+    YOUR_IDEA: "You can't rate your idea",
+    UNABLE_TO_RATE: "You don't have access to rate this idea!",
+
+    EMPTY_COMMENT: "Comment cannot be empty!",
+    COMMENT_TOO_LONG: "Looks like your comment is too long",
+    UNABLE_TO_COMMENT: "You don't have access to comment this idea!",
 
     NOT_FOUND: "Idea not found.",
 } as const;
@@ -28,6 +34,13 @@ export interface IdeaRatingType {
     rating: number
 }
 
+export interface IdeaCommentModel {
+    commentText: string;
+    commentedBy: string;
+    commentDate: string;
+    replies: IdeaCommentModel[];
+}
+
 export interface IdeaType {
     ideaId: string;
     ideaName: string;
@@ -36,6 +49,7 @@ export interface IdeaType {
     alreadyCollected: number;
     fundingDeadline: Date;
     rating: IdeaRatingType[];
+    comments: IdeaCommentModel[];
     averageRating: number;
     canEdit?: boolean | false;
     creatorUsername?: string | null;
@@ -73,5 +87,9 @@ export const sortMappings: Record<SortIdeaOption, { sortBy: SortIdeaByField; sor
 export interface RateIdeaRequest {
     ideaId: string;
     rate: number;
-    ratedBy: string;
+}
+
+export interface AddCommentRequest {
+    ideaId: string;
+    commentText: string;
 }

@@ -1,8 +1,10 @@
-import {RateIdeaRequest} from "../../types/idea.types.ts";
+import {AddCommentRequest, IdeaCommentModel, RateIdeaRequest} from "../../types/idea.types.ts";
 import {useRequest} from "../../utils/hooks/useRequest.ts";
 
 export const rateIdea = async (reqBody: RateIdeaRequest) => {
-    const res = await useRequest(`idea/rate`, "put", reqBody);
-    console.log(res, 'res')
-    return res;
+    return await useRequest(`idea/rate`, "post", reqBody);
+}
+
+export const addCommentToIdea = async (reqBody: AddCommentRequest) : Promise<IdeaCommentModel> => {
+    return await useRequest(`idea/add-comment`, "post", reqBody);
 }

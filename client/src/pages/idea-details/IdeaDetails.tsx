@@ -8,18 +8,22 @@ import {UserProfileIcon} from "../../components/features/profile-icon/UserProfil
 import {AnimatePresence, motion} from "framer-motion";
 import {format} from "date-fns";
 import {useAuth} from "../../context/AuthContext.tsx";
-import {rateIdea} from "../../services/idea/idea-actions.api.ts";
-import {RateIdeaRequest} from "../../types/idea.types.ts";
+import {rateIdea, addCommentToIdea} from "../../services/idea/idea-actions.api.ts";
+import {RateIdeaRequest, AddCommentRequest, IdeaCommentModel, IdeaType} from "../../types/idea.types.ts";
+import {toast} from "react-toastify";
+import {TextInput} from "../../components/ui/text-input/TextInput.tsx";
+import Button from "../../components/ui/button/Button.tsx";
+import {Form} from "../../components/ui/form/Form.tsx";
 
 export const IdeaDetails = () => {
-    const { authState } = useAuth();
+    const {authState} = useAuth();
     const {ideaId} = useParams();
-
     const userId = authState.userData?.userId;
 
     const [isHovered, setIsHovered] = useState(false);
     const [tooltipX, setTooltipX] = useState(0);
     const [progressPercentage, setProgressPercentage] = useState(0);
+    const [commentText, setCommentText] = useState("");
     const queryClient = useQueryClient();
 
     const {
@@ -37,32 +41,80 @@ export const IdeaDetails = () => {
         retry: 1
     });
 
-    const mutation = useMutation({
+    const rateMutation = useMutation({
         mutationFn: (rate: number) => {
             const reqBody: RateIdeaRequest = {
                 ideaId: ideaId as string,
-                ratedBy: userId as string,
                 rate,
             };
             return rateIdea(reqBody);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['idea-details', ideaId] });
+            queryClient.invalidateQueries({queryKey: ['idea-details', ideaId]});
+            toast.success("Idea rated successfully!");
         },
     });
 
-    useEffect(() => {
-        console.log(idea)
-    }, [idea])
+    const commentMutation = useMutation({
+        mutationFn: (commentText: string) => {
+            const reqBody: AddCommentRequest = {
+                ideaId: ideaId as string,
+                commentText,
+            };
+            return addCommentToIdea(reqBody);
+        },
+        onMutate: async (commentText) => {
+            await queryClient.cancelQueries({queryKey: ['idea-details', ideaId]});
+
+            const previousIdea = queryClient.getQueryData<IdeaType>(['idea-details', ideaId]);
+
+            if (previousIdea) {
+                const newComment: IdeaCommentModel = {
+                    commentText,
+                    commentedBy: userId || "Unknown",
+                    commentDate: new Date().toISOString(),
+                    replies: []
+                };
+                queryClient.setQueryData<IdeaType>(['idea-details', ideaId], {
+                    ...previousIdea,
+                    comments: [...previousIdea.comments, newComment]
+                });
+            }
+
+            return {previousIdea};
+        },
+        onSuccess: (newCommentFromServer) => {
+            queryClient.setQueryData<IdeaType>(['idea-details', ideaId], (old: IdeaType | undefined) => {
+                if (!old) return old;
+                return {
+                    ...old,
+                    comments: [...old.comments.slice(0, -1), newCommentFromServer]
+                };
+            });
+            setCommentText("");
+            toast.success("Comment added successfully!");
+        },
+        onError: (error, _, context) => {
+            if (context?.previousIdea) {
+                queryClient.setQueryData(['idea-details', ideaId], context.previousIdea);
+            }
+            console.error(error)
+        },
+
+    });
 
     useEffect(() => {
         if (idea) {
             setProgressPercentage(Math.min(
                 (idea.alreadyCollected / idea.targetAmount) * 100,
                 100
-            ))
+            ));
         }
-    }, [idea?.alreadyCollected])
+    }, [idea?.alreadyCollected]);
+
+    useEffect(() => {
+        console.log(idea, 'idea')
+    }, [idea]);
 
     const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
         const rect = e.currentTarget.getBoundingClientRect();
@@ -71,21 +123,60 @@ export const IdeaDetails = () => {
     };
 
     const handleRatingChange = (newRating: number) => {
-        mutation.mutate(newRating);
+        rateMutation.mutate(newRating);
+    };
+
+    const handleCommentSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        commentMutation.mutate(commentText);
+    };
+
+    const renderComments = (comments: IdeaCommentModel[], depth = 0) => {
+        return comments
+            .sort((a, b) => new Date(b.commentDate).getTime() - new Date(a.commentDate).getTime())
+            .map((comment, index) => (
+                <motion.div
+                    key={`${comment.commentedBy}-${comment.commentDate}-${index}`}
+                    className={`idea-details__comment ${depth > 0 ? 'idea-details__comment--reply' : ''}`}
+                    initial={{opacity: 0, y: 10}}
+                    animate={{opacity: 1, y: 0}}
+                    transition={{duration: 0.3, delay: index * 0.1}}
+                >
+                    <div className="idea-details__comment-header">
+                        <div className="idea-details__comment-user">
+                            <UserProfileIcon username={comment.commentedBy}/>
+                            <span>{comment.commentedBy}</span>
+                        </div>
+                        <span className="idea-details__comment-date">
+                        {format(new Date(comment.commentDate), 'dd.MM.yyyy HH:mm')}
+                    </span>
+                    </div>
+                    <p className="idea-details__comment-text">{comment.commentText}</p>
+                    {comment.replies && comment.replies.length > 0 && (
+                        <div className="idea-details__comment-replies">
+                            {renderComments(comment.replies, depth + 1)}
+                        </div>
+                    )}
+                </motion.div>
+            ));
     };
 
     return (
-        <section>
+        <section className="idea-details">
             {isError && (
-                <h2 id="title" style={{color: 'red', textAlign: 'center'}}>Failed to load ideas. Please try again.</h2>
+                <div style={{display: 'flex', justifyContent: 'center'}}>
+                    <h2 id="title" className="text-red-500 text-center">Failed to load idea. Please try again.</h2>
+                </div>
             )}
 
-            {isLoading || isFetching && (
-                <LoadingBar/>
+            {(isLoading || isFetching) && (
+                <div style={{display: 'flex', justifyContent: 'center'}}>
+                    <LoadingBar/>
+                </div>
             )}
 
             {idea && !isLoading && !isFetching && !isError && (
-                <div className="idea-details">
+                <div>
                     <div className="idea-details__header">
                         <p className="idea-details__header-title">{idea.ideaName}</p>
                         {idea.creatorUsername && (
@@ -109,9 +200,7 @@ export const IdeaDetails = () => {
                     >
                         <div
                             className="idea-details__progress-bar"
-                            style={{
-                                width: `${progressPercentage}%`
-                            }}
+                            style={{width: `${progressPercentage}%`}}
                         />
                         <AnimatePresence>
                             {isHovered && (
@@ -134,14 +223,35 @@ export const IdeaDetails = () => {
                     <StarRating
                         className="idea-details__rating"
                         rating={idea.averageRating}
-                        interactive={!!userId}
                         onRatingChange={handleRatingChange}
+                        interactive={!!userId}
                     />
                     <div className="idea-details__footer">
-                        <p>TARGET SUM: {idea.targetAmount}$</p>
+                        <p>TARGET SUM: ${idea.targetAmount}</p>
                         <p>EXPIRATION DATE: {format(new Date(idea.fundingDeadline), 'dd.MM.yyyy')}</p>
                     </div>
-                    <div className="idea-details__comments">comments section...</div>
+                    <div className="idea-details__comments">
+                        <h3>Comments</h3>
+                        {userId ? (
+                            commentMutation.isPending ? <LoadingBar/> : (
+                                <Form className="idea-details__add-comment">
+                                    <TextInput disabled={commentMutation.isPending} name="text"
+                                               placeholder="Add a comment..." value={commentText}
+                                               setValue={setCommentText} type="text"/>
+                                    {commentText?.length > 0 && <Button className="idea-details__add-comment--button"
+                                                                        onClick={handleCommentSubmit}
+                                                                        text="Post Comment"/>}
+                                </Form>
+                            )
+                        ) : (
+                            <p>Please log in to add a comment.</p>
+                        )}
+                        {idea.comments && idea.comments.length > 0 ? (
+                            renderComments(idea.comments)
+                        ) : (
+                            <p>No comments yet. Be the first to comment!</p>
+                        )}
+                    </div>
                 </div>
             )}
         </section>
