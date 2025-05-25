@@ -24,7 +24,7 @@ export const IdeaCard = ({idea, progressPercentage}: IdeaCardProps) => {
     return (
         <div className="idea-card"
              onClick={() => {
-                 window.location.href = `ideas/details/${idea.ideaId}`
+                 window.location.href = `/ideas/details/${idea.ideaId}`
              }}>
             <div className="idea-card__header">
                 <h2>"{idea.ideaName}"</h2>

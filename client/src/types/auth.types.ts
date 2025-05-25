@@ -1,4 +1,4 @@
-export type UserRole = "client" | "moderator" | "admin";
+export type UserRole = "Client" | "Moderator" | "Admin";
 
 export const AuthError = {
     EMAIL_EXISTS: "Email already registered",

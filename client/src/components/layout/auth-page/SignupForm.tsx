@@ -52,7 +52,6 @@ export const SignupForm = ({emailInput, setEmailInput, setIsSignup}: AuthFormPro
                 username: usernameInput.trim(),
                 email: emailInput.trim().toLowerCase(),
                 password: passwordInput.trim(),
-                userRole: "client"
             });
 
             if (result?.userData) {

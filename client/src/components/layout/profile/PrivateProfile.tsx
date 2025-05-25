@@ -1,5 +1,5 @@
 import {Form} from "../../ui/form/Form.tsx";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {TextInput} from "../../ui/text-input/TextInput.tsx";
 import {useAuth} from "../../../context/AuthContext.tsx";
 import Button from "../../ui/button/Button.tsx";
@@ -24,6 +24,10 @@ const AccountOwnIdeas = () => {
         enabled: !!id,
         staleTime: 5 * 60 * 1000,
     });
+
+    useEffect(() => {
+        console.log(data)
+    }, [data]);
 
     if (isLoading) {
         return (

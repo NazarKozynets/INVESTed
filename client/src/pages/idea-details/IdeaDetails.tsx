@@ -16,15 +16,16 @@ import Button from "../../components/ui/button/Button.tsx";
 import {Form} from "../../components/ui/form/Form.tsx";
 
 export const IdeaDetails = () => {
+    const queryClient = useQueryClient();
     const {authState} = useAuth();
     const {ideaId} = useParams();
     const userId = authState.userData?.userId;
+    const username = authState.userData?.username;
 
     const [isHovered, setIsHovered] = useState(false);
     const [tooltipX, setTooltipX] = useState(0);
     const [progressPercentage, setProgressPercentage] = useState(0);
     const [commentText, setCommentText] = useState("");
-    const queryClient = useQueryClient();
 
     const {
         data: idea,
@@ -71,13 +72,13 @@ export const IdeaDetails = () => {
             if (previousIdea) {
                 const newComment: IdeaCommentModel = {
                     commentText,
-                    commentedBy: userId || "Unknown",
+                    commentatorId: userId || "Unknown",
+                    commentatorUsername: username || "Unknown",
                     commentDate: new Date().toISOString(),
-                    replies: []
                 };
                 queryClient.setQueryData<IdeaType>(['idea-details', ideaId], {
                     ...previousIdea,
-                    comments: [...previousIdea.comments, newComment]
+                    comments: [...previousIdea.comments.map(c => ({ ...c })), newComment]
                 });
             }
 
@@ -112,10 +113,6 @@ export const IdeaDetails = () => {
         }
     }, [idea?.alreadyCollected]);
 
-    useEffect(() => {
-        console.log(idea, 'idea')
-    }, [idea]);
-
     const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
         const rect = e.currentTarget.getBoundingClientRect();
         const relativeX = e.clientX - rect.left;
@@ -131,32 +128,36 @@ export const IdeaDetails = () => {
         commentMutation.mutate(commentText);
     };
 
+    const handleGoToPaymentPage = () => {
+        window.location.href = `/ideas/details/payment/${ideaId}`
+    };
+
     const renderComments = (comments: IdeaCommentModel[], depth = 0) => {
         return comments
             .sort((a, b) => new Date(b.commentDate).getTime() - new Date(a.commentDate).getTime())
             .map((comment, index) => (
                 <motion.div
-                    key={`${comment.commentedBy}-${comment.commentDate}-${index}`}
+                    key={`${comment.commentatorId}-${comment.commentDate}-${index}`}
                     className={`idea-details__comment ${depth > 0 ? 'idea-details__comment--reply' : ''}`}
                     initial={{opacity: 0, y: 10}}
                     animate={{opacity: 1, y: 0}}
                     transition={{duration: 0.3, delay: index * 0.1}}
                 >
                     <div className="idea-details__comment-header">
-                        <div className="idea-details__comment-user">
-                            <UserProfileIcon username={comment.commentedBy}/>
-                            <span>{comment.commentedBy}</span>
+                        <div className="idea-details__comment-user" onClick={(e) => {
+                            if (comment.commentatorUsername) {
+                                e.stopPropagation();
+                                window.location.href = `/profile/${comment.commentatorUsername}`;
+                            }
+                        }}>
+                            <UserProfileIcon username={comment.commentatorUsername}/>
+                            <span>{comment.commentatorUsername}</span>
                         </div>
                         <span className="idea-details__comment-date">
                         {format(new Date(comment.commentDate), 'dd.MM.yyyy HH:mm')}
-                    </span>
+                      </span>
                     </div>
                     <p className="idea-details__comment-text">{comment.commentText}</p>
-                    {comment.replies && comment.replies.length > 0 && (
-                        <div className="idea-details__comment-replies">
-                            {renderComments(comment.replies, depth + 1)}
-                        </div>
-                    )}
                 </motion.div>
             ));
     };
@@ -178,7 +179,8 @@ export const IdeaDetails = () => {
             {idea && !isLoading && !isFetching && !isError && (
                 <div>
                     <div className="idea-details__header">
-                        <p className="idea-details__header-title">{idea.ideaName}</p>
+                        <p className="idea-details__header-title"
+                           style={{color: idea.isClosed ? "red" : "white"}}>{idea.ideaName}</p>
                         {idea.creatorUsername && (
                             <div
                                 className="idea-details__header-user"
@@ -224,15 +226,18 @@ export const IdeaDetails = () => {
                         className="idea-details__rating"
                         rating={idea.averageRating}
                         onRatingChange={handleRatingChange}
-                        interactive={!!userId}
+                        interactive={!!userId && !idea.isClosed}
                     />
                     <div className="idea-details__footer">
                         <p>TARGET SUM: ${idea.targetAmount}</p>
                         <p>EXPIRATION DATE: {format(new Date(idea.fundingDeadline), 'dd.MM.yyyy')}</p>
                     </div>
+                    {authState.userData?.role === "Client" && !idea.canEdit && (
+                        <Button text="Invest" onClick={handleGoToPaymentPage}/>
+                    )}
                     <div className="idea-details__comments">
-                        <h3>Comments</h3>
-                        {userId ? (
+                        <h2 style={{textAlign: 'center'}}>Comments</h2>
+                        {!idea.isClosed && (
                             commentMutation.isPending ? <LoadingBar/> : (
                                 <Form className="idea-details__add-comment">
                                     <TextInput disabled={commentMutation.isPending} name="text"
@@ -243,8 +248,6 @@ export const IdeaDetails = () => {
                                                                         text="Post Comment"/>}
                                 </Form>
                             )
-                        ) : (
-                            <p>Please log in to add a comment.</p>
                         )}
                         {idea.comments && idea.comments.length > 0 ? (
                             renderComments(idea.comments)

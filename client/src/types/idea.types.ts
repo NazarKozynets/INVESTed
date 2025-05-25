@@ -3,12 +3,17 @@ export const IdeaError = {
 
     ALREADY_RATED: "You have already rated this idea!",
     INVALID_RATING: "Invalid rate for this idea",
-    YOUR_IDEA: "You can't rate your idea",
+    RATE_YOUR_IDEA: "You can't rate your idea",
     UNABLE_TO_RATE: "You don't have access to rate this idea!",
 
     EMPTY_COMMENT: "Comment cannot be empty!",
     COMMENT_TOO_LONG: "Looks like your comment is too long",
     UNABLE_TO_COMMENT: "You don't have access to comment this idea!",
+
+    INVALID_FUNDING_AMOUNT: "Looks like your funding amount number isn't normal!",
+    INVEST_YOUR_IDEA: "You can't invest your idea",
+    UNABLE_TO_INVEST: "You don't have access to invest this idea!",
+    FUNDING_AMOUNT_GREATER_THAN_TARGET: "Your funding amount is greater than Idea's target amount",
 
     NOT_FOUND: "Idea not found.",
 } as const;
@@ -36,9 +41,9 @@ export interface IdeaRatingType {
 
 export interface IdeaCommentModel {
     commentText: string;
-    commentedBy: string;
+    commentatorId: string;
+    commentatorUsername: string;
     commentDate: string;
-    replies: IdeaCommentModel[];
 }
 
 export interface IdeaType {
@@ -51,8 +56,9 @@ export interface IdeaType {
     rating: IdeaRatingType[];
     comments: IdeaCommentModel[];
     averageRating: number;
-    canEdit?: boolean | false;
+    canEdit: boolean;
     creatorUsername?: string | null;
+    isClosed: boolean;
 }
 
 export interface GetLimitedAmountOfSortedIdeasResponse {
@@ -92,4 +98,9 @@ export interface RateIdeaRequest {
 export interface AddCommentRequest {
     ideaId: string;
     commentText: string;
+}
+
+export interface InvestIdeaRequest {
+    ideaId: string;
+    fundingAmount: number;
 }

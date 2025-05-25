@@ -9,6 +9,7 @@ export type TypeRootStackParamList = {
     StartIdea: undefined
     IdeaDetails: undefined
     IdeasAll: undefined
+    Payment: undefined
 }
 
 export interface IRoute {
