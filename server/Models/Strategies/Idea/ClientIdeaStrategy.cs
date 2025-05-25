@@ -1,6 +1,7 @@
 ﻿using server.Models.DTO.Idea;
 using server.Models.Idea;
 using server.Models.Interfaces;
+using server.models.user;
 using server.Services.Idea;
 
 namespace server.Models.Strategies.Idea;
@@ -36,22 +37,42 @@ public class ClientIdeaStrategy : IdeaStrategy
         if (ideaToRate.Rating.Any(r => r.RatedBy == ratedBy))
             return (null, RateIdeaResult.AlreadyRated);
         if (isOwner)
-            return (null, RateIdeaResult.YourIdea);
+            return (null, RateIdeaResult.RateYourIdea);
 
         var newRate = ideaToRate.AddRating(ratedBy, rate);
         return (newRate, RateIdeaResult.Success);
     }
     
-    public override (IdeaCommentModel? newComment, CommentIdeaResult resultMes) AddCommentToIdea(IdeaModel ideaToAdd, string commentText, string commentedBy)
+    public override (IdeaCommentModel? newComment, CommentIdeaResult resultMes) AddCommentToIdea(IdeaModel ideaToAdd, string commentText, string commentatorId, string commentatorUsername)
     {
         if (string.IsNullOrWhiteSpace(commentText))
             return (null, CommentIdeaResult.EmptyComment);
-        if (string.IsNullOrWhiteSpace(commentedBy))
+        if (string.IsNullOrWhiteSpace(commentatorId))
+            return (null, CommentIdeaResult.EmptyCommentedBy);
+        if (string.IsNullOrWhiteSpace(commentatorUsername))
             return (null, CommentIdeaResult.EmptyCommentedBy);
         if (commentText.Length > 500)
             return (null, CommentIdeaResult.CommentTooLong);
         
-        var newComment = ideaToAdd.AddComment(commentText, commentedBy);
+        var newComment = ideaToAdd.AddComment(commentText, commentatorId, commentatorUsername);
         return (newComment, CommentIdeaResult.Success);
+    }
+    
+    public override (decimal? updatedAlreadyCollected, IdeaFundingHistoryElementModel? fundingHistoryElementModel, InvestIdeaResult resultMes) InvestIdea(IdeaModel idea,
+        string fundedById, string fundedByUsername, decimal fundingAmount, bool isOwner)
+    {
+        if (string.IsNullOrWhiteSpace(fundedById))
+            return (null, null, InvestIdeaResult.EmptyFundedBy);
+        if (string.IsNullOrWhiteSpace(fundedByUsername))
+            return (null, null, InvestIdeaResult.EmptyFundedBy);
+        if (fundingAmount <= 0 || fundingAmount > 1000000m)
+            return (null, null, InvestIdeaResult.InvalidFundingAmount);
+        if (isOwner)
+            return (null, null, InvestIdeaResult.InvestYourIdea);
+        if (fundingAmount > idea.TargetAmount)
+            return (null, null, InvestIdeaResult.FundingAmountGreaterThanTarget);
+
+        (decimal, IdeaFundingHistoryElementModel) updatedAlreadyCollected = idea.AddElementToFundingHistory(fundedById, fundedByUsername, fundingAmount);
+        return (updatedAlreadyCollected.Item1, updatedAlreadyCollected.Item2, InvestIdeaResult.Success);
     }
 }

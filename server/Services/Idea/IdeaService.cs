@@ -131,9 +131,8 @@ public class IdeaService
             IdeaModel idea = await _ideasCollection.Find(idea => idea.Id == ideaId).FirstOrDefaultAsync();
             if (idea == null) return (null, "NOT_FOUND");
 
-            var currentUserRole = await _profileService.GetThisUserRoleAsync(userClaims);
-            if (currentUserRole.error != null || currentUserRole.role == null)
-                return (null, currentUserRole.error);
+            var currentUser = await _authService.GetUserFromClaimsAsync(userClaims);
+            if (currentUser == null || string.IsNullOrEmpty(currentUser.Id) || string.IsNullOrEmpty(currentUser.Username)) return (null, "INVALID_CREDENTIALS");
 
             var (data, error) = await _profileService.GetUserProfileByIdAsync(idea.CreatorId, userClaims);
             if (error == null && data is GetUserProfileModel profile)
@@ -146,8 +145,8 @@ public class IdeaService
             }
 
             return (IdeaStrategyFactory
-                .GetIdeaStrategy(currentUserRole.role.Value)
-                .GetFormattedIdea(idea), null);
+                .GetIdeaStrategy(currentUser.Role)
+                .GetFormattedIdea(idea, currentUser.Id == idea.CreatorId), null);
         }
         catch (Exception e)
         {
@@ -216,7 +215,7 @@ public class IdeaService
                     : sortField.Descending(i => i.Rating)
             };
 
-            var filter = Builders<IdeaModel>.Filter.Empty;
+            var filter = Builders<IdeaModel>.Filter.Eq(i => i.Status, IdeaStatus.Open);
 
             var total = await _ideasCollection.CountDocumentsAsync(filter);
 
@@ -253,6 +252,64 @@ public class IdeaService
         }
     }
 
+    public async Task<(decimal? updatedAlreadyCollected, string? error)> InvestIdeaAsync(InvestIdeaRequestModel data, ClaimsPrincipal userClaims)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(data.IdeaId))
+                return (null, "INVALID_ID");
+            
+            var idea = await _ideasCollection.Find(Builders<IdeaModel>.Filter.And(
+                    Builders<IdeaModel>.Filter.Eq(i => i.Id, data.IdeaId),
+                    Builders<IdeaModel>.Filter.Eq(i => i.Status, IdeaStatus.Open)
+                ))
+                .FirstOrDefaultAsync();
+            if (idea == null) return (null, "NOT_FOUND");
+
+            var currentUser = await _authService.GetUserFromClaimsAsync(userClaims);
+            if (currentUser == null || string.IsNullOrEmpty(currentUser.Id) || string.IsNullOrEmpty(currentUser.Username)) return (null, "INVALID_CREDENTIALS");
+            
+            var strategy = IdeaStrategyFactory.GetIdeaStrategy(currentUser.Role);
+
+            var result = strategy.InvestIdea(idea, currentUser.Id, currentUser.Username, data.FundingAmount, idea.CreatorId == currentUser.Id);
+            
+            if (result is { updatedAlreadyCollected: not null, fundingHistoryElementModel: not null, resultMes: InvestIdeaResult.Success })
+            {
+                var update = Builders<IdeaModel>.Update.Combine(
+                    Builders<IdeaModel>.Update.Push(i => i.FundingHistory, result.fundingHistoryElementModel),
+                    Builders<IdeaModel>.Update.Set(i => i.AlreadyCollected, result.updatedAlreadyCollected)
+                );
+
+                var updateResult = await _ideasCollection.UpdateOneAsync(
+                    Builders<IdeaModel>.Filter.Eq(i => i.Id, idea.Id),
+                    update
+                );
+
+                if (updateResult.MatchedCount == 0)
+                {
+                    _logger.LogWarning("Failed to update idea with ID {IdeaId}: Not found in database", idea.Id);
+                    return (null, "UPDATE_FAILED");
+                }
+            }
+
+            return result.resultMes switch
+            {
+                InvestIdeaResult.Success => (result.updatedAlreadyCollected, null),
+                InvestIdeaResult.InvalidFundingAmount => (null, "INVALID_FUNDING_AMOUNT"),
+                InvestIdeaResult.EmptyFundedBy => (null, "EMPTY_FUNDED_BY"),
+                InvestIdeaResult.NotEnoughAccess => (null, "UNABLE_TO_INVEST"),
+                InvestIdeaResult.InvestYourIdea => (null, "INVEST_YOUR_IDEA"),
+                InvestIdeaResult.FundingAmountGreaterThanTarget => (null, "FUNDING_AMOUNT_GREATER_THAN_TARGET"),
+                _ => (null, "SERVER_ERROR")
+            };
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Unexpected error in InvestIdeaAsync");
+            return (null, e.Message);
+        }
+    }
+    
     public async Task<(bool res, string? error)> RateIdeaAsync(RateIdeaRequestModel data, ClaimsPrincipal userClaims)
     {
         try
@@ -260,10 +317,13 @@ public class IdeaService
             if (string.IsNullOrWhiteSpace(data.IdeaId))
                 return (false, "INVALID_ID");
 
-            var idea = await _ideasCollection.Find(Builders<IdeaModel>.Filter.Eq(i => i.Id, data.IdeaId))
+            var idea = await _ideasCollection.Find(Builders<IdeaModel>.Filter.And(
+                    Builders<IdeaModel>.Filter.Eq(i => i.Id, data.IdeaId),
+                    Builders<IdeaModel>.Filter.Eq(i => i.Status, IdeaStatus.Open)
+                ))
                 .FirstOrDefaultAsync();
             if (idea == null) return (false, "NOT_FOUND");
-
+            
             var currentUserIdResult = await _profileService.GetThisUserIdAsync(userClaims);
             if (currentUserIdResult.error != null || currentUserIdResult.id == null)
                 return (false, currentUserIdResult.error);
@@ -297,7 +357,7 @@ public class IdeaService
                 RateIdeaResult.AlreadyRated => (false, "ALREADY_RATED"),
                 RateIdeaResult.EmptyRatedBy => (false, "EMPTY_RATED_BY"),
                 RateIdeaResult.InvalidRating => (false, "INVALID_RATING"),
-                RateIdeaResult.YourIdea => (false, "YOUR_IDEA"),
+                RateIdeaResult.RateYourIdea => (false, "RATE_YOUR_IDEA"),
                 RateIdeaResult.NotEnoughAccess => (false, "UNABLE_TO_RATE"),
                 _ => (false, "UNKNOWN_ERROR")
             };
@@ -316,21 +376,19 @@ public class IdeaService
             if (string.IsNullOrWhiteSpace(data.IdeaId))
                 return (null, "INVALID_ID");
 
-            var idea = await _ideasCollection.Find(Builders<IdeaModel>.Filter.Eq(i => i.Id, data.IdeaId))
+            var idea = await _ideasCollection.Find(Builders<IdeaModel>.Filter.And(
+                    Builders<IdeaModel>.Filter.Eq(i => i.Id, data.IdeaId),
+                    Builders<IdeaModel>.Filter.Eq(i => i.Status, IdeaStatus.Open)
+                ))
                 .FirstOrDefaultAsync();
             if (idea == null) return (null, "NOT_FOUND");
 
-            var currentUserIdResult = await _profileService.GetThisUserIdAsync(userClaims);
-            if (currentUserIdResult.error != null || currentUserIdResult.id == null)
-                return (null, currentUserIdResult.error);
+            var currentUser = await _authService.GetUserFromClaimsAsync(userClaims);
+            if (currentUser == null || string.IsNullOrEmpty(currentUser.Id) || string.IsNullOrEmpty(currentUser.Username)) return (null, "INVALID_CREDENTIALS");
             
-            var currentUserRole = await _profileService.GetThisUserRoleAsync(userClaims);
-            if (currentUserRole.error != null || currentUserRole.role == null)
-                return (null, currentUserRole.error);
+            var strategy = IdeaStrategyFactory.GetIdeaStrategy(currentUser.Role);
 
-            var strategy = IdeaStrategyFactory.GetIdeaStrategy(currentUserRole.role.Value);
-
-            var result = strategy.AddCommentToIdea(idea, data.CommentText, currentUserIdResult.id);
+            var result = strategy.AddCommentToIdea(idea, data.CommentText, currentUser.Id, currentUser.Username);
             
             if (result is { newComment: not null, resultMes: CommentIdeaResult.Success })
             {
@@ -369,7 +427,7 @@ public enum RateIdeaResult
 {
     Success,
     AlreadyRated,
-    YourIdea,
+    RateYourIdea,
     EmptyRatedBy,
     InvalidRating,
     NotEnoughAccess,
@@ -382,4 +440,14 @@ public enum CommentIdeaResult
     EmptyCommentedBy,
     NotEnoughAccess,     
     CommentTooLong,      
+}
+
+public enum InvestIdeaResult
+{
+    Success,
+    InvestYourIdea,
+    EmptyFundedBy,
+    InvalidFundingAmount,
+    NotEnoughAccess,
+    FundingAmountGreaterThanTarget,
 }

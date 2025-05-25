@@ -47,7 +47,7 @@ public class IdeaExpirationService : BackgroundService
                 _logger.LogError(ex, "Error in IdeaExpirationService");
             }
 
-            await Task.Delay(TimeSpan.FromMinutes(2), stoppingToken);
+            await Task.Delay(TimeSpan.FromMinutes(10), stoppingToken);
         }
     }
 }

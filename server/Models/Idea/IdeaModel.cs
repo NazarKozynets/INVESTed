@@ -13,11 +13,9 @@ public enum IdeaStatus
 
 public class IdeaRatingModel
 {
-    [BsonElement("ratedBy")]
-    public string RatedBy { get; init; }
+    [BsonElement("ratedBy")] public string RatedBy { get; init; }
 
-    [BsonElement("rate")]
-    public int Rate { get; private set; }
+    [BsonElement("rate")] public int Rate { get; private set; }
 
     public IdeaRatingModel(string ratedBy, int rate)
     {
@@ -33,42 +31,53 @@ public class IdeaRatingModel
 
 public class IdeaCommentModel
 {
-    [BsonElement("commentText")]
-    public string CommentText { get; private set; }
+    [BsonElement("commentText")] public string CommentText { get; private set; }
 
-    [BsonElement("commentedBy")]
-    public string CommentedBy { get; init; }
+    [BsonElement("commentatorId")] public string CommentatorId { get; init; }
 
-    [BsonElement("commentDate")]
-    public DateTime CommentDate { get; init; }
+    [BsonElement("commentatorUsername")] public string CommentatorUsername { get; init; }
 
-    [BsonElement("replies")]
-    public List<IdeaCommentModel> Replies { get; private set; } = new List<IdeaCommentModel>();
+    [BsonElement("commentDate")] public DateTime CommentDate { get; init; }
 
-    public IdeaCommentModel(string commentText, string commentedBy)
+    public IdeaCommentModel(string commentText, string commentatorId, string commentatorUsername)
     {
         if (string.IsNullOrWhiteSpace(commentText))
             throw new ArgumentException("Comment text cannot be empty.");
-        if (string.IsNullOrWhiteSpace(commentedBy))
-            throw new ArgumentException("CommentedBy cannot be empty.");
+        if (string.IsNullOrWhiteSpace(commentatorId))
+            throw new ArgumentException("CommentatorId cannot be empty.");
+        if (string.IsNullOrWhiteSpace(commentatorUsername))
+            throw new ArgumentException("CommentatorUsername cannot be empty.");
 
         CommentText = commentText;
-        CommentedBy = commentedBy;
+        CommentatorId = commentatorId;
+        CommentatorUsername = commentatorUsername;
         CommentDate = DateTime.UtcNow;
     }
+}
 
-    public void UpdateCommentText(string newText)
-    {
-        if (string.IsNullOrWhiteSpace(newText))
-            throw new ArgumentException("Comment text cannot be empty.");
-        CommentText = newText;
-    }
+public class IdeaFundingHistoryElementModel
+{
+    [BsonElement("fundedById")] public string FundedById { get; init; }
 
-    public void AddReply(IdeaCommentModel reply)
+    [BsonElement("fundedByUsername")] public string FundedByUsername { get; init; }
+
+    [BsonElement("fundedDate")] public DateTime FundedDate { get; init; }
+
+    [BsonElement("fundingAmount")] public decimal FundingAmount { get; init; }
+
+    public IdeaFundingHistoryElementModel(string fundedById, string fundedByUsername, decimal fundingAmount)
     {
-        if (reply == null)
-            throw new ArgumentNullException(nameof(reply));
-        Replies.Add(reply);
+        if (string.IsNullOrWhiteSpace(fundedById))
+            throw new ArgumentException("FundedById cannot be empty.");
+        if (string.IsNullOrWhiteSpace(fundedByUsername))
+            throw new ArgumentException("FundedByUsername cannot be empty.");
+        if (fundingAmount <= 0 || fundingAmount > 1000000m)
+            throw new ArgumentException("FundingAmount must be a positive and reasonable number.");
+
+        FundedById = fundedById;
+        FundedByUsername = fundedByUsername;
+        FundingAmount = fundingAmount;
+        FundedDate = DateTime.UtcNow;
     }
 }
 
@@ -78,40 +87,35 @@ public class IdeaModel
     [BsonRepresentation(BsonType.ObjectId)]
     public string Id { get; private set; } = ObjectId.GenerateNewId().ToString();
 
-    [BsonElement("creatorId")]
-    public string CreatorId { get; init; }
+    [BsonElement("creatorId")] public string CreatorId { get; init; }
 
-    [BsonElement("ideaName")]
-    public string IdeaName { get; private set; }
+    [BsonElement("ideaName")] public string IdeaName { get; private set; }
 
-    [BsonElement("ideaDescription")]
-    public string IdeaDescription { get; private set; }
+    [BsonElement("ideaDescription")] public string IdeaDescription { get; private set; }
 
-    [BsonElement("targetAmount")]
-    public int TargetAmount { get; private set; }
+    [BsonElement("targetAmount")] public decimal TargetAmount { get; private set; }
 
-    [BsonElement("alreadyCollected")]
-    public int AlreadyCollected { get; private set; } = 0;
+    [BsonElement("alreadyCollected")] public decimal AlreadyCollected { get; private set; } = 0;
 
-    [BsonElement("fundingDeadline")]
-    public DateTime FundingDeadline { get; private set; }
+    [BsonElement("fundingDeadline")] public DateTime FundingDeadline { get; private set; }
 
-    [BsonElement("rating")]
-    public List<IdeaRatingModel> Rating { get; private set; } = new List<IdeaRatingModel>();
+    [BsonElement("rating")] public List<IdeaRatingModel> Rating { get; private set; } = new List<IdeaRatingModel>();
 
     [BsonElement("comments")]
     public List<IdeaCommentModel> Comments { get; private set; } = new List<IdeaCommentModel>();
 
-    [BsonElement("createdAt")]
-    public DateTime CreatedAt { get; private set; }
-    
-    [BsonElement("status")]
-    public IdeaStatus Status { get; private set; } = IdeaStatus.Open;
+    [BsonElement("fundingHistory")]
+    public List<IdeaFundingHistoryElementModel> FundingHistory { get; private set; } =
+        new List<IdeaFundingHistoryElementModel>();
 
-    [BsonIgnore]
-    public string? CreatorUsername { get; set; }
+    [BsonElement("createdAt")] public DateTime CreatedAt { get; private set; }
 
-    public IdeaModel(string creatorId, string ideaName, string ideaDescription, int targetAmount, DateTime fundingDeadline)
+    [BsonElement("status")] public IdeaStatus Status { get; private set; } = IdeaStatus.Open;
+
+    [BsonIgnore] public string? CreatorUsername { get; set; }
+
+    public IdeaModel(string creatorId, string ideaName, string ideaDescription, decimal targetAmount,
+        DateTime fundingDeadline)
     {
         if (string.IsNullOrWhiteSpace(creatorId))
             throw new ArgumentException("Creator ID cannot be empty.");
@@ -119,8 +123,8 @@ public class IdeaModel
             throw new ArgumentException("Idea name cannot be empty.");
         if (string.IsNullOrWhiteSpace(ideaDescription))
             throw new ArgumentException("Idea description cannot be empty.");
-        if (targetAmount <= 0)
-            throw new ArgumentException("Target amount must be positive.");
+        if (targetAmount <= 0 || targetAmount > 1000000m)
+            throw new ArgumentException("Target amount must be positive and reasonable number.");
         if (fundingDeadline <= DateTime.UtcNow)
             throw new ArgumentException("Funding deadline must be in the future.");
 
@@ -149,10 +153,10 @@ public class IdeaModel
         IdeaDescription = newDescription;
     }
 
-    public void UpdateTargetAmount(int newAmount)
+    public void UpdateTargetAmount(decimal newAmount)
     {
-        if (newAmount <= 0)
-            throw new ArgumentException("Target amount must be positive.");
+        if (newAmount <= 0 || newAmount > 1000000m)
+            throw new ArgumentException("Target amount must be positive and reasonable number.");
         TargetAmount = newAmount;
     }
 
@@ -163,25 +167,20 @@ public class IdeaModel
         FundingDeadline = newDeadline;
     }
 
-    public void UpdateAlreadyCollected(int amount)
+    public void UpdateAlreadyCollected(decimal amount)
     {
-        if (amount < 0)
-            throw new ArgumentException("Collected amount cannot be negative.");
+        if (amount <= 0)
+            throw new ArgumentException("Target amount must be positive.");
         if (amount > TargetAmount)
             throw new ArgumentException("Collected amount cannot exceed target amount.");
-        AlreadyCollected = amount;
+        AlreadyCollected += amount;
     }
-    
+
     public void CloseIdea()
     {
         if (Status != IdeaStatus.Open)
             throw new InvalidOperationException("Idea is not open.");
         Status = IdeaStatus.Closed;
-    }
-    
-    public bool IsFundingExpired()
-    {
-        return FundingDeadline <= DateTime.UtcNow;
     }
 
     public IdeaRatingModel AddRating(string ratedBy, int rating)
@@ -203,43 +202,20 @@ public class IdeaModel
         return avg;
     }
 
-    public IdeaCommentModel AddComment(string commentText, string commentedBy)
+    public IdeaCommentModel AddComment(string commentText, string commentatorId, string commentatorUsername)
     {
-        var commentModel = new IdeaCommentModel(commentText, commentedBy);
+        IdeaCommentModel commentModel = new IdeaCommentModel(commentText, commentatorId, commentatorUsername);
         Comments.Add(commentModel);
         return commentModel;
     }
 
-    public void ReplyToComment(string parentCommentText, string replyText, string commentedBy)
+    public (decimal, IdeaFundingHistoryElementModel fundingHistoryElementModel) AddElementToFundingHistory(string fundedById, string fundedByUsername,
+        decimal fundingAmount)
     {
-        if (string.IsNullOrWhiteSpace(parentCommentText))
-            throw new ArgumentException("Parent comment text cannot be empty.");
-        if (string.IsNullOrWhiteSpace(replyText))
-            throw new ArgumentException("Reply text cannot be empty.");
-        if (string.IsNullOrWhiteSpace(commentedBy))
-            throw new ArgumentException("CommentedBy cannot be empty.");
-
-        var parentComment = Comments.FirstOrDefault(c => c.CommentText == parentCommentText);
-        if (parentComment == null)
-            throw new ArgumentException("Parent comment not found.");
-
-        var reply = new IdeaCommentModel(replyText, commentedBy);
-        parentComment.AddReply(reply);
-    }
-
-    public void UpdateComment(string oldCommentText, string newCommentText, string commentedBy)
-    {
-        if (string.IsNullOrWhiteSpace(oldCommentText))
-            throw new ArgumentException("Old comment text cannot be empty.");
-        if (string.IsNullOrWhiteSpace(newCommentText))
-            throw new ArgumentException("New comment text cannot be empty.");
-        if (string.IsNullOrWhiteSpace(commentedBy))
-            throw new ArgumentException("CommentedBy cannot be empty.");
-
-        var comment = Comments.FirstOrDefault(c => c.CommentText == oldCommentText && c.CommentedBy == commentedBy);
-        if (comment == null)
-            throw new ArgumentException("Comment not found or not authored by this user.");
-
-        comment.UpdateCommentText(newCommentText);
+        IdeaFundingHistoryElementModel fundingHistoryElementModel =
+            new IdeaFundingHistoryElementModel(fundedById, fundedByUsername, fundingAmount);
+        FundingHistory.Add(fundingHistoryElementModel);
+        UpdateAlreadyCollected(fundingAmount);
+        return (AlreadyCollected, fundingHistoryElementModel);
     }
 }

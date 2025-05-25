@@ -20,7 +20,7 @@ public class IdeaController : ControllerBase
         _ideaService = ideaService;
         _logger = logger;
     }
-    
+
     [HttpPost("start")]
     public async Task<ActionResult<object>> StartIdea(StartIdeaModel data)
     {
@@ -58,7 +58,7 @@ public class IdeaController : ControllerBase
                 _ => StatusCode(500, new { error }),
             };
         }
-        
+
         return Ok(ideas);
     }
 
@@ -66,20 +66,20 @@ public class IdeaController : ControllerBase
     public async Task<ActionResult<object>> GetIdeaById(string ideaId)
     {
         var (idea, error) = await _ideaService.GetIdeaByIdAsync(ideaId, User);
-        
+
         if (error != null)
         {
             return error switch
             {
                 "INVALID_ID" => BadRequest(new { error }),
                 "NOT_FOUND" => NotFound(new { error }),
-                _ => StatusCode(500, new { error }) 
+                _ => StatusCode(500, new { error })
             };
         }
-        
+
         return Ok(idea);
     }
-    
+
     [HttpGet("get/sorted")]
     public async Task<ActionResult<object>> GetLimitedAmountOfSortedIdeas(
         [FromQuery] int page = 1,
@@ -87,7 +87,8 @@ public class IdeaController : ControllerBase
         [FromQuery] string sortBy = "Rating",
         [FromQuery] string sortOrder = "desc")
     {
-        var (ideas, total, error) = await _ideaService.GetLimitedAmountOfSortedIdeasAsync(page, limit, sortBy, sortOrder, User);
+        var (ideas, total, error) =
+            await _ideaService.GetLimitedAmountOfSortedIdeasAsync(page, limit, sortBy, sortOrder, User);
 
         if (error != null)
         {
@@ -109,6 +110,29 @@ public class IdeaController : ControllerBase
         });
     }
 
+    [HttpPost("invest")]
+    public async Task<ActionResult<object>> InvestIdea(InvestIdeaRequestModel data)
+    {
+        var (res, error) = await _ideaService.InvestIdeaAsync(data, User);
+
+        if (res == null && error != null)
+        {
+            return error switch
+            {
+                "INVALID_ID" => BadRequest(new { error }),
+                "EMPTY_FUNDED_BY" => BadRequest(new { error }),
+                "INVALID_FUNDING_AMOUNT" => BadRequest(new { error }),
+                "NOT_FOUND" => NotFound(new { error }),
+                "INVEST_YOUR_IDEA" => Conflict(new { error }),
+                "UNABLE_TO_INVEST" => StatusCode(403, new { error }),
+                "FUNDING_AMOUNT_GREATER_THAN_TARGET" => Conflict(new { error }),
+                _ => StatusCode(500, new { error })
+            };
+        }
+        
+        return Ok(res);
+    }
+
     [HttpPost("rate")]
     public async Task<ActionResult<object>> RateIdea(RateIdeaRequestModel data)
     {
@@ -123,15 +147,15 @@ public class IdeaController : ControllerBase
                 "INVALID_RATING" => BadRequest(new { error }),
                 "NOT_FOUND" => NotFound(new { error }),
                 "ALREADY_RATED" => Conflict(new { error }),
-                "YOUR_IDEA" => Conflict(new { error }),
+                "RATE_YOUR_IDEA" => Conflict(new { error }),
                 "UNABLE_TO_RATE" => StatusCode(403, new { error }),
-                _ => StatusCode(500, new { error }) 
+                _ => StatusCode(500, new { error })
             };
         }
 
         return Ok();
     }
-    
+
     [HttpPost("add-comment")]
     public async Task<ActionResult<object>> AddCommentToIdea(AddCommentToIdeaModel data)
     {
@@ -147,7 +171,8 @@ public class IdeaController : ControllerBase
                 "COMMENT_TOO_LONG" => BadRequest(new { error }),
                 "NOT_FOUND" => NotFound(new { error }),
                 "UNABLE_TO_COMMENT" => StatusCode(403, new { error }),
-                _ => StatusCode(500, new { error }) 
+                "INVALID_CREDENTIALS" => BadRequest(new { error }),
+                _ => StatusCode(500, new { error })
             };
         }
 

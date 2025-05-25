@@ -7,27 +7,29 @@ namespace server.Models.DTO.Idea
         public string IdeaId { get; set; }
         public string IdeaName { get; set; }
         public string IdeaDescription { get; set; }
-        public int TargetAmount { get; set; }
-        public int AlreadyCollected { get; set; }
+        public decimal TargetAmount { get; set; }
+        public decimal AlreadyCollected { get; set; }
         public DateTime FundingDeadline { get; set; }
         public List<IdeaRatingModel> Rating { get; set; }
         public double AverageRating { get; set; }
         public string? CreatorUsername { get; set; }
         public bool CanEdit { get; set; } = false;
         public List<IdeaCommentModel>? Comments { get; set; } = new();
+        public bool IsClosed { get; set; } = false;
 
         public GetIdeaResponseModel(
             string ideaId,
             string ideaName,
             string ideaDescription,
-            int targetAmount,
-            int alreadyCollected,
+            decimal targetAmount,
+            decimal alreadyCollected,
             DateTime fundingDeadline,
             List<IdeaRatingModel> rating,
             double averageRating,
             List<IdeaCommentModel>? comments = null,
             bool canEdit = false,
-            string? creatorUsername = null)
+            string? creatorUsername = null,
+            bool isClosed = false)
         {
             IdeaId = ideaId;
             IdeaName = ideaName;
@@ -40,6 +42,7 @@ namespace server.Models.DTO.Idea
             Comments = comments ?? new List<IdeaCommentModel>();
             CanEdit = canEdit;
             CreatorUsername = creatorUsername;
+            IsClosed = isClosed;
         }
 
     }
