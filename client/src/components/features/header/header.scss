@@ -27,12 +27,12 @@
       transition: 0.2s;
 
       &.links-current {
-        color: #6562EF;
+        color: #6562ef;
         font-weight: bold;
       }
 
       &:hover {
-        color: #6562EF;
+        color: #6562ef;
       }
     }
   }
@@ -52,8 +52,7 @@
       position: absolute;
       top: 50px;
       right: 0;
-      background-color: transparent;
-      backdrop-filter: blur(5px);
+      background-color: black;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
       padding: 10px;
       border: 1px solid white;

@@ -5,16 +5,16 @@
 @use "pages/ideaDetailsPage";
 @use "pages/startIdeaPage";
 
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;500;600;700&display=swap");
 
 :root {
-  font-family: 'Noto Sans', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: "Noto Sans", system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
 
   color-scheme: light dark;
-  --base-color: #1F1CC7;
-  --sub-color: #6562EF;
-  --dark-color-0: #090A0B;
+  --base-color: #1f1cc7;
+  --sub-color: #6562ef;
+  --dark-color-0: #090a0b;
 }
 
 body {
@@ -24,7 +24,7 @@ body {
   min-height: 100vh;
   color: var(--white-color);
   font-size: 14px;
-  letter-spacing: .035em;
+  letter-spacing: 0.035em;
   position: relative;
 
   #root {
@@ -35,7 +35,7 @@ body {
 
 .error-text {
   color: red;
- }
+}
 
 .in-out-form-container {
   visibility: hidden;
@@ -43,9 +43,9 @@ body {
   height: 0;
   overflow: hidden;
   transition:
-          opacity 0.3s ease,
-          height 0.3s ease,
-          visibility 0.3s ease;
+    opacity 0.3s ease,
+    height 0.3s ease,
+    visibility 0.3s ease;
 
   &.visible {
     visibility: visible;

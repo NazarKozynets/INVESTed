@@ -103,13 +103,15 @@
 
     .reset-password-btn {
       background: linear-gradient(
-                      120deg,
-                      #E948C5 0%,
-                      #CD407B 53%,
-                      #75042D 100%
+        120deg,
+        #e948c5 0%,
+        #cd407b 53%,
+        #75042d 100%
       );
       background-size: 120% 120%;
-      transition: background-size 0.3s ease, background-position 0.3s ease;
+      transition:
+        background-size 0.3s ease,
+        background-position 0.3s ease;
 
       &:hover {
         background-size: 100% 100%;
@@ -135,19 +137,19 @@
       #line {
         flex: 1;
         height: 1px;
-        background-color: #4D4D4D;
+        background-color: #4d4d4d;
         margin: 0 10px;
       }
 
       #or-text {
         font-size: 16px;
-        color: #4D4D4D;
+        color: #4d4d4d;
         padding: 0 10px;
       }
     }
 
     #icons-block {
-    display: flex;
+      display: flex;
       align-items: center;
       justify-content: center;
       gap: 20px;

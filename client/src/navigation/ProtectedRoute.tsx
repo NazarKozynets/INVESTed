@@ -4,20 +4,20 @@ import { LoadingOverlay } from "../components/ui/loading-overlay/LoadingOverlay.
 import { ReactNode } from "react";
 
 interface ProtectedRouteProps {
-    children: ReactNode;
+  children: ReactNode;
 }
 
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-    const { authState, isLoading } = useAuth();
-    const location = useLocation();
+  const { authState, isLoading } = useAuth();
+  const location = useLocation();
 
-    if (isLoading) {
-        return <LoadingOverlay />;
-    }
+  if (isLoading) {
+    return <LoadingOverlay />;
+  }
 
-    if (!authState.isAuthenticated) {
-        return <Navigate to="/" state={{ from: location }} replace />;
-    }
+  if (!authState.isAuthenticated) {
+    return <Navigate to="/" state={{ from: location }} replace />;
+  }
 
-    return children;
+  return children;
 };

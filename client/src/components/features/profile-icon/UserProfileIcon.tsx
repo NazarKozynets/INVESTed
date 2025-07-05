@@ -1,50 +1,73 @@
 interface UserProfileIconProps {
-    onClick?: () => void;
-    username: string;
-    size?: number;
+  onClick?: () => void;
+  username: string;
+  size?: number;
 }
 
-export const UserProfileIcon = ({onClick, username, size = 40} : UserProfileIconProps) => {
-    const initial = username && username.length > 0 ? username.charAt(0).toUpperCase() : "?";
+export const UserProfileIcon = ({
+  onClick,
+  username,
+  size = 40,
+}: UserProfileIconProps) => {
+  const initial =
+    username && username.length > 0 ? username.charAt(0).toUpperCase() : "?";
 
-    const resolvedBackgroundColor = username ? generateColorFromString(username) : "#ccc";
+  const resolvedBackgroundColor = username
+    ? generateColorFromString(username)
+    : "#ccc";
 
-    return (
-        <div
-            onClick={() => onClick && onClick()}
-            className="user-avatar"
-            style={{
-                width: size,
-                height: size,
-                borderRadius: "50%",
-                backgroundColor: resolvedBackgroundColor,
-                color: 'white',
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: `${size * 0.5}px`,
-                fontWeight: "bold",
-            }}
-        >
-            {initial}
-        </div>
-    );
+  return (
+    <div
+      onClick={() => onClick && onClick()}
+      className="user-avatar"
+      style={{
+        width: size,
+        height: size,
+        borderRadius: "50%",
+        backgroundColor: resolvedBackgroundColor,
+        color: "white",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: `${size * 0.5}px`,
+        fontWeight: "bold",
+      }}
+    >
+      {initial}
+    </div>
+  );
 };
 
 const generateColorFromString = (str: string): string => {
-    const colors = [
-        "#FF5733", "#33FF57", "#3357FF", "#F033FF", "#FF33A8",
-        "#33FFF5", "#8F33FF", "#FF8F33", "#33FF8F", "#FF3362",
-        "#FFD700", "#00CED1", "#DC143C", "#7B68EE", "#00FF7F",
-        "#FF69B4", "#CD5C5C", "#1E90FF", "#FF4500", "#ADFF2F"
-    ];
+  const colors = [
+    "#FF5733",
+    "#33FF57",
+    "#3357FF",
+    "#F033FF",
+    "#FF33A8",
+    "#33FFF5",
+    "#8F33FF",
+    "#FF8F33",
+    "#33FF8F",
+    "#FF3362",
+    "#FFD700",
+    "#00CED1",
+    "#DC143C",
+    "#7B68EE",
+    "#00FF7F",
+    "#FF69B4",
+    "#CD5C5C",
+    "#1E90FF",
+    "#FF4500",
+    "#ADFF2F",
+  ];
 
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-        hash = str.charCodeAt(i) + ((hash << 5) - hash);
-        hash = hash & hash;
-    }
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    hash = hash & hash;
+  }
 
-    const index = Math.abs(hash) % colors.length;
-    return colors[index];
+  const index = Math.abs(hash) % colors.length;
+  return colors[index];
 };

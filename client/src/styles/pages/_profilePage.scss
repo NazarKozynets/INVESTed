@@ -23,9 +23,13 @@
 
   #right-part {
     width: 70%;
+    display: flex;
+    flex-direction: column;
 
     #user-rating {
-
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
   }
 }
@@ -48,12 +52,12 @@
       transition: 0.3s all;
 
       &.current {
-        color: #6562EF;
+        color: #6562ef;
         font-weight: bold;
       }
 
       &:hover {
-        color: #6562EF;
+        color: #6562ef;
       }
     }
   }
