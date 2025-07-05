@@ -1,4 +1,5 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
+using server.Enums;
 using server.Models.DTO.Idea;
 using server.Models.Idea;
 using server.models.user;
@@ -8,7 +9,7 @@ namespace server.Models.Interfaces;
 
 public abstract class IdeaStrategy
 {
-    //create abstractt class instead of interface so I can make some methods optional 
+    //created abstractt class instead of interface so I can make some methods optional 
     public virtual IdeaModel? StartIdea(StartIdeaModel ideaData, string creatorId)
     {
         return null;

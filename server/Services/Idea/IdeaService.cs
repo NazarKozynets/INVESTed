@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using MongoDB.Driver;
+using server.Enums;
 using server.Models.DTO.Idea;
 using server.Models.DTO.Profile;
 using server.Models.Factories;
@@ -421,33 +422,4 @@ public class IdeaService
             return (null, e.Message);
         }
     }
-}
-
-public enum RateIdeaResult
-{
-    Success,
-    AlreadyRated,
-    RateYourIdea,
-    EmptyRatedBy,
-    InvalidRating,
-    NotEnoughAccess,
-}
-
-public enum CommentIdeaResult
-{
-    Success,             
-    EmptyComment,        
-    EmptyCommentedBy,
-    NotEnoughAccess,     
-    CommentTooLong,      
-}
-
-public enum InvestIdeaResult
-{
-    Success,
-    InvestYourIdea,
-    EmptyFundedBy,
-    InvalidFundingAmount,
-    NotEnoughAccess,
-    FundingAmountGreaterThanTarget,
 }

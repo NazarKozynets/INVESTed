@@ -1,4 +1,5 @@
-﻿using server.Models.DTO.Idea;
+﻿using server.Enums;
+using server.Models.DTO.Idea;
 using server.Models.Idea;
 using server.Models.Interfaces;
 using server.models.user;

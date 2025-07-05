@@ -1,6 +1,6 @@
 ﻿namespace server.Enums;
 
-public enum Profile
+public enum ProfileEnums
 {
     
 }
