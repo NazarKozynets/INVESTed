@@ -60,30 +60,43 @@ export const SortedIdeas = ({
 
   return (
     <section className="sorted-ideas">
-      {hasMounted ? (
-        <motion.div
-          className="sorted-ideas__header"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-        >
-          <h2 id="title">{selectedSortMethod.toUpperCase()} IDEAS</h2>
-          <DropdownMenu
-            options={[...sortIdeasOptions]}
-            onSelect={setSelectedSortMethod}
-            placeholder={selectedSortMethod}
-          />
-        </motion.div>
-      ) : (
-        <div className="sorted-ideas__header">
-          <h2 id="title">{selectedSortMethod.toUpperCase()} IDEAS</h2>
-          <DropdownMenu
-            options={[...sortIdeasOptions]}
-            onSelect={setSelectedSortMethod}
-            placeholder={selectedSortMethod}
-          />
-        </div>
-      )}
+      <div className="sorted-ideas__header">
+        {hasMounted ? (
+          <>
+            <motion.h2
+              id="title"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+            >
+              {selectedSortMethod.toUpperCase()} IDEAS
+            </motion.h2>
+
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
+            >
+              <DropdownMenu
+                options={[...sortIdeasOptions]}
+                onSelect={setSelectedSortMethod}
+                placeholder={selectedSortMethod}
+              />
+            </motion.div>
+          </>
+        ) : (
+          <>
+            <h2 id="title">{selectedSortMethod.toUpperCase()} IDEAS</h2>
+            <div>
+              <DropdownMenu
+                options={[...sortIdeasOptions]}
+                onSelect={setSelectedSortMethod}
+                placeholder={selectedSortMethod}
+              />
+            </div>
+          </>
+        )}
+      </div>
 
       {(isLoading || isFetching) && (
         <LoadingBar

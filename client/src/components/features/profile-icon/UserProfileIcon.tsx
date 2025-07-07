@@ -31,6 +31,7 @@ export const UserProfileIcon = ({
         justifyContent: "center",
         fontSize: `${size * 0.5}px`,
         fontWeight: "bold",
+        userSelect: "none",
       }}
     >
       {initial}

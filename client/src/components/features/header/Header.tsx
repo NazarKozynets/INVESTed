@@ -11,6 +11,8 @@ export const Header = () => {
   const { authState, onLogout } = useAuth();
   const location = useLocation();
   const [profileMenuVisible, setProfileMenuVisible] = useState(false);
+
+  const profileButtonRef = useRef<HTMLDivElement>(null);
   const profileMenuRef = useRef<HTMLDivElement>(null);
 
   const dropdownOptions = ["Ideas", "Start Idea", "Chats", "Forums"];
@@ -26,9 +28,13 @@ export const Header = () => {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+
       if (
         profileMenuRef.current &&
-        !profileMenuRef.current.contains(event.target as Node)
+        !profileMenuRef.current.contains(target) &&
+        profileButtonRef.current &&
+        !profileButtonRef.current.contains(target)
       ) {
         setProfileMenuVisible(false);
       }
@@ -95,7 +101,7 @@ export const Header = () => {
           }}
         />
       </div>
-      <div id="user-pfp" onClick={toggleProfileMenu}>
+      <div id="user-pfp" ref={profileButtonRef} onClick={toggleProfileMenu}>
         <UserProfileIcon username={authState.userData?.username!} />
         {profileMenuVisible && (
           <div className="dropdown-menu" ref={profileMenuRef}>

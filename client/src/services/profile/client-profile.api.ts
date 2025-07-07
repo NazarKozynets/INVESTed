@@ -17,5 +17,5 @@ export const updateProfileFields = async (
   data: UpdateProfileFieldsRequestData,
 ) => {
   if (!data.id) throw new Error("Something went wrong");
-  return await useRequest(`profile/update`, "put", data);
+  return await useRequest(`profile/update/fields`, "put", data);
 };

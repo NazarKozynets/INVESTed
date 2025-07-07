@@ -1,5 +1,5 @@
 import { Form } from "../../ui/form/Form.tsx";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { TextInput } from "../../ui/text-input/TextInput.tsx";
 import { useAuth } from "../../../context/AuthContext.tsx";
 import Button from "../../ui/button/Button.tsx";
@@ -7,7 +7,10 @@ import { updateProfileFields } from "../../../services/profile/client-profile.ap
 import { UpdateProfileFieldsRequestData } from "../../../types/profile.types.ts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
-import { validateEmail } from "../../../utils/functions/validations.ts";
+import {
+  validateEmail,
+  validatePassword,
+} from "../../../utils/functions/validations.ts";
 import { LoadingOverlay } from "../../ui/loading-overlay/LoadingOverlay.tsx";
 import { getAllClientIdeas } from "../../../services/idea/get-ideas.api.ts";
 import { IdeaType } from "../../../types/idea.types.ts";
@@ -70,8 +73,26 @@ const AccountSettingsForm = () => {
 
   const [newUsername, setNewUsername] = useState("");
   const [newEmail, setNewEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
-  const { mutate, isPending } = useMutation({
+  const submitButtonRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (newPassword && submitButtonRef.current) {
+      const element = submitButtonRef.current;
+      const rect = element.getBoundingClientRect();
+
+      if (rect.bottom > window.innerHeight) {
+        element.scrollIntoView({ behavior: "smooth", block: "end" });
+      }
+    }
+  }, [newPassword]);
+
+  const {
+    mutate: mutateUpdateProfileFields,
+    isPending: isUpdatingProfileFields,
+  } = useMutation({
     mutationFn: (data: UpdateProfileFieldsRequestData) =>
       updateProfileFields(data),
     onSuccess: () => {
@@ -87,6 +108,8 @@ const AccountSettingsForm = () => {
 
       setNewUsername("");
       setNewEmail("");
+      setNewPassword("");
+      setConfirmPassword("");
     },
   });
 
@@ -106,60 +129,89 @@ const AccountSettingsForm = () => {
       return;
     }
 
-    // if (!validatePassword(passwordInput)) {
-    //     toast.error(
-    //         "Password must be: 8+ characters, 1 letter, 1 number, 1 special character",
-    //         { toastId: "password-error" }
-    //     );
-    //     return;
-    // }
+    if (newPassword && !validatePassword(newPassword)) {
+      toast.error(
+        "Password must be: 8+ characters, 1 letter, 1 number, 1 special character",
+        { toastId: "password-error" },
+      );
+      return;
+    }
 
-    // if (passwordInput !== confirmPassword) {
-    //     toast.error("Passwords do not match", { toastId: "confirm-password-error" });
-    //     return;
-    // }
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords do not match", {
+        toastId: "confirm-password-error",
+      });
+      return;
+    }
 
-    mutate({
+    mutateUpdateProfileFields({
       id: authState.userData?.userId!,
       username: newUsername.trim(),
       email: newEmail.trim(),
     });
   };
 
-  if (isPending) {
-    return (
-      <Form>
-        <LoadingOverlay />
-      </Form>
-    );
-  }
-
   return (
     <Form className="account-settings-form">
       <div id="element">
-        <p>Username: {authState.userData?.username}</p>
-        <TextInput
-          className="account-settings-input"
-          name={"username"}
-          placeholder={"Input new username"}
-          value={newUsername}
-          setValue={setNewUsername}
-          type={"text"}
-        />
-        <p>Email: {authState.userData?.email}</p>
-        <TextInput
-          className="account-settings-input"
-          name={"email"}
-          placeholder={"Input new email"}
-          value={newEmail}
-          setValue={setNewEmail}
-          type={"email"}
-        />
+        {!isUpdatingProfileFields ? (
+          <>
+            <p>Username: {authState.userData?.username}</p>
+            <TextInput
+              className="account-settings-input"
+              name={"username"}
+              placeholder={"Input new username"}
+              value={newUsername}
+              setValue={setNewUsername}
+              type={"text"}
+            />
+            <p>Email: {authState.userData?.email}</p>
+            <TextInput
+              className="account-settings-input"
+              name={"email"}
+              placeholder={"Input new email"}
+              value={newEmail}
+              setValue={setNewEmail}
+              type={"email"}
+            />
+            <p>Password:</p>
+            <TextInput
+              className="account-settings-input"
+              name="password"
+              placeholder="Password"
+              value={newPassword}
+              setValue={setNewPassword}
+              id="input"
+              type="password"
+            />
+            {newPassword && (
+              <>
+                <p>Confirm Password:</p>
+                <TextInput
+                  name="password"
+                  placeholder="Confirm Password"
+                  value={confirmPassword}
+                  setValue={setConfirmPassword}
+                  id="input"
+                  type="password"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleSubmit(e);
+                    }
+                  }}
+                />
+              </>
+            )}
+          </>
+        ) : (
+          <LoadingOverlay />
+        )}
       </div>
 
       <div
-        className={`in-out-form-container ${newUsername || newEmail ? "visible" : ""}`}
+        className={`in-out-form-container ${newUsername || newEmail || newPassword ? "visible" : ""}`}
         style={{ margin: "20px auto 0", width: "30%" }}
+        ref={submitButtonRef}
       >
         <Button
           text="Update profile"
