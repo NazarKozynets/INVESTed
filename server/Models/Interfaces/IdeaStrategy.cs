@@ -64,6 +64,11 @@ public abstract class IdeaStrategy
         return (null, CommentIdeaResult.NotEnoughAccess);
     }
 
+    public virtual bool CanDeleteCommentFromIdea(string commentCreatorId, string currentUserId)
+    {
+        return commentCreatorId == currentUserId;
+    }
+
     public virtual (decimal? updatedAlreadyCollected, IdeaFundingHistoryElementModel? fundingHistoryElementModel, InvestIdeaResult resultMes) InvestIdea(IdeaModel idea,
         string fundedById, string fundedByUsername, decimal fundingAmount, bool isOwner)
     {

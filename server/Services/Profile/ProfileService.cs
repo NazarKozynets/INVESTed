@@ -167,7 +167,7 @@ public class ProfileService
             return (null, "SERVER_ERROR");
         }
     }
-
+    
     public async Task<(string? id, string? error)> GetThisUserIdAsync(ClaimsPrincipal userClaims)
     {
         try

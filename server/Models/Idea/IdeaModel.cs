@@ -31,6 +31,10 @@ public class IdeaRatingModel
 
 public class IdeaCommentModel
 {
+    [BsonId]
+    [BsonRepresentation(BsonType.ObjectId)]
+    public string Id { get; private set; } = ObjectId.GenerateNewId().ToString();
+    
     [BsonElement("commentText")] public string CommentText { get; private set; }
 
     [BsonElement("commentatorId")] public string CommentatorId { get; init; }
@@ -209,6 +213,15 @@ public class IdeaModel
         return commentModel;
     }
 
+    public bool DeleteComment(string commentId)
+    {
+        var commentToRemove = Comments.FirstOrDefault(c => c.Id == commentId);
+        if (commentToRemove == null)
+            return false; 
+
+        return Comments.Remove(commentToRemove);
+    }
+    
     public (decimal, IdeaFundingHistoryElementModel fundingHistoryElementModel) AddElementToFundingHistory(string fundedById, string fundedByUsername,
         decimal fundingAmount)
     {

@@ -23,4 +23,9 @@ public class AdminIdeaStrategy : IdeaStrategy
             isClosed: idea.Status == IdeaStatus.Closed
         );
     }
+    
+    public override bool CanDeleteCommentFromIdea(string commentCreatorId, string currentUserId)
+    {
+        return true;
+    }
 }

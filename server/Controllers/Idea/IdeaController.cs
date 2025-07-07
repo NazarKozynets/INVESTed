@@ -178,4 +178,26 @@ public class IdeaController : ControllerBase
 
         return Ok(res);
     }
+
+    [HttpDelete("delete-comment")]
+    public async Task<ActionResult<object>> DeleteCommentFromIdea(string commentId)
+    {
+        var (res, error) = await _ideaService.DeleteCommentFromIdeaAsync(commentId, User);
+
+        if (res == null && error != null)
+        {
+            return error switch
+            {
+                "INVALID_ID" => BadRequest(new { error }),
+                "NOT_FOUND" => NotFound(new { error }),
+                "INVALID_CREDENTIALS" => BadRequest(new { error }),
+                "NOT_ENOUGH_ACCESS" => Forbid(), 
+                "DELETE_FAILED" => StatusCode(409, new { error }),
+                "COMMENT_NOT_FOUND" => NotFound(new { error }),
+                _ => StatusCode(500, new { error })
+            };
+        }
+        
+        return Ok(res);
+    }
 }

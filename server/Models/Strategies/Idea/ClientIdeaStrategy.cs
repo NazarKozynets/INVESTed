@@ -58,7 +58,7 @@ public class ClientIdeaStrategy : IdeaStrategy
         var newComment = ideaToAdd.AddComment(commentText, commentatorId, commentatorUsername);
         return (newComment, CommentIdeaResult.Success);
     }
-    
+
     public override (decimal? updatedAlreadyCollected, IdeaFundingHistoryElementModel? fundingHistoryElementModel, InvestIdeaResult resultMes) InvestIdea(IdeaModel idea,
         string fundedById, string fundedByUsername, decimal fundingAmount, bool isOwner)
     {

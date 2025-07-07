@@ -33,7 +33,7 @@ public class ProfileController : ControllerBase
         };
     }
 
-    [HttpPut("update")]
+    [HttpPut("update/fields")]
     public async Task<ActionResult<object>> UpdateUserProfileFields(UpdateProfileFieldsModel newProfileData)
     {
         var (data, error) = await _profileService.UpdateUserProfileFieldsAsync(newProfileData, User);

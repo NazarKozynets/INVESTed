@@ -422,4 +422,58 @@ public class IdeaService
             return (null, e.Message);
         }
     }
+
+    public async Task<(bool? res, string? error)> DeleteCommentFromIdeaAsync(string commentId,
+        ClaimsPrincipal userClaims)
+    {
+        this._logger.LogInformation(commentId, "commennt id");
+        
+        try
+        {
+            if (string.IsNullOrWhiteSpace(commentId))
+                return (null, "INVALID_ID");
+            
+            var currentUser = await _authService.GetUserFromClaimsAsync(userClaims);
+            if (currentUser == null || string.IsNullOrEmpty(currentUser.Id) || string.IsNullOrEmpty(currentUser.Username)) return (null, "INVALID_CREDENTIALS");
+            
+            var filter = Builders<IdeaModel>.Filter.And(
+                Builders<IdeaModel>.Filter.ElemMatch(i => i.Comments, c => c.Id == commentId),
+                Builders<IdeaModel>.Filter.Eq(i => i.Status, IdeaStatus.Open)
+            );
+            
+            var idea = await _ideasCollection.Find(filter).FirstOrDefaultAsync();
+            if (idea == null) return (null, "NOT_FOUND");
+            
+            IdeaCommentModel comment = idea.Comments.FirstOrDefault(c => c.Id == commentId);
+            
+            if (comment == null)
+                return (null, "COMMENT_NOT_FOUND");
+            
+            var strategy = IdeaStrategyFactory.GetIdeaStrategy(currentUser.Role);
+            
+            bool canDelete = strategy.CanDeleteCommentFromIdea(comment.CommentatorId, currentUser.Id);
+            
+            if (!canDelete) return (null, "NOT_ENOUGH_ACCESS");
+            
+            var update = Builders<IdeaModel>.Update.PullFilter(
+                i => i.Comments,
+                c => c.Id == commentId
+            );
+
+            var updateResult = await _ideasCollection.UpdateOneAsync(
+                Builders<IdeaModel>.Filter.Eq(i => i.Id, idea.Id),
+                update
+            );
+
+            if (updateResult.ModifiedCount == 0)
+                return (false, "DELETE_FAILED");
+
+            return (true, null);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Unexpected error in DeleteCommentFromIdeaAsync");
+            return (false, e.Message);
+        }
+    }
 }
