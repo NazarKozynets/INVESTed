@@ -41,6 +41,7 @@ export interface IdeaRatingType {
 }
 
 export interface IdeaCommentModel {
+  id: string;
   commentText: string;
   commentatorId: string;
   commentatorUsername: string;

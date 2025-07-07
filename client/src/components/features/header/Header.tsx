@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import "./header.scss";
 import logoImg from "../../../assets/logo.svg";
-import exitImg from "../../../assets/exit-2860.svg";
+import exitImg from "../../../assets/exit.svg";
 import { useAuth } from "../../../context/AuthContext.tsx";
 import { UserProfileIcon } from "../profile-icon/UserProfileIcon.tsx";
 import { DropdownMenu } from "../../ui/dropdown-menu/DropdownMenu.tsx";

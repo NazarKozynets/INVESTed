@@ -11,24 +11,25 @@ import { useAuth } from "../../context/AuthContext.tsx";
 import {
   rateIdea,
   addCommentToIdea,
+  deleteCommentFromIdea,
 } from "../../services/idea/idea-actions.api.ts";
 import {
   RateIdeaRequest,
   AddCommentRequest,
   IdeaCommentModel,
-  IdeaType,
 } from "../../types/idea.types.ts";
 import { toast } from "react-toastify";
 import { TextInput } from "../../components/ui/text-input/TextInput.tsx";
 import Button from "../../components/ui/button/Button.tsx";
 import { Form } from "../../components/ui/form/Form.tsx";
+import trashIcon from "../../assets/trash.svg";
 
 export const IdeaDetails = () => {
   const queryClient = useQueryClient();
   const { authState } = useAuth();
   const { ideaId } = useParams();
+
   const userId = authState.userData?.userId;
-  const username = authState.userData?.username;
 
   const [isHovered, setIsHovered] = useState(false);
   const [tooltipX, setTooltipX] = useState(0);
@@ -68,58 +69,34 @@ export const IdeaDetails = () => {
     mutationFn: (commentText: string) => {
       const reqBody: AddCommentRequest = {
         ideaId: ideaId as string,
-        commentText,
+        commentText: commentText.trim(),
       };
       return addCommentToIdea(reqBody);
     },
-    onMutate: async (commentText) => {
-      await queryClient.cancelQueries({ queryKey: ["idea-details", ideaId] });
-
-      const previousIdea = queryClient.getQueryData<IdeaType>([
-        "idea-details",
-        ideaId,
-      ]);
-
-      if (previousIdea) {
-        const newComment: IdeaCommentModel = {
-          commentText,
-          commentatorId: userId || "Unknown",
-          commentatorUsername: username || "Unknown",
-          commentDate: new Date().toISOString(),
-        };
-        queryClient.setQueryData<IdeaType>(["idea-details", ideaId], {
-          ...previousIdea,
-          comments: [
-            ...previousIdea.comments.map((c) => ({ ...c })),
-            newComment,
-          ],
-        });
-      }
-
-      return { previousIdea };
-    },
-    onSuccess: (newCommentFromServer) => {
-      queryClient.setQueryData<IdeaType>(
-        ["idea-details", ideaId],
-        (old: IdeaType | undefined) => {
-          if (!old) return old;
-          return {
-            ...old,
-            comments: [...old.comments.slice(0, -1), newCommentFromServer],
-          };
-        },
-      );
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["idea-details", ideaId] });
       setCommentText("");
       toast.success("Comment added successfully!");
     },
-    onError: (error, _, context) => {
-      if (context?.previousIdea) {
-        queryClient.setQueryData(
-          ["idea-details", ideaId],
-          context.previousIdea,
-        );
-      }
+    onError: (error) => {
       console.error(error);
+      toast.error("Failed to add comment.");
+    },
+  });
+
+  const deleteCommentMutation = useMutation({
+    mutationFn: (commentId: string) => {
+      if (!commentId?.trim())
+        return Promise.reject(new Error("Empty commentId"));
+      return deleteCommentFromIdea(commentId.trim());
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["idea-details", ideaId] });
+      toast.success("Comment deleted successfully!");
+    },
+    onError: (error) => {
+      console.error(error);
+      toast.error("Failed to delete comment.");
     },
   });
 
@@ -156,34 +133,52 @@ export const IdeaDetails = () => {
         (a, b) =>
           new Date(b.commentDate).getTime() - new Date(a.commentDate).getTime(),
       )
-      .map((comment, index) => (
-        <motion.div
-          key={`${comment.commentatorId}-${comment.commentDate}-${index}`}
-          className={`idea-details__comment ${depth > 0 ? "idea-details__comment--reply" : ""}`}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: index * 0.1 }}
-        >
-          <div className="idea-details__comment-header">
-            <div
-              className="idea-details__comment-user"
-              onClick={(e) => {
-                if (comment.commentatorUsername) {
-                  e.stopPropagation();
-                  window.location.href = `/profile/${comment.commentatorUsername}`;
-                }
-              }}
+      .map((comment, index) => {
+        if (deleteCommentMutation.isPending) {
+          return <LoadingBar />;
+        } else {
+          return (
+            <motion.div
+              key={`${comment.commentatorId}-${comment.commentDate}-${index}`}
+              className={`idea-details__comment ${depth > 0 ? "idea-details__comment--reply" : ""}`}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.1 }}
             >
-              <UserProfileIcon username={comment.commentatorUsername} />
-              <span>{comment.commentatorUsername}</span>
-            </div>
-            <span className="idea-details__comment-date">
-              {format(new Date(comment.commentDate), "dd.MM.yyyy HH:mm")}
-            </span>
-          </div>
-          <p className="idea-details__comment-text">{comment.commentText}</p>
-        </motion.div>
-      ));
+              <div className="idea-details__comment-header">
+                <div className="idea-details__comment-user-block">
+                  <div
+                    className="idea-details__comment-user"
+                    onClick={(e) => {
+                      if (comment.commentatorUsername) {
+                        e.stopPropagation();
+                        window.location.href = `/profile/${comment.commentatorUsername}`;
+                      }
+                    }}
+                  >
+                    <UserProfileIcon username={comment.commentatorUsername} />
+                    <span>{comment.commentatorUsername}</span>
+                  </div>
+                  {authState?.userData?.userId === comment.commentatorId && (
+                    <div
+                      className="idea-details__comment-delete"
+                      onClick={() => deleteCommentMutation.mutate(comment.id)}
+                    >
+                      <img src={trashIcon} alt="" />
+                    </div>
+                  )}
+                </div>
+                <span className="idea-details__comment-date">
+                  {format(new Date(comment.commentDate), "dd.MM.yyyy HH:mm")}
+                </span>
+              </div>
+              <p className="idea-details__comment-text">
+                {comment.commentText}
+              </p>
+            </motion.div>
+          );
+        }
+      });
   };
 
   return (

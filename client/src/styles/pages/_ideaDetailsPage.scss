@@ -122,6 +122,11 @@
         margin-bottom: 8px;
       }
 
+      &-user-block {
+        display: flex;
+        gap: 15px;
+      }
+
       &-user {
         display: flex;
         align-items: center;
@@ -131,6 +136,22 @@
 
         &:hover {
           color: #007bff;
+        }
+      }
+
+      &-delete {
+        display: flex;
+        align-items: center;
+        align-self: center;
+        justify-content: center;
+        height: 17px;
+        user-select: none;
+        cursor: pointer;
+
+        img {
+          width: 17px;
+          height: 17px;
+          filter: brightness(0) invert(1);
         }
       }
 

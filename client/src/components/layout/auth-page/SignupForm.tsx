@@ -3,9 +3,9 @@ import { useState } from "react";
 import { toast } from "react-toastify";
 import { TextInput } from "../../ui/text-input/TextInput.tsx";
 import Button from "../../ui/button/Button.tsx";
-import googleIcon from "../../../assets/devicon_google.svg";
-import githubIcon from "../../../assets/bi_github.svg";
-import facebookIcon from "../../../assets/logos_facebook.svg";
+import googleIcon from "../../../assets/google.svg";
+import githubIcon from "../../../assets/github.svg";
+import facebookIcon from "../../../assets/facebook.svg";
 import { AuthFormProps } from "../../../types/auth.types.ts";
 import {
   validateEmail,

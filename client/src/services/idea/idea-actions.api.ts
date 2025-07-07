@@ -19,3 +19,10 @@ export const addCommentToIdea = async (
 export const investIdea = async (reqBody: InvestIdeaRequest) => {
   return await useRequest(`idea/invest`, "post", reqBody);
 };
+
+export const deleteCommentFromIdea = async (commentId: string) => {
+  return await useRequest(
+    `idea/delete-comment?commentId=${encodeURIComponent(commentId)}`,
+    "delete",
+  );
+};

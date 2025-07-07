@@ -25,7 +25,7 @@ export const useRequest = async <T = unknown>(
     const { data } = await axios({
       method: httpMethod,
       url: `${import.meta.env.VITE_API_URL}/${requestUrl}`,
-      data: requestData ?? {},
+      data: httpMethod !== "delete" ? (requestData ?? {}) : undefined,
       withCredentials: true,
       headers: { "Content-Type": "application/json" },
     });
