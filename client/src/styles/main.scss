@@ -4,6 +4,7 @@
 @use "pages/aboutUsPage";
 @use "pages/ideaDetailsPage";
 @use "pages/startIdeaPage";
+@use "pages/ideasPage";
 
 @import url("https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;500;600;700&display=swap");
 
@@ -26,6 +27,8 @@ body {
   font-size: 14px;
   letter-spacing: 0.035em;
   position: relative;
+  overflow-x: hidden;
+  overflow-y: auto;
 
   #root {
     min-height: 100vh;

@@ -15,6 +15,7 @@ import { LoadingOverlay } from "../../ui/loading-overlay/LoadingOverlay.tsx";
 import { getAllClientIdeas } from "../../../services/idea/get-ideas.api.ts";
 import { IdeaType } from "../../../types/idea.types.ts";
 import { Idea } from "../../features/ideas/Idea.tsx";
+import { AnimatePresence, motion } from "framer-motion";
 
 const AccountOwnIdeas = () => {
   const { authState } = useAuth();
@@ -210,7 +211,11 @@ const AccountSettingsForm = () => {
 
       <div
         className={`in-out-form-container ${newUsername || newEmail || newPassword ? "visible" : ""}`}
-        style={{ margin: "20px auto 0", width: "30%" }}
+        style={{
+          margin:
+            newUsername || newEmail || newPassword ? "20px auto 0" : "0 auto",
+          width: "30%",
+        }}
         ref={submitButtonRef}
       >
         <Button
@@ -224,11 +229,11 @@ const AccountSettingsForm = () => {
 };
 
 export const PrivateProfile = () => {
-  const [selectedForm, setSelectedForm] = useState<number | null>(null);
+  const [selectedForm, setSelectedForm] = useState<number>(1);
 
   const handleFormChange = (formIndex: number) => {
     if (formIndex !== selectedForm) setSelectedForm(formIndex);
-    else setSelectedForm(null);
+    else setSelectedForm(1);
   };
 
   return (
@@ -254,15 +259,24 @@ export const PrivateProfile = () => {
         </p>
       </div>
 
-      <div className={`in-out-form-container ${selectedForm ? "visible" : ""}`}>
-        {selectedForm == 1 ? (
-          <AccountOwnIdeas />
-        ) : selectedForm == 2 ? (
-          <p>Forums</p>
-        ) : (
-          <AccountSettingsForm />
-        )}
-      </div>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={selectedForm}
+          className={`in-out-form-container ${selectedForm ? "visible" : ""}`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3, ease: "easeInOut" }}
+        >
+          {selectedForm === 1 ? (
+            <AccountOwnIdeas />
+          ) : selectedForm === 2 ? (
+            <p>Forums</p>
+          ) : (
+            <AccountSettingsForm />
+          )}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 };

@@ -3,6 +3,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import "./header.scss";
 import logoImg from "../../../assets/logo.svg";
 import exitImg from "../../../assets/exit.svg";
+import settingsImg from "../../../assets/settings.svg";
 import { useAuth } from "../../../context/AuthContext.tsx";
 import { UserProfileIcon } from "../profile-icon/UserProfileIcon.tsx";
 import { DropdownMenu } from "../../ui/dropdown-menu/DropdownMenu.tsx";
@@ -15,13 +16,12 @@ export const Header = () => {
   const profileButtonRef = useRef<HTMLDivElement>(null);
   const profileMenuRef = useRef<HTMLDivElement>(null);
 
-  const dropdownOptions = ["Ideas", "Start Idea", "Chats", "Forums"];
+  const dropdownOptions = ["Ideas", "Start Idea", "Forums"];
 
   const getInitialOption = () => {
     const path = location.pathname.toLowerCase();
     if (path === "/ideas") return "Ideas";
     if (path === "/ideas/start") return "Start Idea";
-    if (path === "/chats") return "Chats";
     if (path === "/forums") return "Forums";
     return "SERVICES";
   };
@@ -105,13 +105,20 @@ export const Header = () => {
         <UserProfileIcon username={authState.userData?.username!} />
         {profileMenuVisible && (
           <div className="dropdown-menu" ref={profileMenuRef}>
-            <NavLink to={`/profile/${authState.userData?.username}`}>
-              My Profile
-            </NavLink>
-            <button onClick={handleLogout}>
-              <p>Logout</p>
-              <img src={exitImg} alt="" />
-            </button>
+            <div className="dropdown-menu__item">
+              <NavLink to={`/profile/${authState.userData?.username}`}>
+                <div className="dropdown-menu__my-profile">
+                  <p>My Profile</p>
+                  <img src={settingsImg} alt="" />
+                </div>
+              </NavLink>
+            </div>
+            <div className="dropdown-menu__item">
+              <button onClick={handleLogout}>
+                <p>Logout</p>
+                <img src={exitImg} alt="" />
+              </button>
+            </div>
           </div>
         )}
       </div>

@@ -1,6 +1,7 @@
 import {
   AddCommentRequest,
   IdeaCommentModel,
+  IdeaSearchResult,
   InvestIdeaRequest,
   RateIdeaRequest,
 } from "../../types/idea.types.ts";
@@ -25,4 +26,21 @@ export const deleteCommentFromIdea = async (commentId: string) => {
     `idea/delete-comment?commentId=${encodeURIComponent(commentId)}`,
     "delete",
   );
+};
+
+export const searchIdeas = async (
+  query: string,
+  limit = 6,
+  sortBy = "Rating",
+  sortOrder = "desc",
+): Promise<IdeaSearchResult[]> => {
+  const res = await useRequest<{
+    ideas: IdeaSearchResult[];
+    total: number;
+    limit: number;
+  }>(
+    `idea/search?query=${encodeURIComponent(query)}&limit=${limit}&sortBy=${sortBy}&sortOrder=${sortOrder}`,
+    "get",
+  );
+  return res?.ideas || [];
 };

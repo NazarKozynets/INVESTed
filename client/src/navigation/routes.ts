@@ -5,7 +5,7 @@ import { AboutUsPage } from "../pages/about/AboutUsPage.tsx";
 import { Profile } from "../pages/profile/Profile.tsx";
 import { StartIdea } from "../pages/start-idea/StartIdea.tsx";
 import { IdeaDetails } from "../pages/idea-details/IdeaDetails.tsx";
-import { IdeasAll } from "../components/features/ideas/IdeasAll.tsx";
+import { IdeasAll } from "../pages/ideas/IdeasAll.tsx";
 import ResetPasswordPage from "../pages/auth/ResetPasswordPage.tsx";
 import { PaymentPage } from "../pages/idea-details/PaymentPage.tsx";
 

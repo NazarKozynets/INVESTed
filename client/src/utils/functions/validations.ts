@@ -12,7 +12,7 @@ export const validatePassword = (password: string): boolean => {
 export const validateDeadline = (value: string): string => {
   const dateRegex = /^\d{8}$/;
   if (!dateRegex.test(value)) {
-    return "Please enter the date as 8 digits in DDMMYYYY format (e.g., 31122025).";
+    return "Please enter the date as 8 digits in DD-MM-YYYY format (e.g., 31-12-2025).";
   }
 
   const day = parseInt(value.substring(0, 2));

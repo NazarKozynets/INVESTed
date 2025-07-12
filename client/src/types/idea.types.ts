@@ -115,3 +115,10 @@ export interface InvestIdeaRequest {
   ideaId: string;
   fundingAmount: number;
 }
+
+export type IdeaSearchResult = {
+  id: string;
+  ideaName: string;
+  creatorId: string;
+  creatorUsername: string;
+};
