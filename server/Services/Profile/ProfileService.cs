@@ -203,6 +203,33 @@ public class ProfileService
             return (null, "SERVER_ERROR");
         }
     }
+    
+    public async Task<(string? username, string? error)> GetUsernameById(string id)
+    {
+        try
+        {
+            var user = await _usersCollection.Find(u => u.Id == id).FirstOrDefaultAsync();
+            
+            if (user == null) return (null, "USER_NOT_FOUND");
+
+            return (user.Username, null);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error getting username by id");
+            return (null, "SERVER_ERROR");
+        }
+    }
+    
+    public async Task<Dictionary<string, string>> GetUsernamesByIdsAsync(List<string> ids)
+    {
+        var users = await _usersCollection
+            .Find(u => ids.Contains(u.Id))
+            .Project(u => new { u.Id, u.Username })
+            .ToListAsync();
+
+        return users.ToDictionary(u => u.Id, u => u.Username);
+    }
 
     public async Task<(double? averageIdeaRating, string? error)> GetUserAverageIdeaRating(string userId)
     {

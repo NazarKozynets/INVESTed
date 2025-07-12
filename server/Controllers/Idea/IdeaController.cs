@@ -129,7 +129,7 @@ public class IdeaController : ControllerBase
                 _ => StatusCode(500, new { error })
             };
         }
-        
+
         return Ok(res);
     }
 
@@ -191,13 +191,42 @@ public class IdeaController : ControllerBase
                 "INVALID_ID" => BadRequest(new { error }),
                 "NOT_FOUND" => NotFound(new { error }),
                 "INVALID_CREDENTIALS" => BadRequest(new { error }),
-                "NOT_ENOUGH_ACCESS" => Forbid(), 
+                "NOT_ENOUGH_ACCESS" => Forbid(),
                 "DELETE_FAILED" => StatusCode(409, new { error }),
                 "COMMENT_NOT_FOUND" => NotFound(new { error }),
                 _ => StatusCode(500, new { error })
             };
         }
-        
+
         return Ok(res);
+    }
+
+    [HttpGet("search")]
+    public async Task<ActionResult<object>> SearchIdeas(
+        [FromQuery] string query,
+        [FromQuery] int limit = 10,
+        [FromQuery] string sortBy = "Rating",
+        [FromQuery] string sortOrder = "desc")
+    {
+        var (ideas, total, error) =
+            await _ideaService.SearchIdeasAsync(query, limit, sortBy, sortOrder, User);
+
+        if (error != null)
+        {
+            return error switch
+            {
+                "INVALID_PARAMETERS" => BadRequest(new { error }),
+                "INVALID_QUERY" => BadRequest(new { error }),
+                "SERVER_ERROR" => StatusCode(500, new { error }),
+                _ => StatusCode(500, new { error })
+            };
+        }
+
+        return Ok(new
+        {
+            ideas,
+            total,
+            limit
+        });
     }
 }

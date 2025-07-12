@@ -1,4 +1,7 @@
 ﻿using System.Security.Claims;
+using System.Text.Json;
+using Microsoft.Extensions.Caching.Distributed;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using server.Enums;
 using server.Models.DTO.Idea;
@@ -18,18 +21,20 @@ public class IdeaService
     private readonly ILogger<IdeaService> _logger;
     private readonly AuthService _authService;
     private readonly ProfileService _profileService;
+    private readonly IDistributedCache _cache;
 
     public IdeaService(
         MongoDbService mongoDbService,
         ILogger<IdeaService> logger,
         AuthService authService,
-        ProfileService profileService)
+        ProfileService profileService,
+        IDistributedCache cache)
     {
         _ideasCollection = mongoDbService.GetCollection<IdeaModel>("Ideas");
-        ;
         _logger = logger;
         _authService = authService;
         _profileService = profileService;
+        _cache = cache;
     }
 
     public async Task<(string? createdIdeaId, string? error)> StartIdeaAsync(StartIdeaModel data,
@@ -133,7 +138,8 @@ public class IdeaService
             if (idea == null) return (null, "NOT_FOUND");
 
             var currentUser = await _authService.GetUserFromClaimsAsync(userClaims);
-            if (currentUser == null || string.IsNullOrEmpty(currentUser.Id) || string.IsNullOrEmpty(currentUser.Username)) return (null, "INVALID_CREDENTIALS");
+            if (currentUser == null || string.IsNullOrEmpty(currentUser.Id) ||
+                string.IsNullOrEmpty(currentUser.Username)) return (null, "INVALID_CREDENTIALS");
 
             var (data, error) = await _profileService.GetUserProfileByIdAsync(idea.CreatorId, userClaims);
             if (error == null && data is GetUserProfileModel profile)
@@ -253,13 +259,14 @@ public class IdeaService
         }
     }
 
-    public async Task<(decimal? updatedAlreadyCollected, string? error)> InvestIdeaAsync(InvestIdeaRequestModel data, ClaimsPrincipal userClaims)
+    public async Task<(decimal? updatedAlreadyCollected, string? error)> InvestIdeaAsync(InvestIdeaRequestModel data,
+        ClaimsPrincipal userClaims)
     {
         try
         {
             if (string.IsNullOrWhiteSpace(data.IdeaId))
                 return (null, "INVALID_ID");
-            
+
             var idea = await _ideasCollection.Find(Builders<IdeaModel>.Filter.And(
                     Builders<IdeaModel>.Filter.Eq(i => i.Id, data.IdeaId),
                     Builders<IdeaModel>.Filter.Eq(i => i.Status, IdeaStatus.Open)
@@ -268,13 +275,19 @@ public class IdeaService
             if (idea == null) return (null, "NOT_FOUND");
 
             var currentUser = await _authService.GetUserFromClaimsAsync(userClaims);
-            if (currentUser == null || string.IsNullOrEmpty(currentUser.Id) || string.IsNullOrEmpty(currentUser.Username)) return (null, "INVALID_CREDENTIALS");
-            
+            if (currentUser == null || string.IsNullOrEmpty(currentUser.Id) ||
+                string.IsNullOrEmpty(currentUser.Username)) return (null, "INVALID_CREDENTIALS");
+
             var strategy = IdeaStrategyFactory.GetIdeaStrategy(currentUser.Role);
 
-            var result = strategy.InvestIdea(idea, currentUser.Id, currentUser.Username, data.FundingAmount, idea.CreatorId == currentUser.Id);
-            
-            if (result is { updatedAlreadyCollected: not null, fundingHistoryElementModel: not null, resultMes: InvestIdeaResult.Success })
+            var result = strategy.InvestIdea(idea, currentUser.Id, currentUser.Username, data.FundingAmount,
+                idea.CreatorId == currentUser.Id);
+
+            if (result is
+                {
+                    updatedAlreadyCollected: not null, fundingHistoryElementModel: not null,
+                    resultMes: InvestIdeaResult.Success
+                })
             {
                 var update = Builders<IdeaModel>.Update.Combine(
                     Builders<IdeaModel>.Update.Push(i => i.FundingHistory, result.fundingHistoryElementModel),
@@ -310,7 +323,7 @@ public class IdeaService
             return (null, e.Message);
         }
     }
-    
+
     public async Task<(bool res, string? error)> RateIdeaAsync(RateIdeaRequestModel data, ClaimsPrincipal userClaims)
     {
         try
@@ -324,20 +337,21 @@ public class IdeaService
                 ))
                 .FirstOrDefaultAsync();
             if (idea == null) return (false, "NOT_FOUND");
-            
+
             var currentUserIdResult = await _profileService.GetThisUserIdAsync(userClaims);
             if (currentUserIdResult.error != null || currentUserIdResult.id == null)
                 return (false, currentUserIdResult.error);
-            
+
             var currentUserRole = await _profileService.GetThisUserRoleAsync(userClaims);
             if (currentUserRole.error != null || currentUserRole.role == null)
                 return (false, currentUserRole.error);
 
             var strategy = IdeaStrategyFactory.GetIdeaStrategy(currentUserRole.role.Value);
 
-            var result = strategy.RateIdea(idea, data.Rate, currentUserIdResult.id, idea.CreatorId == currentUserIdResult.id);
-            
-            if (result is { newRate: not null, resultMes: RateIdeaResult.Success})
+            var result = strategy.RateIdea(idea, data.Rate, currentUserIdResult.id,
+                idea.CreatorId == currentUserIdResult.id);
+
+            if (result is { newRate: not null, resultMes: RateIdeaResult.Success })
             {
                 var update = Builders<IdeaModel>.Update.Push(i => i.Rating, result.newRate);
                 var updateResult = await _ideasCollection.UpdateOneAsync(
@@ -351,7 +365,7 @@ public class IdeaService
                     return (false, "UPDATE_FAILED");
                 }
             }
-            
+
             return result.resultMes switch
             {
                 RateIdeaResult.Success => (true, null),
@@ -370,7 +384,8 @@ public class IdeaService
         }
     }
 
-    public async Task<(IdeaCommentModel? createdComment, string? error)> AddCommentToIdeaAsync(AddCommentToIdeaModel data, ClaimsPrincipal userClaims)
+    public async Task<(IdeaCommentModel? createdComment, string? error)> AddCommentToIdeaAsync(
+        AddCommentToIdeaModel data, ClaimsPrincipal userClaims)
     {
         try
         {
@@ -385,12 +400,13 @@ public class IdeaService
             if (idea == null) return (null, "NOT_FOUND");
 
             var currentUser = await _authService.GetUserFromClaimsAsync(userClaims);
-            if (currentUser == null || string.IsNullOrEmpty(currentUser.Id) || string.IsNullOrEmpty(currentUser.Username)) return (null, "INVALID_CREDENTIALS");
-            
+            if (currentUser == null || string.IsNullOrEmpty(currentUser.Id) ||
+                string.IsNullOrEmpty(currentUser.Username)) return (null, "INVALID_CREDENTIALS");
+
             var strategy = IdeaStrategyFactory.GetIdeaStrategy(currentUser.Role);
 
             var result = strategy.AddCommentToIdea(idea, data.CommentText, currentUser.Id, currentUser.Username);
-            
+
             if (result is { newComment: not null, resultMes: CommentIdeaResult.Success })
             {
                 var update = Builders<IdeaModel>.Update.Push(i => i.Comments, result.newComment);
@@ -427,34 +443,35 @@ public class IdeaService
         ClaimsPrincipal userClaims)
     {
         this._logger.LogInformation(commentId, "commennt id");
-        
+
         try
         {
             if (string.IsNullOrWhiteSpace(commentId))
                 return (null, "INVALID_ID");
-            
+
             var currentUser = await _authService.GetUserFromClaimsAsync(userClaims);
-            if (currentUser == null || string.IsNullOrEmpty(currentUser.Id) || string.IsNullOrEmpty(currentUser.Username)) return (null, "INVALID_CREDENTIALS");
-            
+            if (currentUser == null || string.IsNullOrEmpty(currentUser.Id) ||
+                string.IsNullOrEmpty(currentUser.Username)) return (null, "INVALID_CREDENTIALS");
+
             var filter = Builders<IdeaModel>.Filter.And(
                 Builders<IdeaModel>.Filter.ElemMatch(i => i.Comments, c => c.Id == commentId),
                 Builders<IdeaModel>.Filter.Eq(i => i.Status, IdeaStatus.Open)
             );
-            
+
             var idea = await _ideasCollection.Find(filter).FirstOrDefaultAsync();
             if (idea == null) return (null, "NOT_FOUND");
-            
+
             IdeaCommentModel comment = idea.Comments.FirstOrDefault(c => c.Id == commentId);
-            
+
             if (comment == null)
                 return (null, "COMMENT_NOT_FOUND");
-            
+
             var strategy = IdeaStrategyFactory.GetIdeaStrategy(currentUser.Role);
-            
+
             bool canDelete = strategy.CanDeleteCommentFromIdea(comment.CommentatorId, currentUser.Id);
-            
+
             if (!canDelete) return (null, "NOT_ENOUGH_ACCESS");
-            
+
             var update = Builders<IdeaModel>.Update.PullFilter(
                 i => i.Comments,
                 c => c.Id == commentId
@@ -474,6 +491,107 @@ public class IdeaService
         {
             _logger.LogError(e, "Unexpected error in DeleteCommentFromIdeaAsync");
             return (false, e.Message);
+        }
+    }
+
+    public async Task<(List<SearchIdeaModel> ideas, int total, string? error)> SearchIdeasAsync(
+        string query, int limit, string sortBy, string sortOrder, ClaimsPrincipal userClaims)
+    {
+        try
+        {
+            var currentUserId = await _profileService.GetThisUserIdAsync(userClaims);
+            if (currentUserId.error != null || currentUserId.id == null)
+                return (null, 0, currentUserId.error);
+
+            var currentUserRole = await _profileService.GetThisUserRoleAsync(userClaims);
+            if (currentUserRole.error != null || currentUserRole.role == null)
+                return (null, 0, currentUserRole.error);
+
+            if (limit < 1)
+                return (null, 0, "INVALID_PARAMETERS");
+
+            if (string.IsNullOrWhiteSpace(query) || query.Length < 2)
+                return (null, 0, "INVALID_QUERY");
+
+            string cacheKey = $"search:ideas:{query.ToLower()}:{limit}:{sortBy}:{sortOrder}";
+            var cachedResult = await _cache.GetStringAsync(cacheKey);
+
+            if (!string.IsNullOrEmpty(cachedResult))
+            {
+                try
+                {
+                    var cached = JsonSerializer.Deserialize<(List<SearchIdeaModel>, int)>(cachedResult);
+                    if (cached.Item1 != null)
+                        return (cached.Item1, cached.Item2, null);
+                }
+                catch (Exception e)
+                {
+                    _logger.LogWarning(e, $"Error deserializing cache by key {cacheKey}");
+                    await _cache.RemoveAsync(cacheKey);
+                }
+            }
+
+            var filter = Builders<IdeaModel>.Filter.And(
+                Builders<IdeaModel>.Filter.Regex(i => i.IdeaName, new BsonRegularExpression(query, "i")),
+                Builders<IdeaModel>.Filter.Eq(i => i.Status, IdeaStatus.Open)
+            );
+
+            var sortDirection = sortOrder.ToLower() == "asc" ? 1 : -1;
+            SortDefinition<IdeaModel> sortDefinition = sortBy.ToLower() switch
+            {
+                "rating" => sortDirection == 1
+                    ? Builders<IdeaModel>.Sort.Ascending(i => i.Rating)
+                    : Builders<IdeaModel>.Sort.Descending(i => i.Rating),
+                "createdat" => sortDirection == 1
+                    ? Builders<IdeaModel>.Sort.Ascending(i => i.CreatedAt)
+                    : Builders<IdeaModel>.Sort.Descending(i => i.CreatedAt),
+                _ => sortDirection == 1
+                    ? Builders<IdeaModel>.Sort.Ascending(i => i.Rating)
+                    : Builders<IdeaModel>.Sort.Descending(i => i.Rating)
+            };
+
+            var ideas = await _ideasCollection
+                .Find(filter)
+                .Sort(sortDefinition)
+                .Limit(limit)
+                .Project(i => new SearchIdeaModel
+                {
+                    Id = i.Id,
+                    IdeaName = i.IdeaName,
+                    CreatorId = i.CreatorId
+                })
+                .ToListAsync();
+
+            var creatorIds = ideas.Select(i => i.CreatorId).Distinct().ToList();
+
+            var usersDict = await _profileService.GetUsernamesByIdsAsync(creatorIds);
+
+            foreach (var idea in ideas)
+            {
+                idea.CreatorUsername = usersDict.TryGetValue(idea.CreatorId, out var username)
+                    ? username
+                    : "Unknown";
+            }
+
+            var total = (int)await _ideasCollection.CountDocumentsAsync(filter);
+
+            if (ideas != null && ideas.Count > 0)
+            {
+                await _cache.SetStringAsync(
+                    cacheKey,
+                    JsonSerializer.Serialize((ideas, total)),
+                    new DistributedCacheEntryOptions
+                    {
+                        AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
+                    });
+            }
+
+            return (ideas, total, null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error in SearchIdeasAsync");
+            return (null, 0, "SERVER_ERROR");
         }
     }
 }

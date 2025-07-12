@@ -68,6 +68,8 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
     });
 
+builder.Services.AddDistributedMemoryCache();
+
 var app = builder.Build();
 app.UseCors("AllowFrontend");
 app.UseWebSockets();
