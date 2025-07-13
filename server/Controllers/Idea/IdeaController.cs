@@ -13,12 +13,10 @@ namespace server.Controllers.Idea;
 public class IdeaController : ControllerBase
 {
     private readonly IdeaService _ideaService;
-    private ILogger<IdeaController> _logger;
 
-    public IdeaController(IdeaService ideaService, ILogger<IdeaController> logger)
+    public IdeaController(IdeaService ideaService)
     {
         _ideaService = ideaService;
-        _logger = logger;
     }
 
     [HttpPost("start")]

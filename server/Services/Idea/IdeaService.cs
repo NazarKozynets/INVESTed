@@ -63,7 +63,7 @@ public class IdeaService
                 return (null, "IDEA_NAME_TAKEN");
             }
 
-            IdeaModel ideaObj;
+            IdeaModel? ideaObj;
 
             try
             {
