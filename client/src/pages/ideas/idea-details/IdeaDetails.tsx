@@ -1,28 +1,28 @@
 import { useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getIdea } from "../../services/idea/get-ideas.api.ts";
-import { LoadingBar } from "../../components/ui/loading-bar/LoadingBar.tsx";
+import { getIdea } from "../../../services/api/idea/get-ideas.api.ts";
+import { LoadingBar } from "../../../components/ui/loading-bar/LoadingBar.tsx";
 import React, { useEffect, useState } from "react";
-import { StarRating } from "../../components/ui/star-rating/StarRating.tsx";
-import { UserProfileIcon } from "../../components/features/profile-icon/UserProfileIcon.tsx";
+import { StarRating } from "../../../components/ui/star-rating/StarRating.tsx";
+import { UserProfileIcon } from "../../../components/features/profile-icon/UserProfileIcon.tsx";
 import { AnimatePresence, motion } from "framer-motion";
 import { format } from "date-fns";
-import { useAuth } from "../../context/AuthContext.tsx";
+import { useAuth } from "../../../context/AuthContext.tsx";
 import {
   rateIdea,
   addCommentToIdea,
   deleteCommentFromIdea,
-} from "../../services/idea/idea-actions.api.ts";
+} from "../../../services/api/idea/idea-actions.api.ts";
 import {
   RateIdeaRequest,
   AddCommentRequest,
   IdeaCommentModel,
-} from "../../types/idea.types.ts";
+} from "../../../types/idea.types.ts";
 import { toast } from "react-toastify";
-import { TextInput } from "../../components/ui/text-input/TextInput.tsx";
-import Button from "../../components/ui/button/Button.tsx";
-import { Form } from "../../components/ui/form/Form.tsx";
-import trashIcon from "../../assets/trash.svg";
+import { TextInput } from "../../../components/ui/text-input/TextInput.tsx";
+import Button from "../../../components/ui/button/Button.tsx";
+import { Form } from "../../../components/ui/form/Form.tsx";
+import trashIcon from "../../../assets/trash.svg";
 
 export const IdeaDetails = () => {
   const queryClient = useQueryClient();

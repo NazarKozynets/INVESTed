@@ -11,7 +11,7 @@ import {
   loginUser,
   logoutUser,
   registerUser,
-} from "../services/auth/auth.api.ts";
+} from "../services/api/auth/auth.api.ts";
 import {
   AuthRequestData,
   AuthResponseData,

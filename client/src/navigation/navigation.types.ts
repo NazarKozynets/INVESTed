@@ -10,6 +10,7 @@ export type TypeRootStackParamList = {
   IdeaDetails: undefined;
   IdeasAll: undefined;
   Payment: undefined;
+  CreateForum: undefined;
 };
 
 export interface IRoute {

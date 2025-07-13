@@ -1,6 +1,6 @@
 import axios from "axios";
 import { AuthErrorCode } from "../../types/auth.types.ts";
-import { logoutUser, refreshTokens } from "../../services/auth/auth.api.ts";
+import { logoutUser, refreshTokens } from "../../services/api/auth/auth.api.ts";
 import { handleApiError } from "../../services/api/error.api.ts";
 
 export type HttpMethods = "get" | "post" | "put" | "delete" | "patch";

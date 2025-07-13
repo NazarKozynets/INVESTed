@@ -3,11 +3,12 @@ import { AuthPage } from "../pages/auth/AuthPage.tsx";
 import { HomePage } from "../pages/home/HomePage.tsx";
 import { AboutUsPage } from "../pages/about/AboutUsPage.tsx";
 import { Profile } from "../pages/profile/Profile.tsx";
-import { StartIdea } from "../pages/start-idea/StartIdea.tsx";
-import { IdeaDetails } from "../pages/idea-details/IdeaDetails.tsx";
-import { IdeasAll } from "../pages/ideas/IdeasAll.tsx";
+import { StartIdea } from "../pages/ideas/start-idea/StartIdea.tsx";
+import { IdeaDetails } from "../pages/ideas/idea-details/IdeaDetails.tsx";
+import { IdeasAll } from "../pages/ideas/all-ideas/IdeasAll.tsx";
 import ResetPasswordPage from "../pages/auth/ResetPasswordPage.tsx";
-import { PaymentPage } from "../pages/idea-details/PaymentPage.tsx";
+import { PaymentPage } from "../pages/ideas/idea-details/PaymentPage.tsx";
+import { CreateForum } from "../pages/forums/create-forum/CreateForum.tsx";
 
 export const routes: IRoute[] = [
   {
@@ -62,6 +63,12 @@ export const routes: IRoute[] = [
     name: "Payment",
     path: "/ideas/details/payment/:ideaId",
     component: PaymentPage,
+    isProtected: true,
+  },
+  {
+    name: "CreateForum",
+    path: "/forums/create",
+    component: CreateForum,
     isProtected: true,
   },
 ];

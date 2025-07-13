@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { TextInput } from "../../ui/text-input/TextInput.tsx";
 import { useAuth } from "../../../context/AuthContext.tsx";
 import Button from "../../ui/button/Button.tsx";
-import { updateProfileFields } from "../../../services/profile/client-profile.api.ts";
+import { updateProfileFields } from "../../../services/api/profile/client-profile.api.ts";
 import { UpdateProfileFieldsRequestData } from "../../../types/profile.types.ts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
@@ -12,7 +12,7 @@ import {
   validatePassword,
 } from "../../../utils/functions/validations.ts";
 import { LoadingOverlay } from "../../ui/loading-overlay/LoadingOverlay.tsx";
-import { getAllClientIdeas } from "../../../services/idea/get-ideas.api.ts";
+import { getAllClientIdeas } from "../../../services/api/idea/get-ideas.api.ts";
 import { IdeaType } from "../../../types/idea.types.ts";
 import { Idea } from "../../features/ideas/Idea.tsx";
 import { AnimatePresence, motion } from "framer-motion";

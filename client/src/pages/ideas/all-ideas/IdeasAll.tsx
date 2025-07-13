@@ -1,10 +1,10 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { SearchBar } from "../../components/ui/search-bar/SearchBar";
-import { SearchResults } from "../../components/ui/search-bar/SearchResults";
-import { SortedIdeas } from "../../components/layout/ideas/SortedIdeas.tsx";
-import { searchIdeas } from "../../services/idea/idea-actions.api.ts";
-import { IdeaSearchResult } from "../../types/idea.types.ts";
+import { SearchBar } from "../../../components/ui/search-bar/SearchBar.tsx";
+import { SearchResults } from "../../../components/ui/search-bar/SearchResults.tsx";
+import { SortedIdeas } from "../../../components/layout/ideas/SortedIdeas.tsx";
+import { searchIdeas } from "../../../services/api/idea/idea-actions.api.ts";
+import { IdeaSearchResult } from "../../../types/idea.types.ts";
 
 export const IdeasAll = () => {
   const [query, setQuery] = useState("");

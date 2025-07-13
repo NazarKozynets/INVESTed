@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { InvestIdeaRequest } from "../../types/idea.types.ts";
-import { investIdea } from "../../services/idea/idea-actions.api.ts";
+import { InvestIdeaRequest } from "../../../types/idea.types.ts";
+import { investIdea } from "../../../services/api/idea/idea-actions.api.ts";
 import { toast } from "react-toastify";
 import { useParams } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext.tsx";
-import { Form } from "../../components/ui/form/Form.tsx";
-import { TextInput } from "../../components/ui/text-input/TextInput.tsx";
-import Button from "../../components/ui/button/Button.tsx";
+import { useAuth } from "../../../context/AuthContext.tsx";
+import { Form } from "../../../components/ui/form/Form.tsx";
+import { TextInput } from "../../../components/ui/text-input/TextInput.tsx";
+import Button from "../../../components/ui/button/Button.tsx";
 
 export const PaymentPage = () => {
   const queryClient = useQueryClient();

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import "./search-bar.css";
+import searchIcon from "../../../assets/search.svg";
 
 type SearchBarProps = {
   placeholder?: string;
@@ -45,6 +46,7 @@ export const SearchBar = ({
         onChange={(e) => setInputValue(e.target.value)}
         placeholder={placeholder || `Search ${searchType ?? ""}`}
       />
+      <img src={searchIcon} alt="search" className="search-bar__icon" />
     </div>
   );
 };

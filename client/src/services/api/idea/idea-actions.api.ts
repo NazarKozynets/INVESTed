@@ -4,8 +4,8 @@ import {
   IdeaSearchResult,
   InvestIdeaRequest,
   RateIdeaRequest,
-} from "../../types/idea.types.ts";
-import { useRequest } from "../../utils/hooks/useRequest.ts";
+} from "../../../types/idea.types.ts";
+import { useRequest } from "../../../utils/hooks/useRequest.ts";
 
 export const rateIdea = async (reqBody: RateIdeaRequest) => {
   return await useRequest(`idea/rate`, "post", reqBody);

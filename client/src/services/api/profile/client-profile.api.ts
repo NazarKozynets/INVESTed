@@ -1,8 +1,8 @@
-import { useRequest } from "../../utils/hooks/useRequest.ts";
+import { useRequest } from "../../../utils/hooks/useRequest.ts";
 import {
   GetProfileResponseData,
   UpdateProfileFieldsRequestData,
-} from "../../types/profile.types.ts";
+} from "../../../types/profile.types.ts";
 
 export const getProfileData = async (
   username: string,

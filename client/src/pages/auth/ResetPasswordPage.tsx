@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { resetPassword } from "../../services/auth/auth.api.ts";
+import { resetPassword } from "../../services/api/auth/auth.api.ts";
 import Button from "../../components/ui/button/Button.tsx";
 import { TextInput } from "../../components/ui/text-input/TextInput.tsx";
 import { Form } from "../../components/ui/form/Form.tsx";

@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import "../../styles/pages/_profilePage.scss";
 import { useQuery } from "@tanstack/react-query";
 import { Navigate, useParams } from "react-router-dom";
-import { getProfileData } from "../../services/profile/client-profile.api.ts";
+import { getProfileData } from "../../services/api/profile/client-profile.api.ts";
 import { LoadingOverlay } from "../../components/ui/loading-overlay/LoadingOverlay.tsx";
 import { useAuth } from "../../context/AuthContext.tsx";
 import { PrivateProfile } from "../../components/layout/profile/PrivateProfile.tsx";

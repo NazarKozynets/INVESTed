@@ -8,7 +8,7 @@ import facebookIcon from "../../../assets/facebook.svg";
 import { AuthFormProps } from "../../../types/auth.types.ts";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { requestPasswordReset } from "../../../services/auth/auth.api.ts";
+import { requestPasswordReset } from "../../../services/api/auth/auth.api.ts";
 
 export const LoginForm = ({
   emailInput,

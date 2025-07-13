@@ -8,6 +8,13 @@ import { useAuth } from "../../../context/AuthContext.tsx";
 import { UserProfileIcon } from "../profile-icon/UserProfileIcon.tsx";
 import { DropdownMenu } from "../../ui/dropdown-menu/DropdownMenu.tsx";
 
+const dropdownRoutes: Record<string, string> = {
+  Ideas: "/ideas/all",
+  "Start Idea": "/ideas/start",
+  Forums: "/forums",
+  "Create Forum": "/forums/create",
+};
+
 export const Header = () => {
   const { authState, onLogout } = useAuth();
   const location = useLocation();
@@ -16,14 +23,15 @@ export const Header = () => {
   const profileButtonRef = useRef<HTMLDivElement>(null);
   const profileMenuRef = useRef<HTMLDivElement>(null);
 
-  const dropdownOptions = ["Ideas", "Start Idea", "Forums"];
+  const dropdownOptions = ["Ideas", "Start Idea", "Forums", "Create Forum"];
 
   const getInitialOption = () => {
     const path = location.pathname.toLowerCase();
     if (path === "/ideas") return "Ideas";
     if (path === "/ideas/start") return "Start Idea";
     if (path === "/forums") return "Forums";
-    return "SERVICES";
+    if (path === "/forums/create") return "Create Forum";
+    return "Services";
   };
 
   useEffect(() => {
@@ -93,11 +101,8 @@ export const Header = () => {
           options={dropdownOptions}
           placeholder={getInitialOption()}
           onSelect={(e) => {
-            e === "Start Idea"
-              ? (window.location.href = `/ideas/start`)
-              : e === "Ideas"
-                ? (window.location.href = `/ideas/all`)
-                : (window.location.href = `/${e.toLowerCase()}`);
+            const route = dropdownRoutes[e];
+            if (route) window.location.href = route;
           }}
         />
       </div>

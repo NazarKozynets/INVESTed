@@ -1,10 +1,10 @@
-import { useRequest } from "../../utils/hooks/useRequest.ts";
+import { useRequest } from "../../../utils/hooks/useRequest.ts";
 import {
   GetLimitedAmountOfSortedIdeasResponse,
   IdeaType,
   SortIdeaByField,
   SortIdeaOrder,
-} from "../../types/idea.types.ts";
+} from "../../../types/idea.types.ts";
 
 export const getAllClientIdeas = async (
   clientId: string,

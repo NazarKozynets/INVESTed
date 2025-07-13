@@ -29,7 +29,8 @@ const validateIdeaName = (value: string): string => {
 const validateDescription = (value: string): string => {
   if (!value.trim()) return "Description is required.";
   if (value.length < 50) return "Description must be 50 characters or less.";
-  if (value.length > 2000) return "Description must be 500 characters or less.";
+  if (value.length > 2000)
+    return "Description must be 2000 characters or less.";
   return "";
 };
 

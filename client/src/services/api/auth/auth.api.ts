@@ -3,8 +3,8 @@ import {
   AuthResponseData,
   CheckAuthResponse,
   RefreshTokenResponse,
-} from "../../types/auth.types.ts";
-import { useRequest } from "../../utils/hooks/useRequest.ts";
+} from "../../../types/auth.types.ts";
+import { useRequest } from "../../../utils/hooks/useRequest.ts";
 
 export const checkAuth = async (): Promise<CheckAuthResponse> => {
   return await useRequest<CheckAuthResponse>("auth/check", "get");

@@ -1,5 +1,5 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { getLimitedAmountOfSortedIdeas } from "../../../services/idea/get-ideas.api.ts";
+import { getLimitedAmountOfSortedIdeas } from "../../../services/api/idea/get-ideas.api.ts";
 import {
   GetLimitedAmountOfSortedIdeasResponse,
   IdeaType,
