@@ -55,6 +55,8 @@ public class ForumModel
     [BsonElement("comments")]
     public List<ForumCommentModel> Comments { get; private set; } = new List<ForumCommentModel>();
 
+    [BsonIgnore] public string? CreatorUsername { get; set; }
+
     public ForumModel(string creatorId, string title, string description)
     {
         if (string.IsNullOrWhiteSpace(creatorId))

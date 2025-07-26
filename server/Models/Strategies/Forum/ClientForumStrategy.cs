@@ -25,4 +25,33 @@ public class ClientForumStrategy : ForumStrategy
             }
         }
     }
+    
+    public override IEnumerable<GetForumResponseModel> GetAllUserForums(IEnumerable<ForumModel> forums,
+        bool? isOwner)
+    {
+        return forums.Select(forum => new GetForumResponseModel(
+            forumId: forum.Id,
+            forumTitle: forum.Title,
+            forumDescription: forum.Description,
+            comments: forum.Comments,
+            createdAt: forum.CreatedAt,
+            isClosed: forum.Status == ForumStatus.Closed,
+            canEdit: isOwner ?? false
+        ));
+    }
+    
+    public override GetForumResponseModel GetFormattedForum(ForumModel forum, bool isOwner = false)
+    {
+        return new GetForumResponseModel(
+            forumId: forum.Id,
+            forumTitle: forum.Title,
+            forumDescription: forum.Description,
+            comments: forum.Comments,
+            creatorUsername: forum.CreatorUsername ?? null,
+            createdAt: forum.CreatedAt,
+            canEdit: isOwner,
+            isClosed: forum.Status == ForumStatus.Closed
+        );
+    }
+
 }

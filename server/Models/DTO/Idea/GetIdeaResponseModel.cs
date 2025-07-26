@@ -13,9 +13,9 @@ namespace server.Models.DTO.Idea
         public List<IdeaRatingModel> Rating { get; set; }
         public double AverageRating { get; set; }
         public string? CreatorUsername { get; set; }
-        public bool CanEdit { get; set; } = false;
-        public List<IdeaCommentModel>? Comments { get; set; } = new();
-        public bool IsClosed { get; set; } = false;
+        public bool CanEdit { get; set; }
+        public List<IdeaCommentModel>? Comments { get; set; }
+        public bool IsClosed { get; set; }
 
         public GetIdeaResponseModel(
             string ideaId,
@@ -39,11 +39,10 @@ namespace server.Models.DTO.Idea
             FundingDeadline = fundingDeadline;
             Rating = rating;
             AverageRating = averageRating;
-            Comments = comments ?? new List<IdeaCommentModel>();
+            Comments = comments ?? new List<IdeaCommentModel>(); 
             CanEdit = canEdit;
             CreatorUsername = creatorUsername;
             IsClosed = isClosed;
         }
-
     }
 }

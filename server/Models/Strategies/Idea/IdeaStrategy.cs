@@ -31,6 +31,7 @@ public abstract class IdeaStrategy
         ));
     }
 
+    //for clients let it be canEdit: isOwner but moders and admins can edit 
     public virtual GetIdeaResponseModel GetFormattedIdea(IdeaModel idea, bool isOwner = false)
     {
         return new GetIdeaResponseModel(
