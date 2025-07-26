@@ -1,36 +1,42 @@
 import { UserProfileIcon } from "../../features/profile-icon/UserProfileIcon.tsx";
-import { IdeaSearchResult } from "../../../types/idea.types.ts";
+import {
+  normalizeResult,
+  RawSearchResult,
+} from "../../../types/search-result.types.ts";
 
 type SearchResultsProps = {
-  ideas: IdeaSearchResult[];
+  resultsObjects: RawSearchResult[];
   isVisible: boolean;
-  onSelect: (ideaId: string) => void;
+  onSelect: (id: string) => void;
 };
 
 export const SearchResults = ({
-  ideas,
+  resultsObjects,
   isVisible,
   onSelect,
 }: SearchResultsProps) => {
-  if (!isVisible || ideas?.length === 0) return null;
+  if (!isVisible || resultsObjects?.length === 0) return null;
 
   return (
     <div className="search-results">
-      {ideas.map((idea) => (
-        <div
-          key={idea.id}
-          onClick={() => onSelect(idea.id)}
-          className="search-results__item"
-        >
-          <div className="search-results__item-creator">
-            <UserProfileIcon username={idea.creatorUsername} />
-            <p>{idea.creatorUsername}</p>
+      {resultsObjects.map((item, index) => {
+        const normalized = normalizeResult(item);
+        return (
+          <div
+            key={index}
+            onClick={() => onSelect(normalized.id)}
+            className="search-results__item"
+          >
+            <div className="search-results__item-creator">
+              <UserProfileIcon username={normalized.creatorUsername} />
+              <p>{normalized.creatorUsername}</p>
+            </div>
+            <div className="search-results__item-idea">
+              <p>{normalized.title}</p>
+            </div>
           </div>
-          <div className="search-results__item-idea">
-            <p>{idea.ideaName}</p>
-          </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 };

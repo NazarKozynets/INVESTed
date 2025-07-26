@@ -2,13 +2,13 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { SearchBar } from "../../../components/ui/search-bar/SearchBar.tsx";
 import { SearchResults } from "../../../components/ui/search-bar/SearchResults.tsx";
-import { SortedIdeas } from "../../../components/layout/ideas/SortedIdeas.tsx";
-import { searchIdeas } from "../../../services/api/idea/idea-actions.api.ts";
-import { IdeaSearchResult } from "../../../types/idea.types.ts";
+import { searchForums } from "../../../services/api/forum/forum-actions.api.ts";
+import { ForumSearchResult } from "../../../types/forum.types.ts";
+import { SortedForums } from "../../../components/layout/forums/SortedForums.tsx";
 
-export const IdeasAll = () => {
+export const ForumsAll = () => {
   const [query, setQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<IdeaSearchResult[]>([]);
+  const [searchResults, setSearchResults] = useState<ForumSearchResult[]>([]);
   const [showResults, setShowResults] = useState(false);
   const searchCache = useMemo(() => new Map(), []);
   const navigate = useNavigate();
@@ -29,12 +29,12 @@ export const IdeasAll = () => {
       }
 
       try {
-        const fetchedIdeas = await searchIdeas(query.trim());
-        setSearchResults(fetchedIdeas);
-        searchCache.set(cacheKey, fetchedIdeas);
+        const fetchedForums = await searchForums(query.trim());
+        setSearchResults(fetchedForums);
+        searchCache.set(cacheKey, fetchedForums);
         setShowResults(true);
       } catch (err) {
-        console.error("Error searching ideas:", err);
+        console.error("Error searching forums:", err);
         setSearchResults([]);
       }
     };
@@ -42,8 +42,8 @@ export const IdeasAll = () => {
     fetchSearchResults();
   }, [query, searchCache]);
 
-  const handleIdeaSelect = (ideaId: string) => {
-    navigate(`/ideas/details/${ideaId}`);
+  const handleForumSelect = (forumId: string) => {
+    navigate(`/forums/details/${forumId}`);
     setShowResults(false);
   };
 
@@ -51,16 +51,16 @@ export const IdeasAll = () => {
     <section className="ideas-page">
       <div className="ideas-page__search">
         <SearchBar
-          placeholder="Search ideas..."
+          placeholder="Search forums..."
           onSearchChange={setQuery}
           debounceDelay={500}
-          minLength={2}
-          searchType="ideas"
+          minLength={5}
+          searchType="forums"
         />
         <SearchResults
           resultsObjects={searchResults}
           isVisible={showResults && query.length >= 2}
-          onSelect={handleIdeaSelect}
+          onSelect={handleForumSelect}
         />
       </div>
       <div
@@ -68,7 +68,7 @@ export const IdeasAll = () => {
           showResults && query.length >= 2 ? "blurred" : ""
         }`}
       >
-        <SortedIdeas limit={6} needPagination={true} />
+        <SortedForums limit={5} needPagination={true} />
       </div>
     </section>
   );

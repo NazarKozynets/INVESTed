@@ -116,9 +116,9 @@ export interface InvestIdeaRequest {
   fundingAmount: number;
 }
 
-export type IdeaSearchResult = {
+export interface IdeaSearchResult {
   id: string;
   ideaName: string;
   creatorId: string;
   creatorUsername: string;
-};
+}

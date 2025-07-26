@@ -1,3 +1,5 @@
+import { IdeaCommentModel } from "./idea.types.ts";
+
 export const ForumError = {
   FORUM_TITLE_TAKEN: "Forum with this title already exists",
   INVALID_TITLE: "Invalid title",
@@ -25,4 +27,53 @@ export interface CreateForumRequest {
   forumTitle: string;
   forumDescription: string;
   creatorId: string | null;
+}
+
+export interface ForumSearchResult {
+  id: string;
+  forumTitle: string;
+  creatorId: string;
+  creatorUsername: string;
+}
+
+export const sortForumsOptions = [
+  "Newest", // CreatedAt desc
+  "Latest", // CreatedAt asc
+  "Closed", // Status: Closed asc
+] as const;
+
+export type SortForumOption = (typeof sortForumsOptions)[number];
+
+export type SortForumByField = "CreatedAt" | "Status";
+export type SortForumOrder = "asc" | "desc";
+
+export const sortMappings: Record<
+  SortForumOption,
+  { sortBy: SortForumByField; sortOrder: SortForumOrder }
+> = {
+  Newest: { sortBy: "CreatedAt", sortOrder: "desc" },
+  Latest: { sortBy: "CreatedAt", sortOrder: "asc" },
+  Closed: { sortBy: "Status", sortOrder: "asc" },
+};
+
+export interface ForumCommentModel extends IdeaCommentModel {
+  isHelpful: boolean;
+}
+
+export interface ForumType {
+  forumId: string;
+  forumTitle: string;
+  forumDescription: string;
+  createdAt: string;
+  isClosed: boolean;
+  comments: ForumCommentModel[];
+  creatorUsername?: string | null;
+}
+
+export interface GetLimitedAmountOfSortedForumsResponse {
+  forums: Array<ForumType>;
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 }

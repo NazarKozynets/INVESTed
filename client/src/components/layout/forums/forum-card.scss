@@ -1,0 +1,60 @@
+.forum-card {
+  padding: 16px;
+  border-radius: 20px;
+  background-color: rgba(10, 15, 25, 0.8);
+  color: #fff;
+  position: relative;
+  cursor: pointer;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-wrap: anywhere;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    &-user {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 16px;
+      transition: all 0.2s ease;
+
+      &:hover {
+        color: #007bff;
+        scale: 1.05;
+      }
+    }
+  }
+
+  &__title {
+    margin-top: 20px;
+    word-break: break-all;
+    overflow-wrap: anywhere;
+    width: 100%;
+    max-width: 100%;
+    font-size: 20px;
+  }
+
+  &__desc {
+    font-size: 16px;
+  }
+
+  &__footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+
+    &-comments-amount {
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    &-date {
+      font-size: 14px;
+      text-align: right;
+    }
+  }
+}

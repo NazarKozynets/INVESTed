@@ -38,3 +38,38 @@
     }
   }
 }
+
+.sorted-forums {
+  &__header {
+    margin: 40px auto 0;
+    display: flex;
+    width: 100%;
+
+    #title {
+      font-size: 24px;
+      text-align: center;
+      flex: 1;
+    }
+
+    > div {
+      position: absolute;
+      margin-right: 50px;
+      right: 0;
+      align-self: center;
+    }
+  }
+
+  .sorted-forums__forums-list {
+    padding: 0 50px;
+    margin: 40px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 50px;
+    list-style: none;
+    align-items: center;
+
+    > * {
+      width: 80%;
+    }
+  }
+}

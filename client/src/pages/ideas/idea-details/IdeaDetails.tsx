@@ -289,7 +289,7 @@ export const IdeaDetails = () => {
               ))}
             {idea.comments && idea.comments.length > 0 ? (
               renderComments(idea.comments)
-            ) : (
+            ) : idea.isClosed ? null : (
               <p>No comments yet. Be the first to comment!</p>
             )}
           </div>

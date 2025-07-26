@@ -9,6 +9,8 @@ import { IdeasAll } from "../pages/ideas/all-ideas/IdeasAll.tsx";
 import ResetPasswordPage from "../pages/auth/ResetPasswordPage.tsx";
 import { PaymentPage } from "../pages/ideas/idea-details/PaymentPage.tsx";
 import { CreateForum } from "../pages/forums/create-forum/CreateForum.tsx";
+import { ForumsAll } from "../pages/forums/all-forums/ForumsAll.tsx";
+import { ForumDetails } from "../pages/forums/forum-details/ForumDetails.tsx";
 
 export const routes: IRoute[] = [
   {
@@ -55,7 +57,7 @@ export const routes: IRoute[] = [
   },
   {
     name: "IdeasAll",
-    path: "ideas/all",
+    path: "/ideas/all",
     component: IdeasAll,
     isProtected: true,
   },
@@ -69,6 +71,18 @@ export const routes: IRoute[] = [
     name: "CreateForum",
     path: "/forums/create",
     component: CreateForum,
+    isProtected: true,
+  },
+  {
+    name: "ForumsAll",
+    path: "/forums/all",
+    component: ForumsAll,
+    isProtected: true,
+  },
+  {
+    name: "ForumDetails",
+    path: "/forums/details/:forumId",
+    component: ForumDetails,
     isProtected: true,
   },
 ];

@@ -1,4 +1,5 @@
 import { SortedIdeas } from "../../components/layout/ideas/SortedIdeas.tsx";
+import { SortedForums } from "../../components/layout/forums/SortedForums.tsx";
 
 export const HomePage = () => {
   return (
@@ -9,6 +10,7 @@ export const HomePage = () => {
       <SortedIdeas
         seeMoreBtnOnClick={() => (window.location.href = "/ideas/all")}
       />
+      <SortedForums />
     </section>
   );
 };

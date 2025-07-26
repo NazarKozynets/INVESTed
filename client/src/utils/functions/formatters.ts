@@ -9,3 +9,18 @@ export const formatDeadline = (value: string): string => {
     return `${numericValue.substring(0, 2)}-${numericValue.substring(2, 4)}-${numericValue.substring(4)}`;
   }
 };
+
+export const formatDate = (input: string | Date): string => {
+  const date = new Date(input);
+
+  const options: Intl.DateTimeFormatOptions = {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  };
+
+  return date.toLocaleString("en-US", options);
+};

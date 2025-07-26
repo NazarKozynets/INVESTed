@@ -1,12 +1,12 @@
 interface UserProfileIconProps {
   onClick?: () => void;
-  username: string;
+  username: string | null | undefined;
   size?: number;
 }
 
 export const UserProfileIcon = ({
   onClick,
-  username,
+  username = "Unknown",
   size = 40,
 }: UserProfileIconProps) => {
   const initial =

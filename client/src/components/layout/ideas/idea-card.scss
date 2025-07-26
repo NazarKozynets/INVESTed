@@ -8,12 +8,12 @@
   overflow: hidden;
   cursor: pointer;
 
-  .idea-card__header {
+  &__header {
     display: flex;
     align-items: center;
     justify-content: space-between;
 
-    .idea-card__header__user {
+    &-user {
       display: flex;
       align-items: center;
       gap: 10px;
@@ -26,7 +26,7 @@
     }
   }
 
-  .idea-card__progress-container {
+  &__progress-container {
     width: 100%;
     height: 10px;
     cursor: pointer;

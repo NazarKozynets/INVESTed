@@ -24,15 +24,18 @@ export const IdeaCard = ({ idea, progressPercentage }: IdeaCardProps) => {
   return (
     <div
       className="idea-card"
+      style={{ border: idea.isClosed ? "1px solid red" : "1px solid #ccc" }}
       onClick={() => {
         window.location.href = `/ideas/details/${idea.ideaId}`;
       }}
     >
       <div className="idea-card__header">
-        <h2>"{idea.ideaName}"</h2>
+        <h2 style={{ color: idea.isClosed ? "red" : "#ccc" }}>
+          "{idea.ideaName}"
+        </h2>
         {idea.creatorUsername && (
           <div
-            className="idea-card__header__user"
+            className="idea-card__header-user"
             onClick={(e) => {
               e.stopPropagation();
               window.location.href = `/profile/${idea.creatorUsername}`;

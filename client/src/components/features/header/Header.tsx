@@ -11,7 +11,7 @@ import { DropdownMenu } from "../../ui/dropdown-menu/DropdownMenu.tsx";
 const dropdownRoutes: Record<string, string> = {
   Ideas: "/ideas/all",
   "Start Idea": "/ideas/start",
-  Forums: "/forums",
+  Forums: "/forums/all",
   "Create Forum": "/forums/create",
 };
 
@@ -27,9 +27,9 @@ export const Header = () => {
 
   const getInitialOption = () => {
     const path = location.pathname.toLowerCase();
-    if (path === "/ideas") return "Ideas";
+    if (path === "/ideas/all") return "Ideas";
     if (path === "/ideas/start") return "Start Idea";
-    if (path === "/forums") return "Forums";
+    if (path === "/forums/all") return "Forums";
     if (path === "/forums/create") return "Create Forum";
     return "Services";
   };

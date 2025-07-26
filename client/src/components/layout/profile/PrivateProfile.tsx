@@ -16,6 +16,9 @@ import { getAllClientIdeas } from "../../../services/api/idea/get-ideas.api.ts";
 import { IdeaType } from "../../../types/idea.types.ts";
 import { Idea } from "../../features/ideas/Idea.tsx";
 import { AnimatePresence, motion } from "framer-motion";
+import { ForumType } from "../../../types/forum.types.ts";
+import { getAllClientForums } from "../../../services/api/forum/get-forums.api.ts";
+import { ForumCard } from "../forums/ForumCard.tsx";
 
 const AccountOwnIdeas = () => {
   const { authState } = useAuth();
@@ -28,10 +31,6 @@ const AccountOwnIdeas = () => {
     enabled: !!id,
     staleTime: 5 * 60 * 1000,
   });
-
-  useEffect(() => {
-    console.log(data);
-  }, [data]);
 
   if (isLoading) {
     return (
@@ -62,6 +61,55 @@ const AccountOwnIdeas = () => {
           data.map((idea: IdeaType, index) => <Idea key={index} idea={idea} />)
         ) : (
           <p>You have no ideas yet.</p>
+        )}
+      </div>
+    </Form>
+  );
+};
+
+const AccountOwnForums = () => {
+  const { authState } = useAuth();
+
+  const id = authState?.userData?.userId;
+
+  const { data, isLoading, isError } = useQuery<Array<ForumType>>({
+    queryKey: ["clientForums", id],
+    queryFn: () => getAllClientForums(id || ""),
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  if (isLoading) {
+    return (
+      <Form>
+        <LoadingOverlay />
+      </Form>
+    );
+  }
+
+  if (isError || !data) {
+    return (
+      <Form className="account-own-ideas-form">
+        <div>
+          <p>Failed to load your forums. Please try again later.</p>
+        </div>
+      </Form>
+    );
+  }
+
+  return (
+    <Form
+      className="account-own-ideas-form"
+      style={{ width: data.length === 0 ? "50%" : "60%" }}
+    >
+      <h2 id="header">My Forums</h2>
+      <div id="ideas">
+        {data.length > 0 ? (
+          data.map((forum: ForumType, index) => (
+            <ForumCard key={index} forum={forum} />
+          ))
+        ) : (
+          <p>You have no forums yet.</p>
         )}
       </div>
     </Form>
@@ -271,7 +319,7 @@ export const PrivateProfile = () => {
           {selectedForm === 1 ? (
             <AccountOwnIdeas />
           ) : selectedForm === 2 ? (
-            <p>Forums</p>
+            <AccountOwnForums />
           ) : (
             <AccountSettingsForm />
           )}
