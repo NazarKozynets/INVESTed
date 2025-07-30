@@ -6,6 +6,7 @@ namespace server.Models.DTO.Forum;
 public class GetForumResponseModel
 {
     public string ForumId { get; set; }
+    public string CreatorId { get; set; }
     public string ForumTitle { get; set; }
     public string ForumDescription { get; set; }
     public DateTime CreatedAt { get; set; }
@@ -14,9 +15,11 @@ public class GetForumResponseModel
     public List<ForumCommentModel> Comments { get; set; }
     public string? ImageUrl { get; set; }
     public string? CreatorUsername { get; set; }
+    public string? CreatorAvatarUrl { get; set; }
 
     public GetForumResponseModel(
         string forumId,
+        string creatorId,
         string forumTitle,
         string forumDescription,
         DateTime createdAt,
@@ -24,9 +27,11 @@ public class GetForumResponseModel
         bool isClosed = false,
         List<ForumCommentModel>? comments = null,
         string? imageUrl = null,
-        string? creatorUsername = null)
+        string? creatorUsername = null,
+        string? creatorAvatarUrl = null)
     {
         ForumId = forumId;
+        CreatorId = creatorId;
         ForumTitle = forumTitle;
         ForumDescription = forumDescription;
         CreatedAt = createdAt;
@@ -35,5 +40,6 @@ public class GetForumResponseModel
         Comments = comments ?? new List<ForumCommentModel>();
         ImageUrl = imageUrl;
         CreatorUsername = creatorUsername;
+        CreatorAvatarUrl = creatorAvatarUrl;
     }
 }

@@ -8,6 +8,7 @@ using server.Models.DTO.Forum;
 using server.Models.DTO.Profile;
 using server.Models.Factories;
 using server.Models.Forum;
+using server.models.user;
 using server.services.auth;
 using server.Services.DataBase;
 using server.Services.Profile;
@@ -20,6 +21,7 @@ public class ForumService
     private readonly ILogger<ForumService> _logger;
     private readonly ProfileService _profileService;
     private readonly AuthService _authService;
+
     private readonly IDistributedCache _cache;
 
     public ForumService(
@@ -152,12 +154,16 @@ public class ForumService
             var creatorIds = forums.Select(i => i.CreatorId).Distinct().ToList();
 
             var usersDict = await _profileService.GetUsernamesByIdsAsync(creatorIds);
+            var avatarsDict = await _profileService.GetAvatarUrlsByIdsAsync(creatorIds);
 
             foreach (var forum in forums)
             {
                 forum.CreatorUsername = usersDict.TryGetValue(forum.CreatorId, out var username)
                     ? username
                     : "Unknown";
+                forum.CreatorAvatarUrl = avatarsDict.TryGetValue(forum.CreatorId, out var avatar) 
+                    ? avatar
+                    : null;
             }
 
             var total = (int)await _forumsCollection.CountDocumentsAsync(filter);
@@ -196,11 +202,30 @@ public class ForumService
             if (currentUserRole.error != null || currentUserRole.role == null)
                 return (null, currentUserRole.error);
 
-            var filter = Builders<ForumModel>.Filter.Eq(idea => idea.CreatorId, creatorId);
+            var filter = Builders<ForumModel>.Filter.Eq(f => f.CreatorId, creatorId);
             var forums = await _forumsCollection.Find(filter).ToListAsync();
 
-            return (ForumStrategyFactory.GetForumStrategy(currentUserRole.role.Value)
-                .GetAllUserForums(forums, currentUserId.id == creatorId), null);
+            var strategy = ForumStrategyFactory.GetForumStrategy(currentUserRole.role.Value);
+            var formattedForums = strategy.GetAllUserForums(forums, currentUserId.id == creatorId).ToList();
+
+            var creatorIds = formattedForums
+                .Select(f => f.CreatorId)
+                .Distinct()
+                .ToList();
+
+            var usernamesMap = await _profileService.GetUsernamesByIdsAsync(creatorIds);
+            var avatarUrlsMap = await _profileService.GetAvatarUrlsByIdsAsync(creatorIds);
+
+            foreach (var forum in formattedForums)
+            {
+                if (usernamesMap.TryGetValue(forum.CreatorId, out var username))
+                    forum.CreatorUsername = username;
+
+                if (avatarUrlsMap.TryGetValue(forum.CreatorId, out var avatarUrl))
+                    forum.CreatorAvatarUrl = avatarUrl;
+            }
+
+            return (formattedForums, null);
         }
         catch (Exception ex)
         {
@@ -216,7 +241,7 @@ public class ForumService
         {
             if (string.IsNullOrEmpty(forumId)) return (null, "INVALID_ID");
 
-            ForumModel forum = await _forumsCollection.Find(forum => forum.Id == forumId).FirstOrDefaultAsync();
+            var forum = await _forumsCollection.Find(f => f.Id == forumId).FirstOrDefaultAsync();
             if (forum == null) return (null, "NOT_FOUND");
 
             var currentUserId = await _profileService.GetThisUserIdAsync(userClaims);
@@ -227,19 +252,33 @@ public class ForumService
             if (currentUserRole.error != null || currentUserRole.role == null)
                 return (null, currentUserRole.error);
 
-            var (username, error) = await _profileService.GetUsernameById(forum.CreatorId);
-            if (error == null && !string.IsNullOrEmpty(username))
-            {
-                forum.CreatorUsername = username;
-            }
-            else
-            {
-                forum.CreatorUsername = null;
-            }
+            var (username, usernameError) = await _profileService.GetUsernameById(forum.CreatorId);
+            forum.CreatorUsername = usernameError == null ? username : null;
 
-            return (ForumStrategyFactory
+            var (avatarUrl, avatarError) = await _profileService.GetAvatarUrlById(forum.CreatorId);
+            forum.CreatorAvatarUrl = avatarError == null ? avatarUrl : null;
+
+            var commentatorIds = forum.Comments
+                .Select(c => c.CommentatorId)
+                .Where(id => !string.IsNullOrEmpty(id))
+                .Distinct()
+                .ToList();
+
+            var avatarMap = await _profileService.GetAvatarUrlsByIdsAsync(commentatorIds);
+
+            foreach (var comment in forum.Comments)
+            {
+                if (avatarMap.TryGetValue(comment.CommentatorId, out var avatar))
+                {
+                    comment.CommentatorAvatarUrl = avatar;
+                }
+            }
+            
+            var formatted = ForumStrategyFactory
                 .GetForumStrategy(currentUserRole.role.Value)
-                .GetFormattedForum(forum, currentUserId.id == forum.CreatorId), null);
+                .GetFormattedForum(forum, currentUserId.id == forum.CreatorId);
+
+            return (formatted, null);
         }
         catch (Exception e)
         {
@@ -247,7 +286,7 @@ public class ForumService
             return (null, "SERVER_ERROR");
         }
     }
-    
+
     public async Task<(IEnumerable<GetForumResponseModel>? forums, int total, string? error)>
         GetLimitedAmountOfSortedForumsAsync(
             int page,
@@ -308,9 +347,16 @@ public class ForumService
             foreach (var forum in forums)
             {
                 var (data, error) = await _profileService.GetUserProfileByIdAsync(forum.CreatorId, userClaims);
-                forum.CreatorUsername = error == null && data is GetUserProfileModel profile
-                    ? profile.Username
-                    : null;
+                if (error == null && data is GetUserProfileModel profile)
+                {
+                    forum.CreatorUsername = profile.Username;
+                    forum.CreatorAvatarUrl = profile.AvatarUrl ?? null;
+                }
+                else
+                {
+                    forum.CreatorUsername = null;
+                    forum.CreatorAvatarUrl = null;
+                }
             }
 
             var formattedForums = ForumStrategyFactory
@@ -325,7 +371,7 @@ public class ForumService
             return (null, 0, "SERVER_ERROR");
         }
     }
-    
+
     public async Task<(ForumCommentModel? createdComment, string? error)> AddCommentToForumAsync(
         AddCommentToForumModel data, ClaimsPrincipal userClaims)
     {
@@ -382,8 +428,8 @@ public class ForumService
             return (null, e.Message);
         }
     }
-    
-        public async Task<(bool? res, string? error)> DeleteCommentFromForumAsync(string commentId,
+
+    public async Task<(bool? res, string? error)> DeleteCommentFromForumAsync(string commentId,
         ClaimsPrincipal userClaims)
     {
         try

@@ -16,6 +16,7 @@ public abstract class ForumStrategy
     {
         return forums.Select(forum => new GetForumResponseModel(
             forumId: forum.Id,
+            creatorId: forum.CreatorId,
             forumTitle: forum.Title,
             forumDescription: forum.Description,
             comments: forum.Comments,
@@ -30,10 +31,12 @@ public abstract class ForumStrategy
     {
         return new GetForumResponseModel(
             forumId: forum.Id,
+            creatorId: forum.CreatorId,
             forumTitle: forum.Title,
             forumDescription: forum.Description,
             comments: forum.Comments,
             creatorUsername: forum.CreatorUsername ?? null,
+            creatorAvatarUrl: forum.CreatorAvatarUrl,
             createdAt: forum.CreatedAt,
             canEdit: isOwner,
             imageUrl: forum.ImageUrl ?? null,

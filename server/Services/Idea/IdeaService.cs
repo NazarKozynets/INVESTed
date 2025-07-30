@@ -141,16 +141,28 @@ public class IdeaService
             if (currentUser == null || string.IsNullOrEmpty(currentUser.Id) ||
                 string.IsNullOrEmpty(currentUser.Username)) return (null, "INVALID_CREDENTIALS");
 
-            var (data, error) = await _profileService.GetUserProfileByIdAsync(idea.CreatorId, userClaims);
-            if (error == null && data is GetUserProfileModel profile)
-            {
-                idea.CreatorUsername = profile.Username;
-            }
-            else
-            {
-                idea.CreatorUsername = null;
-            }
+            var (username, usernameError) = await _profileService.GetUsernameById(idea.CreatorId);
+            idea.CreatorUsername = usernameError == null ? username : null;
 
+            var (avatarUrl, avatarError) = await _profileService.GetAvatarUrlById(idea.CreatorId);
+            idea.CreatorAvatarUrl = avatarError == null ? avatarUrl : null;
+
+            var commentatorIds = idea.Comments
+                .Select(c => c.CommentatorId)
+                .Where(id => !string.IsNullOrEmpty(id))
+                .Distinct()
+                .ToList();
+
+            var avatarMap = await _profileService.GetAvatarUrlsByIdsAsync(commentatorIds);
+
+            foreach (var comment in idea.Comments)
+            {
+                if (avatarMap.TryGetValue(comment.CommentatorId, out var avatar))
+                {
+                    comment.CommentatorAvatarUrl = avatar;
+                }
+            }
+            
             return (IdeaStrategyFactory
                 .GetIdeaStrategy(currentUser.Role)
                 .GetFormattedIdea(idea, currentUser.Id == idea.CreatorId), null);
@@ -239,10 +251,12 @@ public class IdeaService
                 if (error == null && data is GetUserProfileModel profile)
                 {
                     idea.CreatorUsername = profile.Username;
+                    idea.CreatorAvatarUrl = profile.AvatarUrl ?? null;
                 }
                 else
                 {
                     idea.CreatorUsername = null;
+                    idea.CreatorAvatarUrl = null;
                 }
             }
 
@@ -563,12 +577,16 @@ public class IdeaService
             var creatorIds = ideas.Select(i => i.CreatorId).Distinct().ToList();
 
             var usersDict = await _profileService.GetUsernamesByIdsAsync(creatorIds);
+            var avatarsDict = await _profileService.GetAvatarUrlsByIdsAsync(creatorIds);
 
             foreach (var idea in ideas)
             {
                 idea.CreatorUsername = usersDict.TryGetValue(idea.CreatorId, out var username)
                     ? username
                     : "Unknown";
+                idea.CreatorAvatarUrl = avatarsDict.TryGetValue(idea.CreatorId, out var avatar)
+                    ? avatar
+                    : null;
             }
 
             var total = (int)await _ideasCollection.CountDocumentsAsync(filter);

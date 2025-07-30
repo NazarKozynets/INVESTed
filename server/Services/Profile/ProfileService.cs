@@ -5,6 +5,7 @@ using server.Services.DataBase;
 using System.Security.Claims;
 using MongoDB.Bson;
 using server.Models.DTO.Profile;
+using server.Models.Forum;
 using server.Models.Idea;
 using server.services.auth;
 
@@ -14,6 +15,7 @@ public class ProfileService
 {
     private readonly IMongoCollection<UserModel> _usersCollection;
     private readonly IMongoCollection<IdeaModel> _ideasCollection;
+    private readonly IMongoCollection<ForumModel> _forumsCollection;
     private readonly ILogger<ProfileService> _logger;
     private readonly AuthService _authService;
 
@@ -24,6 +26,7 @@ public class ProfileService
     {
         _usersCollection = mongoDbService.GetCollection<UserModel>("Users");
         _ideasCollection = mongoDbService.GetCollection<IdeaModel>("Ideas");
+        _forumsCollection = mongoDbService.GetCollection<ForumModel>("Forums");
         _logger = logger;
         _authService = authService;
     }
@@ -46,14 +49,6 @@ public class ProfileService
             }
 
 
-            //total fundings
-
-            //total ideas amount
-
-            //closed ideas amount
-
-            //last idea (id + name) for relocate on idea/details page
-
             var strategy = ProfileStrategyFactory.GetProfileStrategy(currentUser.Role);
             var profileData = strategy.GetProfile(targetUser, currentUser.Id == targetUser.Id);
 
@@ -73,6 +68,18 @@ public class ProfileService
             if (errorGettingTotalFunding == null)
             {
                 profileData.TotalFunding = totalFunding;
+            }
+            
+            var (totalForumsAmount, errorGettingTotalForumsAmount) = await GetUserTotalForumsAmount(targetUser.Id);
+            if (errorGettingTotalForumsAmount == null)
+            {
+                profileData.TotalForumsAmount = totalForumsAmount;
+            }
+
+            var (totalClosedForumsAmount, errorGettingTotalClosedForumsAmount) = await GetUserTotalClosedForumsAmount(targetUser.Id);
+            if (errorGettingTotalClosedForumsAmount == null)
+            {
+                profileData.TotalClosedForumsAmount = totalClosedForumsAmount;
             }
             
             return (profileData, null);
@@ -134,7 +141,7 @@ public class ProfileService
             if (!strategy.CanUpdateProfile(currentUser, targetUser))
                 return (null, "UNAUTHORIZED");
 
-            if (string.IsNullOrWhiteSpace(data.Username) && string.IsNullOrWhiteSpace(data.Email))
+            if (string.IsNullOrWhiteSpace(data.Username) && string.IsNullOrWhiteSpace(data.Email) && string.IsNullOrWhiteSpace(data.AvatarUrl))
                 return (null, "EMPTY_DATA");
 
             if (data.Username != null && await _usersCollection.Find(u => u.Username == data.Username).AnyAsync())
@@ -153,6 +160,7 @@ public class ProfileService
                 targetUser.Username,
                 targetUser.Email,
                 targetUser.Role,
+                targetUser.AvatarUrl!,
                 targetUser.Id);
 
             return (new Dictionary<string, object>
@@ -231,6 +239,33 @@ public class ProfileService
         return users.ToDictionary(u => u.Id, u => u.Username);
     }
 
+    public async Task<(string? avatarUrl, string? error)> GetAvatarUrlById(string id)
+    {
+        try
+        {
+            var user = await _usersCollection.Find(u => u.Id == id).FirstOrDefaultAsync();
+            
+            if (user == null) return (null, "USER_NOT_FOUND");
+
+            return (user.AvatarUrl, null);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error getting avatar by id");
+            return (null, "SERVER_ERROR");
+        }
+    }
+    
+    public async Task<Dictionary<string, string?>> GetAvatarUrlsByIdsAsync(List<string> ids)
+    {
+        var users = await _usersCollection
+            .Find(u => ids.Contains(u.Id))
+            .Project(u => new { u.Id, u.AvatarUrl })
+            .ToListAsync();
+
+        return users.ToDictionary(u => u.Id, u => u.AvatarUrl);
+    }
+
     public async Task<(double? averageIdeaRating, string? error)> GetUserAverageIdeaRating(string userId)
     {
         try
@@ -304,6 +339,46 @@ public class ProfileService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting user total fundings");
+            return (null, "SERVER_ERROR");
+        }
+    }
+    
+    public async Task<(int? totalIdeasAmount, string? error)> GetUserTotalForumsAmount(string userId)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+                return (null, "INVALID_ID");
+
+            var userForumsCount = (await _forumsCollection
+                .Find(f => f.CreatorId == userId)
+                .ToListAsync()).Count;
+
+            return (userForumsCount, null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting user total forums amount");
+            return (null, "SERVER_ERROR");
+        }
+    }
+    
+    public async Task<(int? totalIdeasAmount, string? error)> GetUserTotalClosedForumsAmount(string userId)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+                return (null, "INVALID_ID");
+
+            var userForumsCount = (await _forumsCollection
+                .Find(f => f.CreatorId == userId && f.Status == ForumStatus.Closed)
+                .ToListAsync()).Count;
+
+            return (userForumsCount, null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting user total closed forums amount");
             return (null, "SERVER_ERROR");
         }
     }

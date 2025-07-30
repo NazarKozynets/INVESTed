@@ -6,4 +6,5 @@ public class SearchIdeaModel
     public string IdeaName { get; set; }
     public string CreatorId { get; set; }
     public string CreatorUsername { get; set; }
+    public string? CreatorAvatarUrl { get; set; }
 }

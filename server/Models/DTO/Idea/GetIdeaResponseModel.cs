@@ -13,6 +13,7 @@ namespace server.Models.DTO.Idea
         public List<IdeaRatingModel> Rating { get; set; }
         public double AverageRating { get; set; }
         public string? CreatorUsername { get; set; }
+        public string? CreatorAvatarUrl { get; set; }
         public bool CanEdit { get; set; }
         public List<IdeaCommentModel>? Comments { get; set; }
         public bool IsClosed { get; set; }
@@ -29,6 +30,7 @@ namespace server.Models.DTO.Idea
             List<IdeaCommentModel>? comments = null,
             bool canEdit = false,
             string? creatorUsername = null,
+            string? creatorAvatarUrl = null,
             bool isClosed = false)
         {
             IdeaId = ideaId;
@@ -42,6 +44,7 @@ namespace server.Models.DTO.Idea
             Comments = comments ?? new List<IdeaCommentModel>(); 
             CanEdit = canEdit;
             CreatorUsername = creatorUsername;
+            CreatorAvatarUrl = creatorAvatarUrl;
             IsClosed = isClosed;
         }
     }

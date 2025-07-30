@@ -12,6 +12,7 @@ public class ClientProfileStrategy : IProfileStrategy
         {
             Username = targetUser.Username,
             Email = isOwner ? targetUser.Email : null,
+            AvatarUrl = targetUser.AvatarUrl,
             CanEdit = isOwner,
         };
     }
@@ -32,5 +33,7 @@ public class ClientProfileStrategy : IProfileStrategy
         {
             targetUser.SetEmail(newProfileData.Email);
         }
+        
+        targetUser.SetAvatarUrl(newProfileData.AvatarUrl!);
     }
 }

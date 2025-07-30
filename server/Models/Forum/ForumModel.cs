@@ -59,6 +59,7 @@ public class ForumModel
     public List<ForumCommentModel> Comments { get; private set; } = new List<ForumCommentModel>();
 
     [BsonIgnore] public string? CreatorUsername { get; set; }
+    [BsonIgnore] public string? CreatorAvatarUrl { get; set; }
 
     public ForumModel(string creatorId, string title, string description, string? imageUrl = null)
     {

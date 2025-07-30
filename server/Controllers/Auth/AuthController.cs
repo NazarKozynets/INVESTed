@@ -47,6 +47,7 @@ public class AuthController : ControllerBase
                 email = HttpContext.User.FindFirst(ClaimTypes.Email)?.Value,
                 role = HttpContext.User.FindFirst(ClaimTypes.Role)?.Value,
                 userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
+                avatarUrl = HttpContext.User.FindFirst("avatar_url")?.Value,
                 expiresIn = exp?.ToString("o")
             }
         });
@@ -179,6 +180,7 @@ public class AuthController : ControllerBase
                 username = user.Username,
                 email = user.Email,
                 role = user.Role,
+                avatarUrl = user.AvatarUrl,
                 expiresIn = tokens.accessTokenExpiry.ToString("o")
             }
         });

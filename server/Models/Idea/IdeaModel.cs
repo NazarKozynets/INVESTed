@@ -42,6 +42,8 @@ public class IdeaCommentModel
     [BsonElement("commentatorUsername")] public string CommentatorUsername { get; init; }
 
     [BsonElement("commentDate")] public DateTime CommentDate { get; init; }
+    
+    [BsonIgnore] public string? CommentatorAvatarUrl { get; set; }
 
     public IdeaCommentModel(string commentText, string commentatorId, string commentatorUsername)
     {
@@ -117,6 +119,7 @@ public class IdeaModel
     [BsonElement("status")] public IdeaStatus Status { get; private set; } = IdeaStatus.Open;
 
     [BsonIgnore] public string? CreatorUsername { get; set; }
+    [BsonIgnore] public string? CreatorAvatarUrl { get; set; }
 
     public IdeaModel(string creatorId, string ideaName, string ideaDescription, decimal targetAmount,
         DateTime fundingDeadline)

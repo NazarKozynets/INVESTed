@@ -149,6 +149,7 @@ public class AuthService
         string username,
         string email,
         UserRole role,
+        string avatarUrl,
         string userId)
     {
         var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!);
@@ -161,6 +162,7 @@ public class AuthService
             new Claim(ClaimTypes.Email, email),
             new Claim(ClaimTypes.Name, username),
             new Claim(ClaimTypes.Role, role.ToString()),
+            new Claim("avatar_url", avatarUrl ?? ""),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
@@ -221,7 +223,7 @@ public class AuthService
         GenerateAndSetTokensAsync(UserModel user, HttpResponse response)
     {
         var (accessToken, accessTokenExpiry) = GenerateJwtToken(
-            user.Username, user.Email, user.Role, user.Id);
+            user.Username, user.Email, user.Role, user.AvatarUrl!, user.Id);
 
         var refreshToken = GenerateRefreshToken();
         var refreshTokenExpiry = DateTime.UtcNow.AddDays(

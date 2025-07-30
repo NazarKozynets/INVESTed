@@ -6,4 +6,5 @@ public class SearchForumModel
     public string ForumTitle { get; set; }
     public string CreatorId { get; set; }
     public string CreatorUsername { get; set; }
+    public string? CreatorAvatarUrl { get; set; }
 }

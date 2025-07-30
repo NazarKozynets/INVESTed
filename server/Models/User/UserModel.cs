@@ -23,19 +23,24 @@ public class UserModel
     [BsonElement("email")] public string Email { get; private set; }
 
     [BsonElement("role")] public UserRole Role { get; private set; }
+    
+    [BsonElement("avatarUrl")]  public string? AvatarUrl { get; private set; }
 
     public string? RefreshToken { get; private set; }
     public DateTime? RefreshTokenExpiry { get; private set; }
 
     public string? PasswordResetToken { get; private set; }
     public DateTime? PasswordResetTokenExpiry { get; private set; }
+    
+    public UserModel() {} 
 
-    public UserModel(string username, string password, string email, UserRole role)
+    public UserModel(string username, string password, string email, UserRole role, string? avatarUrl = null)
     {
         SetUsername(username);
         SetPassword(password);
         SetEmail(email);
         Role = role;
+        AvatarUrl = avatarUrl;
     }
 
     public void SetUsername(string username)
@@ -50,6 +55,11 @@ public class UserModel
         if (string.IsNullOrWhiteSpace(email))
             throw new ArgumentException("Email cannot be empty.");
         Email = email;
+    }
+
+    public void SetAvatarUrl(string url)
+    {
+        AvatarUrl = url;
     }
 
     public void SetPassword(string password)

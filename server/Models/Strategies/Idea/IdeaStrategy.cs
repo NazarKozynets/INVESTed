@@ -45,22 +45,25 @@ public abstract class IdeaStrategy
             idea.GetAverageRating(),
             comments: idea.Comments,
             creatorUsername: idea.CreatorUsername ?? null,
+            creatorAvatarUrl: idea.CreatorAvatarUrl,
             canEdit: isOwner,
             isClosed: idea.Status == IdeaStatus.Closed
         );
     }
-    
+
     public IEnumerable<GetIdeaResponseModel> GetFormattedIdeas(IEnumerable<IdeaModel> ideas)
     {
         return ideas.Select(idea => GetFormattedIdea(idea));
     }
 
-    public virtual (IdeaRatingModel? newRate, RateIdeaResult resultMes) RateIdea(IdeaModel ideaToRate, int rate, string ratedBy, bool isOwner)
+    public virtual (IdeaRatingModel? newRate, RateIdeaResult resultMes) RateIdea(IdeaModel ideaToRate, int rate,
+        string ratedBy, bool isOwner)
     {
         return (null, RateIdeaResult.NotEnoughAccess);
     }
 
-    public virtual (IdeaCommentModel? newComment, CommentIdeaResult resultMes) AddCommentToIdea(IdeaModel ideaToAdd, string commentText, string commentatorId, string commentatorUsername)
+    public virtual (IdeaCommentModel? newComment, CommentIdeaResult resultMes) AddCommentToIdea(IdeaModel ideaToAdd,
+        string commentText, string commentatorId, string commentatorUsername)
     {
         return (null, CommentIdeaResult.NotEnoughAccess);
     }
@@ -70,8 +73,9 @@ public abstract class IdeaStrategy
         return commentCreatorId == currentUserId;
     }
 
-    public virtual (decimal? updatedAlreadyCollected, IdeaFundingHistoryElementModel? fundingHistoryElementModel, InvestIdeaResult resultMes) InvestIdea(IdeaModel idea,
-        string fundedById, string fundedByUsername, decimal fundingAmount, bool isOwner)
+    public virtual (decimal? updatedAlreadyCollected, IdeaFundingHistoryElementModel? fundingHistoryElementModel,
+        InvestIdeaResult resultMes) InvestIdea(IdeaModel idea,
+            string fundedById, string fundedByUsername, decimal fundingAmount, bool isOwner)
     {
         return (null, null, InvestIdeaResult.NotEnoughAccess);
     }
