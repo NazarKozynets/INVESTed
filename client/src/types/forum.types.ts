@@ -26,6 +26,7 @@ export const getForumErrorMessage = (
 export interface CreateForumRequest {
   forumTitle: string;
   forumDescription: string;
+  forumImageUrl: string | null;
   creatorId: string | null;
 }
 
@@ -63,6 +64,7 @@ export interface ForumCommentModel extends IdeaCommentModel {
 export interface ForumType {
   forumId: string;
   forumTitle: string;
+  imageUrl?: string | null;
   forumDescription: string;
   createdAt: string;
   isClosed: boolean;
@@ -76,4 +78,9 @@ export interface GetLimitedAmountOfSortedForumsResponse {
   page: number;
   limit: number;
   totalPages: number;
+}
+
+export interface AddCommentRequest {
+  forumId: string;
+  commentText: string;
 }

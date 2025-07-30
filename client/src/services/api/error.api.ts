@@ -53,7 +53,7 @@ const getHttpStatusMessage = (status?: number): string => {
     case 429:
       return "Too many requests. Please wait and try again later.";
     case 500:
-      return "Internal server error. Please try again later.";
+      return "Something went wrong. Please try again later.";
     case 503:
       return "Service unavailable. Please try again later.";
     default:

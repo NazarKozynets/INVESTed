@@ -1,9 +1,9 @@
 import { useRequest } from "../../../utils/hooks/useRequest.ts";
 import {
+  AddCommentRequest,
   ForumCommentModel,
   ForumSearchResult,
 } from "../../../types/forum.types.ts";
-import { AddCommentRequest } from "../../../types/idea.types.ts";
 
 export const searchForums = async (
   query: string,
@@ -22,3 +22,11 @@ export const addCommentToForum = async (
 ): Promise<ForumCommentModel> => {
   return await useRequest(`forum/add-comment`, "post", reqBody);
 };
+
+export const deleteCommentFromForum = async (commentId: string) => {
+  return await useRequest(
+      `forum/delete-comment?commentId=${encodeURIComponent(commentId)}`,
+      "delete",
+  );
+};
+

@@ -1,22 +1,30 @@
-import { Form } from "../../../components/ui/form/Form.tsx";
+import {Form} from "../../../components/ui/form/Form.tsx";
 import "../../../styles/pages/_startIdeaPage.scss";
-import { TextInput } from "../../../components/ui/text-input/TextInput.tsx";
+import {TextInput} from "../../../components/ui/text-input/TextInput.tsx";
 import Button from "../../../components/ui/button/Button.tsx";
-import { toast } from "react-toastify";
-import { useEffect } from "react";
-import { useCreateForumStore } from "../../../store/CreateForumStore.ts";
-import { CreateForumRequest } from "../../../types/forum.types.ts";
-import { createForum } from "../../../services/api/forum/create-forum.api.ts";
+import {toast} from "react-toastify";
+import {useEffect, useState} from "react";
+import {useCreateForumStore} from "../../../store/CreateForumStore.ts";
+import {CreateForumRequest} from "../../../types/forum.types.ts";
+import {createForum} from "../../../services/api/forum/create-forum.api.ts";
+import {uploadImageFile} from "../../../services/api/cloudinary/cloudinary.api.ts";
+import {CloudinaryFolderType} from "../../../types/cloudinary.types.ts";
+import ImageUploader from "../../../components/ui/image-uploader/ImageUploader.tsx";
+import {LoadingBar} from "../../../components/ui/loading-bar/LoadingBar.tsx";
 
 export const CreateForum = () => {
   const {
     forumTitle,
     forumDescription,
+    selectedImage,
     errors,
     setForumTitle,
     setForumDescription,
+    setSelectedImage,
     clear,
   } = useCreateForumStore();
+
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const isForumReady =
     forumTitle.trim() !== "" &&
@@ -30,14 +38,36 @@ export const CreateForum = () => {
     };
   }, []);
 
+  const handleImageChange = async (file: File | null) => {
+    if (!file) {
+      setSelectedImage(null);
+      return;
+    }
+
+    try {
+      setIsUploadingImage(true);
+      const response = await uploadImageFile({
+        folderType: CloudinaryFolderType.Forums,
+        file: file,
+      });
+      setSelectedImage(response);
+      toast.success("Image uploaded successfully.");
+    } catch (error: any) {
+      console.error("Error uploading image:", error.response?.data || error.message);
+      setSelectedImage(null);
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
   const handleSubmit = async () => {
     try {
       const createForumRequestBody: CreateForumRequest = {
         forumTitle: forumTitle.trim(),
         forumDescription: forumDescription.trim(),
+        forumImageUrl: selectedImage,
         creatorId: null,
       };
-
       const response = await createForum(createForumRequestBody);
 
       if (response?.id) {
@@ -87,6 +117,14 @@ export const CreateForum = () => {
             />
             {errors.forumDescription && (
               <p className="error-text">{errors.forumDescription}</p>
+            )}
+          </div>
+          <div className="form-section">
+            <label>Upload image</label>
+            {isUploadingImage ? (
+                <LoadingBar/>
+            ) : (
+                <ImageUploader imageUrl={selectedImage} onImageChange={handleImageChange} />
             )}
           </div>
           <div

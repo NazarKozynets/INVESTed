@@ -29,6 +29,7 @@ export const useRequest = async <T = unknown>(
       withCredentials: true,
       headers: { "Content-Type": "application/json" },
     });
+
     return data as T;
   } catch (error) {
     if (shouldTryRefresh(error) && refreshAttempt < 2) {

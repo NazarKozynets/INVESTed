@@ -2,7 +2,7 @@
   &__forum {
     width: 60%;
     margin: 20px auto 60px;
-    padding: 16px;
+    padding: 16px 16px 45px;
     border-radius: 20px;
     background-color: rgba(10, 15, 25, 0.8);
     overflow-wrap: anywhere;
@@ -48,6 +48,29 @@
     font-size: 16px;
   }
 
+  &__image {
+    margin: 30px auto 0;
+    width: 100%;
+    max-width: 1600px;
+    height: 600px;
+    overflow: hidden;
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(10, 15, 25, 0.8);
+
+    img {
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
+      object-fit: scale-down;
+      border-radius: 12px;
+      display: block;
+    }
+  }
+
   &__comments {
     width: 70%;
     margin: 0 auto 60px;
@@ -55,5 +78,91 @@
     border-radius: 20px;
     background-color: rgba(10, 15, 25, 0.8);
     overflow-wrap: anywhere;
+
+    .forum-details__respond-btn {
+      margin-bottom: 30px;
+    }
+
+    .forum-details__comment {
+      padding: 16px;
+      margin-bottom: 20px;
+      border-radius: 20px;
+      border: 1px solid #ccc;
+      box-shadow:
+              -6px 0 10px rgba(0, 0, 0, 0.3),
+              0 6px 10px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+      display: flex;
+      flex-direction: column;
+
+      &--reply {
+        margin-left: 32px;
+      }
+
+      &-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+
+      &-user-block {
+        display: flex;
+        gap: 15px;
+      }
+
+      &-user {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        cursor: pointer;
+
+        &:hover {
+          color: #007bff;
+        }
+      }
+
+      &-delete {
+        display: flex;
+        align-items: center;
+        align-self: center;
+        justify-content: center;
+        height: 17px;
+        user-select: none;
+        cursor: pointer;
+
+        img {
+          width: 17px;
+          height: 17px;
+          filter: brightness(0) invert(1);
+        }
+      }
+
+      &-date {
+        font-size: 12px;
+      }
+
+      &-text {
+        font-size: 16px;
+        line-height: 1.5;
+      }
+
+      &-reply-btn {
+        font-size: 16px;
+        align-self: flex-end;
+        margin-left: auto;
+        margin-top: -10px;
+
+        &:hover {
+          text-decoration: underline;
+          cursor: pointer;
+        }
+      }
+
+      &-replies {
+        margin-top: 16px;
+      }
+    }
   }
 }

@@ -8,13 +8,11 @@ import { formatDate } from "../../../utils/functions/formatters.ts";
 import { motion } from "framer-motion";
 import trashIcon from "../../../assets/trash.svg";
 import { format } from "date-fns";
-import { ForumCommentModel } from "../../../types/forum.types.ts";
-import { deleteCommentFromIdea } from "../../../services/api/idea/idea-actions.api.ts";
+import {AddCommentRequest, ForumCommentModel} from "../../../types/forum.types.ts";
 import { toast } from "react-toastify";
 import React, { useState } from "react";
 import { TextInput } from "../../../components/ui/text-input/TextInput.tsx";
-import { AddCommentRequest } from "../../../types/idea.types.ts";
-import { addCommentToForum } from "../../../services/api/forum/forum-actions.api.ts";
+import {addCommentToForum, deleteCommentFromForum} from "../../../services/api/forum/forum-actions.api.ts";
 
 export const ForumDetails = () => {
   const queryClient = useQueryClient();
@@ -44,7 +42,7 @@ export const ForumDetails = () => {
     mutationFn: (commentId: string) => {
       if (!commentId?.trim())
         return Promise.reject(new Error("Empty commentId"));
-      return deleteCommentFromIdea(commentId.trim());
+      return deleteCommentFromForum(commentId.trim());
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["forum-details", forumId] });
@@ -59,7 +57,7 @@ export const ForumDetails = () => {
   const commentMutation = useMutation({
     mutationFn: (commentText: string) => {
       const reqBody: AddCommentRequest = {
-        ideaId: forumId as string,
+        forumId: forumId as string,
         commentText: commentText.trim(),
       };
       return addCommentToForum(reqBody);
@@ -94,15 +92,15 @@ export const ForumDetails = () => {
           return (
             <motion.div
               key={`${comment.commentatorId}-${comment.commentDate}-${index}`}
-              className={`idea-details__comment ${depth > 0 ? "idea-details__comment--reply" : ""}`}
+              className={`forum-details__comment ${depth > 0 ? "forum-details__comment--reply" : ""}`}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: index * 0.1 }}
             >
-              <div className="idea-details__comment-header">
-                <div className="idea-details__comment-user-block">
+              <div className="forum-details__comment-header">
+                <div className="forum-details__comment-user-block">
                   <div
-                    className="idea-details__comment-user"
+                    className="forum-details__comment-user"
                     onClick={(e) => {
                       if (comment.commentatorUsername) {
                         e.stopPropagation();
@@ -115,18 +113,18 @@ export const ForumDetails = () => {
                   </div>
                   {authState?.userData?.userId === comment.commentatorId && (
                     <div
-                      className="idea-details__comment-delete"
+                      className="forum-details__comment-delete"
                       onClick={() => deleteCommentMutation.mutate(comment.id)}
                     >
                       <img src={trashIcon} alt="" />
                     </div>
                   )}
                 </div>
-                <span className="idea-details__comment-date">
+                <span className="forum-details__comment-date">
                   {format(new Date(comment.commentDate), "dd.MM.yyyy HH:mm")}
                 </span>
               </div>
-              <p className="idea-details__comment-text">
+              <p className="forum-details__comment-text">
                 {comment.commentText}
               </p>
             </motion.div>
@@ -183,6 +181,11 @@ export const ForumDetails = () => {
           <div className="forum-details__description">
             <p>{forum.forumDescription}</p>
           </div>
+          {forum.imageUrl && (
+              <div className="forum-details__image">
+                <img src={forum.imageUrl} alt="" />
+              </div>
+          )}
         </div>
       )}
       {forum &&
@@ -210,6 +213,7 @@ export const ForumDetails = () => {
               type="text"
               showSendIcon={true}
               onSendClick={handleCommentSubmit}
+              className="forum-details__respond-btn"
             />
             {forum.comments.length > 0 && renderComments(forum.comments)}
           </div>
