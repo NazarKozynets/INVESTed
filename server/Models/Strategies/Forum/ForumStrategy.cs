@@ -36,6 +36,7 @@ public abstract class ForumStrategy
             creatorUsername: forum.CreatorUsername ?? null,
             createdAt: forum.CreatedAt,
             canEdit: isOwner,
+            imageUrl: forum.ImageUrl ?? null,
             isClosed: forum.Status == ForumStatus.Closed
         );
     }
@@ -43,5 +44,16 @@ public abstract class ForumStrategy
     public IEnumerable<GetForumResponseModel> GetFormattedForums(IEnumerable<ForumModel> forums)
     {
         return forums.Select(forum => GetFormattedForum(forum));
+    }
+
+    public virtual (ForumCommentModel? newComment, CommentForumResult resultMes) AddCommentToForum(
+        ForumModel forumToAdd, string commentText, string commentatorId, string commentatorUsername)
+    {
+        return (null, CommentForumResult.NotEnoughAccess);
+    }
+    
+    public virtual bool CanDeleteCommentFromForum(string commentCreatorId, string currentUserId)
+    {
+        return commentCreatorId == currentUserId;
     }
 }

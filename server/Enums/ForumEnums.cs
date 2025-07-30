@@ -9,3 +9,12 @@ public enum CreateForumResult
     InvalidCreatorId,
     UnknownError,
 }
+
+public enum CommentForumResult
+{
+    Success,             
+    EmptyComment,        
+    EmptyCommentedBy,
+    CommentTooLong,      
+    NotEnoughAccess,     
+}

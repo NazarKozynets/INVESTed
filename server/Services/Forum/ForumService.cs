@@ -8,6 +8,7 @@ using server.Models.DTO.Forum;
 using server.Models.DTO.Profile;
 using server.Models.Factories;
 using server.Models.Forum;
+using server.services.auth;
 using server.Services.DataBase;
 using server.Services.Profile;
 
@@ -18,17 +19,20 @@ public class ForumService
     private readonly IMongoCollection<ForumModel> _forumsCollection;
     private readonly ILogger<ForumService> _logger;
     private readonly ProfileService _profileService;
+    private readonly AuthService _authService;
     private readonly IDistributedCache _cache;
 
     public ForumService(
         MongoDbService mongoDbService,
         ILogger<ForumService> logger,
         ProfileService profileService,
+        AuthService authService,
         IDistributedCache cache)
     {
         _forumsCollection = mongoDbService.GetCollection<ForumModel>("Forums");
         _logger = logger;
         _profileService = profileService;
+        _authService = authService;
         _cache = cache;
     }
 
@@ -319,6 +323,116 @@ public class ForumService
         {
             _logger.LogError(ex, "Unexpected error in GetSortedForumsAsync");
             return (null, 0, "SERVER_ERROR");
+        }
+    }
+    
+    public async Task<(ForumCommentModel? createdComment, string? error)> AddCommentToForumAsync(
+        AddCommentToForumModel data, ClaimsPrincipal userClaims)
+    {
+        _logger.LogInformation("AddCommentToForumAsync started");
+        _logger.LogInformation("AddCommentToForumAsync: {data}", JsonSerializer.Serialize(data));
+        try
+        {
+            if (string.IsNullOrWhiteSpace(data.ForumId))
+                return (null, "INVALID_ID");
+
+            var forum = await _forumsCollection.Find(Builders<ForumModel>.Filter.And(
+                    Builders<ForumModel>.Filter.Eq(i => i.Id, data.ForumId),
+                    Builders<ForumModel>.Filter.Eq(i => i.Status, ForumStatus.Open)
+                ))
+                .FirstOrDefaultAsync();
+            if (forum == null) return (null, "NOT_FOUND");
+
+            var currentUser = await _authService.GetUserFromClaimsAsync(userClaims);
+            if (currentUser == null || string.IsNullOrEmpty(currentUser.Id) ||
+                string.IsNullOrEmpty(currentUser.Username)) return (null, "INVALID_CREDENTIALS");
+
+            var strategy = ForumStrategyFactory.GetForumStrategy(currentUser.Role);
+
+            var result = strategy.AddCommentToForum(forum, data.CommentText, currentUser.Id, currentUser.Username);
+
+            if (result is { newComment: not null, resultMes: CommentForumResult.Success })
+            {
+                var update = Builders<ForumModel>.Update.Push(i => i.Comments, result.newComment);
+                var updateResult = await _forumsCollection.UpdateOneAsync(
+                    Builders<ForumModel>.Filter.Eq(i => i.Id, forum.Id),
+                    update
+                );
+
+                if (updateResult.MatchedCount == 0)
+                {
+                    _logger.LogWarning("Failed to update forum with ID {ForumId}: Not found in database", forum.Id);
+                    return (null, "UPDATE_FAILED");
+                }
+            }
+
+            return result.resultMes switch
+            {
+                CommentForumResult.Success => (result.newComment, null),
+                CommentForumResult.EmptyComment => (null, "EMPTY_COMMENT"),
+                CommentForumResult.EmptyCommentedBy => (null, "EMPTY_COMMENT_BY"),
+                CommentForumResult.CommentTooLong => (null, "COMMENT_TOO_LONG"),
+                CommentForumResult.NotEnoughAccess => (null, "UNABLE_TO_COMMENT"),
+                _ => (null, "SERVER_ERROR")
+            };
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Unexpected error in AddCommentToForumAsync");
+            return (null, e.Message);
+        }
+    }
+    
+        public async Task<(bool? res, string? error)> DeleteCommentFromForumAsync(string commentId,
+        ClaimsPrincipal userClaims)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(commentId))
+                return (null, "INVALID_ID");
+
+            var currentUser = await _authService.GetUserFromClaimsAsync(userClaims);
+            if (currentUser == null || string.IsNullOrEmpty(currentUser.Id) ||
+                string.IsNullOrEmpty(currentUser.Username)) return (null, "INVALID_CREDENTIALS");
+
+            var filter = Builders<ForumModel>.Filter.And(
+                Builders<ForumModel>.Filter.ElemMatch(i => i.Comments, c => c.Id == commentId),
+                Builders<ForumModel>.Filter.Eq(i => i.Status, ForumStatus.Open)
+            );
+
+            var forum = await _forumsCollection.Find(filter).FirstOrDefaultAsync();
+            if (forum == null) return (null, "NOT_FOUND");
+
+            ForumCommentModel comment = forum.Comments.FirstOrDefault(c => c.Id == commentId);
+
+            if (comment == null)
+                return (null, "COMMENT_NOT_FOUND");
+
+            var strategy = ForumStrategyFactory.GetForumStrategy(currentUser.Role);
+
+            bool canDelete = strategy.CanDeleteCommentFromForum(comment.CommentatorId, currentUser.Id);
+
+            if (!canDelete) return (null, "NOT_ENOUGH_ACCESS");
+
+            var update = Builders<ForumModel>.Update.PullFilter(
+                i => i.Comments,
+                c => c.Id == commentId
+            );
+
+            var updateResult = await _forumsCollection.UpdateOneAsync(
+                Builders<ForumModel>.Filter.Eq(i => i.Id, forum.Id),
+                update
+            );
+
+            if (updateResult.ModifiedCount == 0)
+                return (false, "DELETE_FAILED");
+
+            return (true, null);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Unexpected error in DeleteCommentFromForumAsync");
+            return (false, e.Message);
         }
     }
 }

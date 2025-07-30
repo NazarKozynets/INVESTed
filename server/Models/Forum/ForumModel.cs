@@ -45,6 +45,9 @@ public class ForumModel
 
     [BsonElement("description")]
     public string Description { get; private set; }
+    
+    [BsonElement("imageUrl")]
+    public string? ImageUrl { get; private set; }
 
     [BsonElement("status")]
     public ForumStatus Status { get; private set; } = ForumStatus.Open;
@@ -57,24 +60,23 @@ public class ForumModel
 
     [BsonIgnore] public string? CreatorUsername { get; set; }
 
-    public ForumModel(string creatorId, string title, string description)
+    public ForumModel(string creatorId, string title, string description, string? imageUrl = null)
     {
-        if (string.IsNullOrWhiteSpace(creatorId))
-            throw new ArgumentException("INVALID_CREATOR_ID");
-        if (string.IsNullOrWhiteSpace(title))
-            throw new ArgumentException("INVALID_TITLE");
-        if (string.IsNullOrWhiteSpace(description))
-            throw new ArgumentException("INVALID_DESCRIPTION");
+        if (string.IsNullOrWhiteSpace(creatorId)) throw new ArgumentException("INVALID_CREATOR_ID");
+        if (string.IsNullOrWhiteSpace(title)) throw new ArgumentException("INVALID_TITLE");
+        if (string.IsNullOrWhiteSpace(description)) throw new ArgumentException("INVALID_DESCRIPTION");
 
         CreatorId = creatorId;
         Title = title;
         Description = description;
+        ImageUrl = imageUrl;
     }
 
-    public void AddComment(ForumCommentModel comment)
+    public ForumCommentModel AddComment(string commentText, string commentatorId, string commentatorUsername)
     {
-        if (comment == null) throw new ArgumentNullException(nameof(comment));
-        Comments.Add(comment);
+        ForumCommentModel commentModel = new ForumCommentModel(commentText, commentatorId, commentatorUsername);
+        Comments.Add(commentModel);
+        return commentModel;
     }
 
     public void CloseForum()

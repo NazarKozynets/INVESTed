@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Курсовая_2_курс\\server\\server.csproj": {}
+    "D:\\INVESTed\\server\\server.csproj": {}
   },
   "projects": {
-    "D:\\Курсовая_2_курс\\server\\server.csproj": {
+    "D:\\INVESTed\\server\\server.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Курсовая_2_курс\\server\\server.csproj",
+        "projectUniqueName": "D:\\INVESTed\\server\\server.csproj",
         "projectName": "server",
-        "projectPath": "D:\\Курсовая_2_курс\\server\\server.csproj",
+        "projectPath": "D:\\INVESTed\\server\\server.csproj",
         "packagesPath": "C:\\Users\\nazar\\.nuget\\packages\\",
-        "outputPath": "D:\\Курсовая_2_курс\\server\\obj\\",
+        "outputPath": "D:\\INVESTed\\server\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\nazar\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -36,9 +36,9 @@
         "restoreAuditProperties": {
           "enableAudit": "true",
           "auditLevel": "low",
-          "auditMode": "direct"
+          "auditMode": "all"
         },
-        "SdkAnalysisLevel": "9.0.200"
+        "SdkAnalysisLevel": "9.0.100"
       },
       "frameworks": {
         "net9.0": {
@@ -47,6 +47,10 @@
             "BCrypt.Net-Next": {
               "target": "Package",
               "version": "[4.0.3, )"
+            },
+            "CloudinaryDotNet": {
+              "target": "Package",
+              "version": "[1.27.6, )"
             },
             "Microsoft.AspNetCore.Authentication.JwtBearer": {
               "target": "Package",
@@ -80,7 +84,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.200/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Users\\nazar\\.dotnet\\sdk\\9.0.100/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

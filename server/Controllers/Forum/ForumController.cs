@@ -30,8 +30,6 @@ public class ForumController : ControllerBase
                 "INVALID_TITLE" => BadRequest(new { error }),               
                 "INVALID_CREATOR_ID" => BadRequest(new { error }),          
                 "INVALID_DESCRIPTION" => BadRequest(new { error }),          
-                "UNKNOWN_ERROR" => StatusCode(500, new { error }),          
-                "SERVER_ERROR" => StatusCode(500, new { error }),            
                 _ => StatusCode(500, new { error })                          
             };
         }
@@ -121,7 +119,6 @@ public class ForumController : ControllerBase
             return error switch
             {
                 "INVALID_PARAMETERS" => BadRequest(new { error }),
-                "SERVER_ERROR" => StatusCode(500, new { error }),
                 _ => StatusCode(500, new { error }),
             };
         }
@@ -134,5 +131,50 @@ public class ForumController : ControllerBase
             limit,
             totalPages = (int)Math.Ceiling((double)total / limit)
         });
+    }
+    
+    [HttpPost("add-comment")]
+    public async Task<ActionResult<object>> AddCommentToForum(AddCommentToForumModel data)
+    {
+        var (res, error) = await _forumService.AddCommentToForumAsync(data, User);
+
+        if (res == null && error != null)
+        {
+            return error switch
+            {
+                "INVALID_ID" => BadRequest(new { error }),
+                "EMPTY_COMMENT" => BadRequest(new { error }),
+                "EMPTY_COMMENT_BY" => BadRequest(new { error }),
+                "COMMENT_TOO_LONG" => BadRequest(new { error }),
+                "NOT_FOUND" => NotFound(new { error }),
+                "UNABLE_TO_COMMENT" => StatusCode(403, new { error }),
+                "INVALID_CREDENTIALS" => BadRequest(new { error }),
+                _ => StatusCode(500, new { error })
+            };
+        }
+
+        return Ok(res);
+    }
+    
+    [HttpDelete("delete-comment")]
+    public async Task<ActionResult<object>> DeleteCommentFromForum(string commentId)
+    {
+        var (res, error) = await _forumService.DeleteCommentFromForumAsync(commentId, User);
+
+        if (res == null && error != null)
+        {
+            return error switch
+            {
+                "INVALID_ID" => BadRequest(new { error }),
+                "NOT_FOUND" => NotFound(new { error }),
+                "INVALID_CREDENTIALS" => BadRequest(new { error }),
+                "NOT_ENOUGH_ACCESS" => Forbid(),
+                "DELETE_FAILED" => StatusCode(409, new { error }),
+                "COMMENT_NOT_FOUND" => NotFound(new { error }),
+                _ => StatusCode(500, new { error })
+            };
+        }
+
+        return Ok(res);
     }
 }

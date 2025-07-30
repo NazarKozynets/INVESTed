@@ -12,6 +12,7 @@ public class GetForumResponseModel
     public bool CanEdit { get; set; }
     public bool IsClosed { get; set; }
     public List<ForumCommentModel> Comments { get; set; }
+    public string? ImageUrl { get; set; }
     public string? CreatorUsername { get; set; }
 
     public GetForumResponseModel(
@@ -22,6 +23,7 @@ public class GetForumResponseModel
         bool canEdit = false,
         bool isClosed = false,
         List<ForumCommentModel>? comments = null,
+        string? imageUrl = null,
         string? creatorUsername = null)
     {
         ForumId = forumId;
@@ -31,6 +33,7 @@ public class GetForumResponseModel
         CanEdit = canEdit;
         IsClosed = isClosed;
         Comments = comments ?? new List<ForumCommentModel>();
+        ImageUrl = imageUrl;
         CreatorUsername = creatorUsername;
     }
 }

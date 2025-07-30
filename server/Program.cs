@@ -13,6 +13,10 @@ using server.WebSockets;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.SetMinimumLevel(LogLevel.Information);
+
 var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>()
                      ?? new[] { "http://localhost:5173", "http://localhost:5174" };
 
@@ -53,13 +57,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 builder.Services.AddSingleton<MongoDbService>();
+builder.Services.AddSingleton<WebSocketConnectionManager>();
+builder.Services.AddSingleton<WebSocketMessageRouter>();
+
+builder.Services.AddScoped<CloudinaryService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ProfileService>();
 builder.Services.AddScoped<IdeaService>();
 builder.Services.AddScoped<ForumService>();
 builder.Services.AddScoped<EmailService>();
-builder.Services.AddSingleton<WebSocketConnectionManager>();
-builder.Services.AddSingleton<WebSocketMessageRouter>();
 
 builder.Services.AddHostedService<IdeaExpirationService>();
 

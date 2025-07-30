@@ -442,8 +442,6 @@ public class IdeaService
     public async Task<(bool? res, string? error)> DeleteCommentFromIdeaAsync(string commentId,
         ClaimsPrincipal userClaims)
     {
-        this._logger.LogInformation(commentId, "commennt id");
-
         try
         {
             if (string.IsNullOrWhiteSpace(commentId))

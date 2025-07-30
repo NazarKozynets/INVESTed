@@ -11,7 +11,7 @@ public class ClientForumStrategy : ForumStrategy
     {
         try
         {
-            return (new ForumModel(creatorId, forumData.ForumTitle, forumData.ForumDescription),
+            return (new ForumModel(creatorId, forumData.ForumTitle, forumData.ForumDescription, imageUrl:  forumData.ForumImageUrl),
                 CreateForumResult.Success);
         }
         catch (Exception e)
@@ -36,6 +36,7 @@ public class ClientForumStrategy : ForumStrategy
             comments: forum.Comments,
             createdAt: forum.CreatedAt,
             isClosed: forum.Status == ForumStatus.Closed,
+            imageUrl: forum.ImageUrl ?? null,
             canEdit: isOwner ?? false
         ));
     }
@@ -50,8 +51,24 @@ public class ClientForumStrategy : ForumStrategy
             creatorUsername: forum.CreatorUsername ?? null,
             createdAt: forum.CreatedAt,
             canEdit: isOwner,
+            imageUrl: forum.ImageUrl ?? null,
             isClosed: forum.Status == ForumStatus.Closed
         );
     }
 
+    public override (ForumCommentModel? newComment, CommentForumResult resultMes) AddCommentToForum(
+        ForumModel forumToAdd, string commentText, string commentatorId, string commentatorUsername)
+    {
+        if (string.IsNullOrWhiteSpace(commentText))
+            return (null, CommentForumResult.EmptyComment);
+        if (string.IsNullOrWhiteSpace(commentatorId))
+            return (null, CommentForumResult.EmptyCommentedBy);
+        if (string.IsNullOrWhiteSpace(commentatorUsername))
+            return (null, CommentForumResult.EmptyCommentedBy);
+        if (commentText.Length > 500)
+            return (null, CommentForumResult.CommentTooLong);
+        
+        var newComment = forumToAdd.AddComment(commentText, commentatorId, commentatorUsername);
+        return (newComment, CommentForumResult.Success);
+    }
 }
