@@ -45,6 +45,7 @@ export interface IdeaCommentModel {
   commentText: string;
   commentatorId: string;
   commentatorUsername: string;
+  commentatorAvatarUrl?: string | null;
   commentDate: string;
 }
 
@@ -60,6 +61,7 @@ export interface IdeaType {
   averageRating: number;
   canEdit: boolean;
   creatorUsername?: string | null;
+  creatorAvatarUrl?: string | null;
   isClosed: boolean;
 }
 
@@ -121,4 +123,5 @@ export interface IdeaSearchResult {
   ideaName: string;
   creatorId: string;
   creatorUsername: string;
+  creatorAvatarUrl?: string | null;
 }

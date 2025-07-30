@@ -28,6 +28,7 @@ export interface UserData {
   username: string;
   email: string;
   role: UserRole;
+  avatarUrl?: string | null;
   expiresIn?: string;
 }
 
@@ -44,6 +45,7 @@ export interface AuthResponseData {
     username: string;
     email: string;
     role: UserRole;
+    avatarUrl?: string | null;
     expiresIn: string;
   };
 }

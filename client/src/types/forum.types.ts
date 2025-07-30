@@ -35,6 +35,7 @@ export interface ForumSearchResult {
   forumTitle: string;
   creatorId: string;
   creatorUsername: string;
+  creatorAvatarUrl?: string | null;
 }
 
 export const sortForumsOptions = [
@@ -70,6 +71,8 @@ export interface ForumType {
   isClosed: boolean;
   comments: ForumCommentModel[];
   creatorUsername?: string | null;
+  creatorAvatarUrl?: string | null;
+  canEdit?: boolean;
 }
 
 export interface GetLimitedAmountOfSortedForumsResponse {

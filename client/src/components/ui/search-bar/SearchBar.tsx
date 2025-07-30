@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import "./search-bar.css";
+import "./search-bar.scss";
 import searchIcon from "../../../assets/search.svg";
 
 type SearchBarProps = {

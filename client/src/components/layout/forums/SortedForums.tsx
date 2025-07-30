@@ -16,13 +16,11 @@ import { ForumCard } from "./ForumCard.tsx";
 interface SortedForumsProps {
   limit?: number;
   needPagination?: boolean;
-  seeMoreBtnOnClick?: () => void;
 }
 
 export const SortedForums = ({
   limit = 5,
   needPagination = false,
-  seeMoreBtnOnClick,
 }: SortedForumsProps) => {
   const [selectedSortMethod, setSelectedSortMethod] =
     useState<SortForumOption>("Newest");
@@ -135,17 +133,6 @@ export const SortedForums = ({
           </motion.div>
         )}
       </AnimatePresence>
-
-      {seeMoreBtnOnClick &&
-        !isLoading &&
-        !isFetching &&
-        !isError &&
-        data?.forums &&
-        data.forums.length > 0 && (
-          <p className="sorted-ideas__see-more-btn" onClick={seeMoreBtnOnClick}>
-            See More...
-          </p>
-        )}
     </section>
   );
 };

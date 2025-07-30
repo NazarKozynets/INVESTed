@@ -42,7 +42,7 @@ export const IdeaCard = ({ idea, progressPercentage }: IdeaCardProps) => {
             }}
           >
             <h3>{idea.creatorUsername}</h3>
-            <UserProfileIcon username={idea.creatorUsername} />
+            <UserProfileIcon username={idea.creatorUsername} avatarUrl={idea.creatorAvatarUrl}/>
           </div>
         )}
       </div>

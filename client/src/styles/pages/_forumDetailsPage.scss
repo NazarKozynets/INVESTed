@@ -1,4 +1,6 @@
 .forum-details {
+  padding: 40px 0 30px;
+
   &__forum {
     width: 60%;
     margin: 20px auto 60px;
@@ -71,6 +73,17 @@
     }
   }
 
+  .forum-details__close-btn {
+    height: 35px;
+    width: 200px;
+    margin: 20px auto 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 18px;
+    background: linear-gradient(120deg, #ff6b6b 0%, #ff3d3d 53%, #a10000 100%);
+  }
+
   &__comments {
     width: 70%;
     margin: 0 auto 60px;
@@ -89,8 +102,8 @@
       border-radius: 20px;
       border: 1px solid #ccc;
       box-shadow:
-              -6px 0 10px rgba(0, 0, 0, 0.3),
-              0 6px 10px rgba(0, 0, 0, 0.3);
+        -6px 0 10px rgba(0, 0, 0, 0.3),
+        0 6px 10px rgba(0, 0, 0, 0.3);
       backdrop-filter: blur(10px);
       display: flex;
       flex-direction: column;

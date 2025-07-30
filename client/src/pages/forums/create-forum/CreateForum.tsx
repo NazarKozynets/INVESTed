@@ -1,16 +1,16 @@
-import {Form} from "../../../components/ui/form/Form.tsx";
+import { Form } from "../../../components/ui/form/Form.tsx";
 import "../../../styles/pages/_startIdeaPage.scss";
-import {TextInput} from "../../../components/ui/text-input/TextInput.tsx";
+import { TextInput } from "../../../components/ui/text-input/TextInput.tsx";
 import Button from "../../../components/ui/button/Button.tsx";
-import {toast} from "react-toastify";
-import {useEffect, useState} from "react";
-import {useCreateForumStore} from "../../../store/CreateForumStore.ts";
-import {CreateForumRequest} from "../../../types/forum.types.ts";
-import {createForum} from "../../../services/api/forum/create-forum.api.ts";
-import {uploadImageFile} from "../../../services/api/cloudinary/cloudinary.api.ts";
-import {CloudinaryFolderType} from "../../../types/cloudinary.types.ts";
+import { toast } from "react-toastify";
+import { useEffect, useState } from "react";
+import { useCreateForumStore } from "../../../store/CreateForumStore.ts";
+import { CreateForumRequest } from "../../../types/forum.types.ts";
+import { createForum } from "../../../services/api/forum/create-forum.api.ts";
+import { uploadImageFile } from "../../../services/api/cloudinary/cloudinary.api.ts";
+import { CloudinaryFolderType } from "../../../types/cloudinary.types.ts";
 import ImageUploader from "../../../components/ui/image-uploader/ImageUploader.tsx";
-import {LoadingBar} from "../../../components/ui/loading-bar/LoadingBar.tsx";
+import { LoadingBar } from "../../../components/ui/loading-bar/LoadingBar.tsx";
 
 export const CreateForum = () => {
   const {
@@ -53,7 +53,10 @@ export const CreateForum = () => {
       setSelectedImage(response);
       toast.success("Image uploaded successfully.");
     } catch (error: any) {
-      console.error("Error uploading image:", error.response?.data || error.message);
+      console.error(
+        "Error uploading image:",
+        error.response?.data || error.message,
+      );
       setSelectedImage(null);
     } finally {
       setIsUploadingImage(false);
@@ -122,9 +125,12 @@ export const CreateForum = () => {
           <div className="form-section">
             <label>Upload image</label>
             {isUploadingImage ? (
-                <LoadingBar/>
+              <LoadingBar />
             ) : (
-                <ImageUploader imageUrl={selectedImage} onImageChange={handleImageChange} />
+              <ImageUploader
+                imageUrl={selectedImage}
+                onImageChange={handleImageChange}
+              />
             )}
           </div>
           <div

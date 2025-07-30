@@ -19,6 +19,10 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ForumType } from "../../../types/forum.types.ts";
 import { getAllClientForums } from "../../../services/api/forum/get-forums.api.ts";
 import { ForumCard } from "../forums/ForumCard.tsx";
+import ImageUploader from "../../ui/image-uploader/ImageUploader.tsx";
+import { uploadImageFile } from "../../../services/api/cloudinary/cloudinary.api.ts";
+import { CloudinaryFolderType } from "../../../types/cloudinary.types.ts";
+import { LoadingBar } from "../../ui/loading-bar/LoadingBar.tsx";
 
 const AccountOwnIdeas = () => {
   const { authState } = useAuth();
@@ -120,10 +124,14 @@ const AccountSettingsForm = () => {
   const queryClient = useQueryClient();
   const { authState, checkSession } = useAuth();
 
+  const [selectedImage, setSelectedImage] = useState<string | null>(
+    authState?.userData?.avatarUrl ?? null,
+  );
   const [newUsername, setNewUsername] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const submitButtonRef = useRef<HTMLDivElement | null>(null);
 
@@ -162,6 +170,30 @@ const AccountSettingsForm = () => {
     },
   });
 
+  const handleImageChange = async (file: File | null) => {
+    if (!file) {
+      setSelectedImage(null);
+      return;
+    }
+
+    try {
+      setIsUploadingImage(true);
+      const response = await uploadImageFile({
+        folderType: CloudinaryFolderType.Avatars,
+        file: file,
+      });
+      setSelectedImage(response);
+    } catch (error: any) {
+      console.error(
+        "Error uploading image:",
+        error.response?.data || error.message,
+      );
+      setSelectedImage(null);
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     toast.dismiss();
@@ -197,6 +229,7 @@ const AccountSettingsForm = () => {
       id: authState.userData?.userId!,
       username: newUsername.trim(),
       email: newEmail.trim(),
+      avatarUrl: selectedImage!,
     });
   };
 
@@ -205,6 +238,19 @@ const AccountSettingsForm = () => {
       <div id="element">
         {!isUpdatingProfileFields ? (
           <>
+            <p>Change profile picture:</p>
+            <div className="account-settings-form__image-import">
+              {isUploadingImage ? (
+                <LoadingBar />
+              ) : (
+                <ImageUploader
+                  style={{ width: "100%" }}
+                  imageUrl={selectedImage}
+                  onImageChange={handleImageChange}
+                  previewClassName="account-settings-form__image-preview"
+                />
+              )}
+            </div>
             <p>Username: {authState.userData?.username}</p>
             <TextInput
               className="account-settings-input"
@@ -258,10 +304,10 @@ const AccountSettingsForm = () => {
       </div>
 
       <div
-        className={`in-out-form-container ${newUsername || newEmail || newPassword ? "visible" : ""}`}
+        className={`in-out-form-container ${newUsername || newEmail || newPassword || selectedImage !== authState?.userData?.avatarUrl ? "visible" : ""}`}
         style={{
           margin:
-            newUsername || newEmail || newPassword ? "20px auto 0" : "0 auto",
+            newUsername || newEmail || newPassword || selectedImage !== authState?.userData?.avatarUrl ? "20px auto 0" : "0 auto",
           width: "30%",
         }}
         ref={submitButtonRef}

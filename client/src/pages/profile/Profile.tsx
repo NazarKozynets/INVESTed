@@ -33,9 +33,13 @@ export const Profile = () => {
       <section className="section-profile">
         <PublicProfile
           username={profileData.username}
+          avatarUrl={profileData.avatarUrl}
           averageIdeaRating={profileData.averageIdeaRating}
           totalIdeasAmount={profileData.totalIdeasAmount}
           totalFunding={profileData.totalFunding}
+          totalForumsAmount={profileData.totalForumsAmount}
+          closedForumsAmount={profileData.totalClosedForumsAmount}
+          helpfulAnswersAmount={profileData.helpfulAnswersAmount}
         />
         {profileData.canEdit && <PrivateProfile />}
       </section>

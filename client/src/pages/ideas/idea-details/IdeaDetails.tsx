@@ -156,7 +156,7 @@ export const IdeaDetails = () => {
                       }
                     }}
                   >
-                    <UserProfileIcon username={comment.commentatorUsername} />
+                    <UserProfileIcon username={comment.commentatorUsername} avatarUrl={comment.commentatorAvatarUrl}/>
                     <span>{comment.commentatorUsername}</span>
                   </div>
                   {authState?.userData?.userId === comment.commentatorId && (
@@ -215,7 +215,7 @@ export const IdeaDetails = () => {
                 }}
               >
                 <h3>{idea.creatorUsername}</h3>
-                <UserProfileIcon username={idea.creatorUsername} />
+                <UserProfileIcon username={idea.creatorUsername} avatarUrl={idea.creatorAvatarUrl}/>
               </div>
             )}
           </div>

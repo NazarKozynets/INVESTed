@@ -34,6 +34,8 @@ export const Header = () => {
     return "Services";
   };
 
+  const username = authState.userData?.username;
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node;
@@ -107,7 +109,7 @@ export const Header = () => {
         />
       </div>
       <div id="user-pfp" ref={profileButtonRef} onClick={toggleProfileMenu}>
-        <UserProfileIcon username={authState.userData?.username!} />
+        {username && <UserProfileIcon username={username} avatarUrl={authState.userData?.avatarUrl}/>}
         {profileMenuVisible && (
           <div className="dropdown-menu" ref={profileMenuRef}>
             <div className="dropdown-menu__item">

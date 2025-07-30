@@ -18,7 +18,7 @@ export const SearchResults = ({
   if (!isVisible || resultsObjects?.length === 0) return null;
 
   return (
-    <div className="search-results">
+    <div className={`search-results ${normalizeResult(resultsObjects[0]).type}`}>
       {resultsObjects.map((item, index) => {
         const normalized = normalizeResult(item);
         return (
@@ -28,7 +28,7 @@ export const SearchResults = ({
             className="search-results__item"
           >
             <div className="search-results__item-creator">
-              <UserProfileIcon username={normalized.creatorUsername} />
+              <UserProfileIcon username={normalized.creatorUsername} avatarUrl={item.creatorAvatarUrl}/>
               <p>{normalized.creatorUsername}</p>
             </div>
             <div className="search-results__item-idea">

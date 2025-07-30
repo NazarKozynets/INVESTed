@@ -4,19 +4,23 @@
 }
 
 .public-profile-form {
-  margin: 0 auto;
-  width: 80%;
+  height: 200px;
+  margin: 20px auto 0;
+  width: 40%;
   display: flex;
+  align-items: center;
   padding: 20px;
   backdrop-filter: blur(10px);
   background-color: rgba(10, 15, 25, 0.8);
 
   #left-part {
+    margin-top: 30px;
     width: 30%;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    min-height: 100%;
 
     #username {
       font-size: 24px;
@@ -32,6 +36,7 @@
       display: flex;
       align-items: center;
       gap: 10px;
+      font-size: 16px;
     }
   }
 }
@@ -93,6 +98,28 @@
     padding-bottom: 25px;
     backdrop-filter: blur(10px);
     background-color: rgba(10, 15, 25, 0.8);
+
+    &__image-import {
+      display: flex;
+      justify-content: center;
+      backdrop-filter: blur(10px);
+      background-color: rgba(10, 15, 25, 0.8);
+      border-radius: 50%;
+    }
+
+    &__image-preview {
+      width: 150px;
+      height: 150px;
+      overflow: hidden;
+      border-radius: 50%;
+      backdrop-filter: blur(10px);
+      background-color: rgba(10, 15, 25, 0.8);
+
+      &-image {
+        border-radius: 50%;
+        overflow: hidden;
+      }
+    }
 
     #element {
       margin: 0 auto;

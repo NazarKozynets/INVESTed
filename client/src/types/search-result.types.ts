@@ -5,6 +5,8 @@ type NormalizedSearchResult = {
   id: string;
   title: string;
   creatorUsername: string;
+  creatorAvatarUrl?: string | null;
+  type: string;
 };
 
 export type RawSearchResult = IdeaSearchResult | ForumSearchResult;
@@ -17,6 +19,8 @@ export function normalizeResult(
       id: result.id,
       title: result.ideaName,
       creatorUsername: result.creatorUsername,
+      creatorAvatarUrl: result.creatorAvatarUrl,
+      type: 'idea'
     };
   }
 
@@ -25,6 +29,8 @@ export function normalizeResult(
       id: result.id,
       title: result.forumTitle,
       creatorUsername: result.creatorUsername,
+      creatorAvatarUrl: result.creatorAvatarUrl,
+      type: 'forum'
     };
   }
 

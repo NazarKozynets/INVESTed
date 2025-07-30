@@ -2,7 +2,7 @@ import { getAuthErrorMessage } from "../../types/auth.types.ts";
 import { getProfileErrorMessage } from "../../types/profile.types.ts";
 import { getIdeaErrorMessage } from "../../types/idea.types.ts";
 import { getForumErrorMessage } from "../../types/forum.types.ts";
-import {getCloudinaryErrorMessage} from "../../types/cloudinary.types.ts";
+import { getCloudinaryErrorMessage } from "../../types/cloudinary.types.ts";
 
 export type ErrorMapper = (
   code: string | undefined,

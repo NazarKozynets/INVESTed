@@ -1,11 +1,20 @@
-import {useState, ChangeEvent, useEffect} from "react";
+import React, {useState, ChangeEvent, useEffect} from "react";
 
 interface ImageUploaderProps {
     imageUrl: string | null;
     onImageChange: (file: File | null) => void;
+    style?: React.CSSProperties;
+    className?: string;
+    previewClassName?: string;
 }
 
-const ImageUploader = ({ imageUrl, onImageChange } : ImageUploaderProps) => {
+const ImageUploader = ({
+                           imageUrl,
+                           onImageChange,
+                           style,
+                           className,
+                           previewClassName,
+                       }: ImageUploaderProps) => {
     const [preview, setPreview] = useState<string | null>(imageUrl);
 
     useEffect(() => {
@@ -26,23 +35,33 @@ const ImageUploader = ({ imageUrl, onImageChange } : ImageUploaderProps) => {
     };
 
     return (
-        <div style={{ width: "33%", minWidth: "150px" }}>
+        <div style={{width: "33%", minWidth: "150px", ...style}} className={className}>
             <label
                 htmlFor="image-upload"
                 style={{
-                    display: "block",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                     border: "2px dashed #ccc",
                     borderRadius: "8px",
                     padding: "10px",
                     cursor: "pointer",
                     textAlign: "center",
+                    minHeight: "150px",
                 }}
+                className={previewClassName}
             >
                 {preview ? (
                     <img
                         src={preview}
                         alt="Preview"
-                        style={{ width: "100%", height: "auto", borderRadius: "6px" }}
+                        style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                            objectPosition: "center",
+                            borderRadius: "6px",
+                        }}
                     />
                 ) : (
                     <p>Click or drag image here to upload</p>
@@ -51,7 +70,7 @@ const ImageUploader = ({ imageUrl, onImageChange } : ImageUploaderProps) => {
                     id="image-upload"
                     type="file"
                     accept="image/*"
-                    style={{ display: "none" }}
+                    style={{display: "none"}}
                     onChange={handleFileChange}
                 />
             </label>

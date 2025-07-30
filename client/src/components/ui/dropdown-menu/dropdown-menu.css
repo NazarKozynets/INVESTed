@@ -15,7 +15,6 @@
   align-items: center;
   backdrop-filter: blur(5px);
   transition: 0.2s all;
-
 }
 
 .dropdown-header.open {

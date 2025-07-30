@@ -18,9 +18,13 @@ export const getProfileErrorMessage = (
 export interface GetProfileResponseData {
   username: string;
   email: string;
+  avatarUrl: string | null;
   averageIdeaRating: number | null;
   totalIdeasAmount: number | null;
   totalFunding: number | null;
+  totalForumsAmount: number | null;
+  totalClosedForumsAmount: number | null;
+  helpfulAnswersAmount: number | null;
   canEdit: boolean;
 }
 
@@ -29,4 +33,5 @@ export interface UpdateProfileFieldsRequestData {
   username?: string;
   email?: string;
   password?: string;
+  avatarUrl?: string;
 }
