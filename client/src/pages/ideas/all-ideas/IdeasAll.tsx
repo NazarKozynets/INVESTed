@@ -30,6 +30,7 @@ export const IdeasAll = () => {
 
       try {
         const fetchedIdeas = await searchIdeas(query.trim());
+        console.log(fetchedIdeas, 'fetchedIdeas');
         setSearchResults(fetchedIdeas);
         searchCache.set(cacheKey, fetchedIdeas);
         setShowResults(true);

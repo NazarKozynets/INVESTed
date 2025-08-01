@@ -24,7 +24,7 @@ export const IdeaCard = ({ idea, progressPercentage }: IdeaCardProps) => {
   return (
     <div
       className="idea-card"
-      style={{ border: idea.isClosed ? "1px solid red" : "1px solid #ccc" }}
+      style={{ border: idea.isClosed ? "2px solid red" : "1px solid #ccc" }}
       onClick={() => {
         window.location.href = `/ideas/details/${idea.ideaId}`;
       }}
@@ -57,7 +57,7 @@ export const IdeaCard = ({ idea, progressPercentage }: IdeaCardProps) => {
         >
           <div
             className="idea-card__progress-bar"
-            style={{ width: `${progressPercentage}%` }}
+            style={{ width: `${progressPercentage}%`, backgroundColor: idea.isClosed ? "red" : "#4a90e2" }}
           />
           <AnimatePresence>
             {isHovered && (

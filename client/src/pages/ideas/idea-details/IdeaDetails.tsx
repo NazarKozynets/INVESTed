@@ -23,6 +23,7 @@ import { TextInput } from "../../../components/ui/text-input/TextInput.tsx";
 import Button from "../../../components/ui/button/Button.tsx";
 import { Form } from "../../../components/ui/form/Form.tsx";
 import trashIcon from "../../../assets/trash.svg";
+import {UserRole} from "../../../types/auth.types.ts";
 
 export const IdeaDetails = () => {
   const queryClient = useQueryClient();
@@ -30,6 +31,7 @@ export const IdeaDetails = () => {
   const { ideaId } = useParams();
 
   const userId = authState.userData?.userId;
+  const userRole = authState.userData?.role as UserRole || "Client";
 
   const [isHovered, setIsHovered] = useState(false);
   const [tooltipX, setTooltipX] = useState(0);
@@ -159,7 +161,7 @@ export const IdeaDetails = () => {
                     <UserProfileIcon username={comment.commentatorUsername} avatarUrl={comment.commentatorAvatarUrl}/>
                     <span>{comment.commentatorUsername}</span>
                   </div>
-                  {authState?.userData?.userId === comment.commentatorId && (
+                  {(userId === comment.commentatorId || userRole !== "Client") && (
                     <div
                       className="idea-details__comment-delete"
                       onClick={() => deleteCommentMutation.mutate(comment.id)}
@@ -260,7 +262,7 @@ export const IdeaDetails = () => {
               {format(new Date(idea.fundingDeadline), "dd.MM.yyyy")}
             </p>
           </div>
-          {authState.userData?.role === "Client" && !idea.canEdit && (
+          {(userRole == "Client" && !idea.canEdit) || userRole === "Moderator" && (
             <Button text="Invest" onClick={handleGoToPaymentPage} />
           )}
           <div className="idea-details__comments">

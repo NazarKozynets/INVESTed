@@ -35,6 +35,7 @@ export interface ForumSearchResult {
   forumTitle: string;
   creatorId: string;
   creatorUsername: string;
+  isClosed: boolean;
   creatorAvatarUrl?: string | null;
 }
 

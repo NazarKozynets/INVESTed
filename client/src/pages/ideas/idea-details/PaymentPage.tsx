@@ -30,7 +30,6 @@ export const PaymentPage = () => {
     },
     onError: (error) => {
       console.error(error);
-      toast.error("Investment failed. Try again.");
     },
   });
 
@@ -44,7 +43,7 @@ export const PaymentPage = () => {
     investMutation.mutate(amount);
   };
 
-  if (authState.userData?.role !== "Client") window.history.back();
+  if (authState.userData?.role === "Admin") window.history.back();
 
   return (
     <div>

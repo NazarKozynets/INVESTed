@@ -16,7 +16,7 @@ import {toast} from "react-toastify";
 import React, {useState} from "react";
 import {TextInput} from "../../../components/ui/text-input/TextInput.tsx";
 import {
-    addCommentToForum,
+    addCommentToForum, closeForum,
     deleteCommentFromForum,
 } from "../../../services/api/forum/forum-actions.api.ts";
 import Button from "../../../components/ui/button/Button.tsx";
@@ -43,6 +43,21 @@ export const ForumDetails = () => {
         retry: 1,
     });
 
+    const closeForumMutation = useMutation({
+        mutationFn: () => {
+            if (!forumId)
+                return Promise.reject(new Error("Try again later"));
+            return closeForum(forumId);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ["forum-details", forumId]});
+            toast.success("Forum closed!");
+        },
+        onError: (error) => {
+            console.error(error);
+        },
+    });
+
     const deleteCommentMutation = useMutation({
         mutationFn: (commentId: string) => {
             if (!commentId?.trim())
@@ -55,7 +70,6 @@ export const ForumDetails = () => {
         },
         onError: (error) => {
             console.error(error);
-            toast.error("Failed to delete comment.");
         },
     });
 
@@ -113,10 +127,11 @@ export const ForumDetails = () => {
                                             }
                                         }}
                                     >
-                                        <UserProfileIcon username={comment.commentatorUsername} avatarUrl={comment.commentatorAvatarUrl}/>
+                                        <UserProfileIcon username={comment.commentatorUsername}
+                                                         avatarUrl={comment.commentatorAvatarUrl}/>
                                         <span>{comment.commentatorUsername}</span>
                                     </div>
-                                    {authState?.userData?.userId === comment.commentatorId && (
+                                    {!forum?.isClosed && authState?.userData?.userId === comment.commentatorId && (
                                         <div
                                             className="forum-details__comment-delete"
                                             onClick={() => deleteCommentMutation.mutate(comment.id)}
@@ -192,27 +207,25 @@ export const ForumDetails = () => {
                         </div>
                     )}
                     {forum.canEdit && !forum.isClosed && (
-                        <Button text="Close" className="forum-details__close-btn"/>
+                        <Button text="Close" className="forum-details__close-btn"
+                                onClick={() => closeForumMutation.mutate()}/>
                     )}
                 </div>
             )}
             {forum &&
-                !forum.isClosed &&
                 (commentMutation.isPending ? (
                     <LoadingBar/>
                 ) : (
                     <div
                         className="forum-details__comments"
                         style={{
-                            border: forum.isClosed ? "1px solid red" : "1px solid #ccc",
+                            border: "1px solid #ccc",
                         }}
                     >
-                        {forum.comments.length === 0 && (
-                            <p style={{textAlign: "center", fontSize: 16}}>
-                                No responses yet. Be the first to answer!
-                            </p>
-                        )}
-                        <TextInput
+                        <p style={{textAlign: "center", fontSize: 16}}>
+                            {forum.comments.length === 0 ? "No responses yet. Be the first to answer!" : "Responses"}
+                        </p>
+                        {!forum.isClosed && <TextInput
                             disabled={commentMutation.isPending}
                             name="text"
                             placeholder="Respond..."
@@ -222,7 +235,7 @@ export const ForumDetails = () => {
                             showSendIcon={true}
                             onSendClick={handleCommentSubmit}
                             className="forum-details__respond-btn"
-                        />
+                        />}
                         {forum.comments.length > 0 && renderComments(forum.comments)}
                     </div>
                 ))}

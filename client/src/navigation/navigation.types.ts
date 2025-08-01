@@ -1,4 +1,5 @@
 import { ComponentType } from "react";
+import {UserRole} from "../types/auth.types.ts";
 
 export type TypeRootStackParamList = {
   Auth: undefined;
@@ -20,4 +21,5 @@ export interface IRoute {
   path: string;
   component: ComponentType;
   isProtected: boolean;
+  allowedRoles?: UserRole[];
 }

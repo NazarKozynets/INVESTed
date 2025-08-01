@@ -26,9 +26,10 @@ export const SearchResults = ({
             key={index}
             onClick={() => onSelect(normalized.id)}
             className="search-results__item"
+            style={{color: normalized?.isClosed ? "red" : "white"}}
           >
             <div className="search-results__item-creator">
-              <UserProfileIcon username={normalized.creatorUsername} avatarUrl={item.creatorAvatarUrl}/>
+              <UserProfileIcon username={normalized.creatorUsername} avatarUrl={normalized.creatorAvatarUrl}/>
               <p>{normalized.creatorUsername}</p>
             </div>
             <div className="search-results__item-idea">

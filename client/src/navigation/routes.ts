@@ -48,6 +48,7 @@ export const routes: IRoute[] = [
     path: "/ideas/start",
     component: StartIdea,
     isProtected: true,
+    allowedRoles: ["Client"]
   },
   {
     name: "IdeaDetails",
@@ -72,6 +73,7 @@ export const routes: IRoute[] = [
     path: "/forums/create",
     component: CreateForum,
     isProtected: true,
+    allowedRoles: ["Client"]
   },
   {
     name: "ForumsAll",

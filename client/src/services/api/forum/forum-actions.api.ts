@@ -14,7 +14,6 @@ export const searchForums = async (
     total: number;
     limit: number;
   }>(`forum/search?query=${encodeURIComponent(query)}&limit=${limit}`, "get");
-  console.log(res)
   return res?.forums || [];
 };
 
@@ -30,3 +29,10 @@ export const deleteCommentFromForum = async (commentId: string) => {
     "delete",
   );
 };
+
+export const closeForum = async (forumId: string) => {
+  return await useRequest(
+      `forum/close/${forumId}`,
+      "patch"
+  )
+}

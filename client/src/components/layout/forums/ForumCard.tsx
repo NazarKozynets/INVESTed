@@ -18,13 +18,13 @@ export const ForumCard = ({ forum }: ForumCardProps) => {
   return (
     <div
       className="forum-card"
-      style={{ border: forum.isClosed ? "1px solid red" : "1px solid #ccc" }}
+      style={{ border: forum.isClosed ? "2px solid red" : "1px solid #ccc" }}
       onClick={() => {
         window.location.href = `/forums/details/${forum.forumId}`;
       }}
     >
       <div className="forum-card__header">
-        <div>
+        <div style={{display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%"}}>
           {forum.creatorUsername && (
             <div
               className="forum-card__header-user"
@@ -37,7 +37,7 @@ export const ForumCard = ({ forum }: ForumCardProps) => {
               <h3>{forum.creatorUsername}</h3>
             </div>
           )}
-          {forum.isClosed && <div style={{ color: "red" }}>Closed</div>}
+          {forum.isClosed && <div style={{ color: "red", fontSize: 18, fontWeight: 600 }}>Closed</div>}
         </div>
       </div>
       <h2 className="forum-card__title">{forum.forumTitle}</h2>

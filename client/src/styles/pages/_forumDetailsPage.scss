@@ -93,7 +93,9 @@
     overflow-wrap: anywhere;
 
     .forum-details__respond-btn {
-      margin-bottom: 30px;
+      margin: 0 auto 30px;
+      width: 60%;
+      max-width: 1000px;
     }
 
     .forum-details__comment {

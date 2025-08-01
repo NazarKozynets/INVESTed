@@ -23,7 +23,21 @@ export const Header = () => {
   const profileButtonRef = useRef<HTMLDivElement>(null);
   const profileMenuRef = useRef<HTMLDivElement>(null);
 
-  const dropdownOptions = ["Ideas", "Start Idea", "Forums", "Create Forum"];
+  const username = authState.userData?.username;
+  const userRole = authState.userData?.role ?? "Client";
+
+  const clientDropdownOptions = ["Ideas", "Start Idea", "Forums", "Create Forum"];
+  const moderatorDropdownOptions = ["Ideas", "Forums", "Clients"];
+
+  const getDropdownOptions = () => {
+    console.log(userRole, 'role')
+    switch (userRole) {
+      case "Client":
+        return clientDropdownOptions;
+      case "Moderator":
+        return moderatorDropdownOptions;
+    }
+  }
 
   const getInitialOption = () => {
     const path = location.pathname.toLowerCase();
@@ -33,8 +47,6 @@ export const Header = () => {
     if (path === "/forums/create") return "Create Forum";
     return "Services";
   };
-
-  const username = authState.userData?.username;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -100,7 +112,7 @@ export const Header = () => {
         </NavLink>
 
         <DropdownMenu
-          options={dropdownOptions}
+          options={getDropdownOptions() || []}
           placeholder={getInitialOption()}
           onSelect={(e) => {
             const route = dropdownRoutes[e];

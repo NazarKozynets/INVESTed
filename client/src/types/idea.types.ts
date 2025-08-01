@@ -123,5 +123,6 @@ export interface IdeaSearchResult {
   ideaName: string;
   creatorId: string;
   creatorUsername: string;
+  isClosed: boolean;
   creatorAvatarUrl?: string | null;
 }

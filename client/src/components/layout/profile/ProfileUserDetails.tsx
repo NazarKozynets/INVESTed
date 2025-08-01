@@ -13,7 +13,7 @@ interface PublicProfileProps {
     helpfulAnswersAmount: number | null;
 }
 
-export const PublicProfile = ({
+export const ProfileUserDetails = ({
                                   username,
                                   avatarUrl,
                                   averageIdeaRating,

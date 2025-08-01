@@ -16,6 +16,7 @@ export const getProfileErrorMessage = (
     : fallback;
 
 export interface GetProfileResponseData {
+  userId: string;
   username: string;
   email: string;
   avatarUrl: string | null;
