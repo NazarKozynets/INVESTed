@@ -38,7 +38,7 @@ public class AuthController : ControllerBase
         DateTime? exp = expClaim is not null
             ? DateTimeOffset.FromUnixTimeSeconds(long.Parse(expClaim)).UtcDateTime
             : null;
-        
+
         return Ok(new
         {
             userData = new
@@ -68,8 +68,9 @@ public class AuthController : ControllerBase
             if (string.IsNullOrWhiteSpace(registerData.Password))
                 return BadRequest(new { error = "PASSWORD_REQUIRED" });
 
-            var (success, userId, error) =
-                await _authService.RegisterNewUserAsync(registerData);
+            var (success, userId, accessTokenExpiry, error) =
+                await _authService.RegisterNewUserAsync(registerData, Response);
+
             if (!success)
                 return Conflict(new
                 {
@@ -79,13 +80,6 @@ public class AuthController : ControllerBase
                         : "Username already taken"
                 });
 
-            var user = new UserModel(
-                registerData.Username,
-                registerData.Password,
-                registerData.Email,
-                registerData.Role);
-            var tokens = await _authService.GenerateAndSetTokensAsync(user, Response);
-
             return Ok(new
             {
                 userData = new
@@ -94,7 +88,7 @@ public class AuthController : ControllerBase
                     email = registerData.Email,
                     role = registerData.Role,
                     userId,
-                    expiresIn = tokens.accessTokenExpiry.ToString("o")
+                    expiresIn = accessTokenExpiry
                 }
             });
         }
@@ -116,11 +110,11 @@ public class AuthController : ControllerBase
 
         return error switch
         {
-            "EMAIL_NOT_FOUND"   => Unauthorized(new { error }),
-            "INVALID_PASSWORD"  => Unauthorized(new { error }),
-            "SERVER_ERROR"      => StatusCode(500, new { error }),
+            "EMAIL_NOT_FOUND" => Unauthorized(new { error }),
+            "INVALID_PASSWORD" => Unauthorized(new { error }),
+            "SERVER_ERROR" => StatusCode(500, new { error }),
             _ when user is null => Unauthorized(new { error = "AUTH_FAILED" }),
-            _ => await LoginSuccessAsync(user!)      
+            _ => await LoginSuccessAsync(user!)
         };
     }
 
@@ -167,7 +161,7 @@ public class AuthController : ControllerBase
             return StatusCode(500, new { error = "SERVER_ERROR" });
         }
     }
-    
+
     private async Task<IActionResult> LoginSuccessAsync(UserModel user)
     {
         var tokens = await _authService.GenerateAndSetTokensAsync(user, Response);

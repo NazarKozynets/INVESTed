@@ -52,7 +52,6 @@ public class IdeaController : ControllerBase
         {
             return error switch
             {
-                "SERVER_ERROR" => StatusCode(500, new { error }),
                 _ => StatusCode(500, new { error }),
             };
         }

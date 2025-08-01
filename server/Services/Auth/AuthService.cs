@@ -30,7 +30,7 @@ public class AuthService
         _logger = logger;
     }
 
-    public async Task<(bool success, string? userId, string? error)> RegisterNewUserAsync(RegisterModel user)
+    public async Task<(bool success, string? userId, string? accessTokenExpiry, string? error)> RegisterNewUserAsync(RegisterModel user, HttpResponse response)
     {
         try
         {
@@ -43,7 +43,7 @@ public class AuthService
                 var error = existingUser.Email == user.Email
                     ? "EMAIL_EXISTS"
                     : "USERNAME_EXISTS";
-                return (false, null, error);
+                return (false, null, null, error);
             }
 
             var newUser = new UserModel(
@@ -54,12 +54,16 @@ public class AuthService
             );
 
             await _usersCollection.InsertOneAsync(newUser);
-            return (true, newUser.Id, null);
+
+            var tokenData = await GenerateAndSetTokensAsync(newUser, response);
+            var accessTokenExpiry = tokenData.accessTokenExpiry.ToString("o");
+            
+            return (true, newUser.Id, accessTokenExpiry, null);
         }
         catch (Exception e)
         {
             _logger.LogError(e, "Registration error");
-            return (false, null, "SERVER_ERROR");
+            return (false, null, null, "SERVER_ERROR");
         }
     }
 

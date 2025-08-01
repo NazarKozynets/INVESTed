@@ -15,7 +15,7 @@ public enum CommentIdeaResult
     Success,             
     EmptyComment,        
     EmptyCommentedBy,
-    NotEnoughAccess,     
+    NotEnoughAccess,
     CommentTooLong,      
 }
 

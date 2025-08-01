@@ -136,8 +136,7 @@ public class ForumService
             }
 
             var filter = Builders<ForumModel>.Filter.And(
-                Builders<ForumModel>.Filter.Regex(i => i.Title, new BsonRegularExpression(query, "i")),
-                Builders<ForumModel>.Filter.Eq(i => i.Status, ForumStatus.Open)
+                Builders<ForumModel>.Filter.Regex(i => i.Title, new BsonRegularExpression(query, "i"))
             );
 
             var forums = await _forumsCollection
@@ -147,7 +146,8 @@ public class ForumService
                 {
                     Id = i.Id,
                     ForumTitle = i.Title,
-                    CreatorId = i.CreatorId
+                    CreatorId = i.CreatorId,
+                    IsClosed = i.Status == ForumStatus.Closed
                 })
                 .ToListAsync();
 
@@ -264,13 +264,18 @@ public class ForumService
                 .Distinct()
                 .ToList();
 
-            var avatarMap = await _profileService.GetAvatarUrlsByIdsAsync(commentatorIds);
+            var commentatorsUsernameMap = await _profileService.GetUsernamesByIdsAsync(commentatorIds);
+            var commentatorsAvatarMap = await _profileService.GetAvatarUrlsByIdsAsync(commentatorIds);
 
             foreach (var comment in forum.Comments)
             {
-                if (avatarMap.TryGetValue(comment.CommentatorId, out var avatar))
+                if (commentatorsUsernameMap.TryGetValue(comment.CommentatorId, out var comUsername))
                 {
-                    comment.CommentatorAvatarUrl = avatar;
+                    comment.CommentatorAvatarUrl = comUsername;
+                }
+                if (commentatorsAvatarMap.TryGetValue(comment.CommentatorId, out var comAvatar))
+                {
+                    comment.CommentatorAvatarUrl = comAvatar;
                 }
             }
             
@@ -375,8 +380,6 @@ public class ForumService
     public async Task<(ForumCommentModel? createdComment, string? error)> AddCommentToForumAsync(
         AddCommentToForumModel data, ClaimsPrincipal userClaims)
     {
-        _logger.LogInformation("AddCommentToForumAsync started");
-        _logger.LogInformation("AddCommentToForumAsync: {data}", JsonSerializer.Serialize(data));
         try
         {
             if (string.IsNullOrWhiteSpace(data.ForumId))
@@ -395,7 +398,7 @@ public class ForumService
 
             var strategy = ForumStrategyFactory.GetForumStrategy(currentUser.Role);
 
-            var result = strategy.AddCommentToForum(forum, data.CommentText, currentUser.Id, currentUser.Username);
+            var result = strategy.AddCommentToForum(forum, data.CommentText, currentUser.Id);
 
             if (result is { newComment: not null, resultMes: CommentForumResult.Success })
             {
@@ -479,6 +482,45 @@ public class ForumService
         {
             _logger.LogError(e, "Unexpected error in DeleteCommentFromForumAsync");
             return (false, e.Message);
+        }
+    }
+
+    public async Task<string?> CloseForumAsync(string forumId, ClaimsPrincipal userClaims)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(forumId))
+                return "INVALID_ID";
+            
+            var forum = await _forumsCollection.Find(i => i.Id == forumId).FirstOrDefaultAsync();
+            
+            if (forum == null) return "NOT_FOUND";
+            
+            var currentUser = await _authService.GetUserFromClaimsAsync(userClaims);
+            
+            if (currentUser == null || string.IsNullOrEmpty(currentUser.Id) ||
+                string.IsNullOrEmpty(currentUser.Username)) return "INVALID_CREDENTIALS";
+            
+            bool canCloseForum = ForumStrategyFactory.GetForumStrategy(currentUser.Role).CanCloseForum(currentUser.Id == forum.CreatorId);
+            
+            if (!canCloseForum) return "NOT_ENOUGH_ACCESS";
+            
+            forum.CloseForum();
+
+            var update = Builders<ForumModel>.Update
+                .Set(f => f.Status, forum.Status);
+
+            await _forumsCollection.UpdateOneAsync(
+                f => f.Id == forumId,
+                update
+            );
+
+            return null;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Unexpected error in CloseForumAsync");
+            return e.Message;
         }
     }
 }

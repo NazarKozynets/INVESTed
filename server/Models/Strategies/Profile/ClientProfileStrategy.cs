@@ -10,6 +10,7 @@ public class ClientProfileStrategy : IProfileStrategy
     {
         return new GetUserProfileModel
         {
+            UserId = targetUser.Id,
             Username = targetUser.Username,
             Email = isOwner ? targetUser.Email : null,
             AvatarUrl = targetUser.AvatarUrl,

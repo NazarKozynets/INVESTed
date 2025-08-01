@@ -50,7 +50,7 @@ public abstract class ForumStrategy
     }
 
     public virtual (ForumCommentModel? newComment, CommentForumResult resultMes) AddCommentToForum(
-        ForumModel forumToAdd, string commentText, string commentatorId, string commentatorUsername)
+        ForumModel forumToAdd, string commentText, string commentatorId)
     {
         return (null, CommentForumResult.NotEnoughAccess);
     }
@@ -58,5 +58,10 @@ public abstract class ForumStrategy
     public virtual bool CanDeleteCommentFromForum(string commentCreatorId, string currentUserId)
     {
         return commentCreatorId == currentUserId;
+    }
+
+    public virtual bool CanCloseForum(bool isOwner)
+    {
+        return isOwner; 
     }
 }

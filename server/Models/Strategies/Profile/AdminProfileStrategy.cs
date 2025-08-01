@@ -10,8 +10,10 @@ public class AdminProfileStrategy : IProfileStrategy
     {
         return new GetUserProfileModel
         {
+            UserId = targetUser.Id,
             Username = targetUser.Username,
             Email = targetUser.Email,
+            AvatarUrl = targetUser.AvatarUrl,
             CanEdit = true,
         };
     }

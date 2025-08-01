@@ -37,16 +37,12 @@ export const PublicProfile = ({
                             <StarRating rating={averageIdeaRating} style={{marginTop: 4}}/>
                         </div>
                     )}
-                    {totalIdeasAmount && (
-                        <div id="user-rating">
-                            <p>Total Ideas: {totalIdeasAmount}</p>
-                        </div>
-                    )}
-                    {totalFunding && (
-                        <div id="user-rating">
-                            <p>Total Funding: {totalFunding}$</p>
-                        </div>
-                    )}
+                    <div id="user-rating">
+                        <p>Total Ideas: {totalIdeasAmount}</p>
+                    </div>
+                    <div id="user-rating">
+                        <p>Total Funding: {totalFunding}$</p>
+                    </div>
                 </div>
                 <div>
                     <div id="user-rating">

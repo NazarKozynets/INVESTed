@@ -39,24 +39,20 @@ public class IdeaCommentModel
 
     [BsonElement("commentatorId")] public string CommentatorId { get; init; }
 
-    [BsonElement("commentatorUsername")] public string CommentatorUsername { get; init; }
-
     [BsonElement("commentDate")] public DateTime CommentDate { get; init; }
     
+    [BsonIgnore] public string? CommentatorUsername { get; set; }
     [BsonIgnore] public string? CommentatorAvatarUrl { get; set; }
 
-    public IdeaCommentModel(string commentText, string commentatorId, string commentatorUsername)
+    public IdeaCommentModel(string commentText, string commentatorId)
     {
         if (string.IsNullOrWhiteSpace(commentText))
             throw new ArgumentException("Comment text cannot be empty.");
         if (string.IsNullOrWhiteSpace(commentatorId))
             throw new ArgumentException("CommentatorId cannot be empty.");
-        if (string.IsNullOrWhiteSpace(commentatorUsername))
-            throw new ArgumentException("CommentatorUsername cannot be empty.");
 
         CommentText = commentText;
         CommentatorId = commentatorId;
-        CommentatorUsername = commentatorUsername;
         CommentDate = DateTime.UtcNow;
     }
 }
@@ -146,34 +142,6 @@ public class IdeaModel
         Comments = new List<IdeaCommentModel>();
     }
 
-    public void UpdateIdeaName(string newName)
-    {
-        if (string.IsNullOrWhiteSpace(newName))
-            throw new ArgumentException("Idea name cannot be empty.");
-        IdeaName = newName;
-    }
-
-    public void UpdateIdeaDescription(string newDescription)
-    {
-        if (string.IsNullOrWhiteSpace(newDescription))
-            throw new ArgumentException("Idea description cannot be empty.");
-        IdeaDescription = newDescription;
-    }
-
-    public void UpdateTargetAmount(decimal newAmount)
-    {
-        if (newAmount <= 0 || newAmount > 1000000m)
-            throw new ArgumentException("Target amount must be positive and reasonable number.");
-        TargetAmount = newAmount;
-    }
-
-    public void UpdateFundingDeadline(DateTime newDeadline)
-    {
-        if (newDeadline <= DateTime.UtcNow)
-            throw new ArgumentException("Funding deadline must be in the future.");
-        FundingDeadline = newDeadline;
-    }
-
     public void UpdateAlreadyCollected(decimal amount)
     {
         if (amount <= 0)
@@ -209,9 +177,9 @@ public class IdeaModel
         return avg;
     }
 
-    public IdeaCommentModel AddComment(string commentText, string commentatorId, string commentatorUsername)
+    public IdeaCommentModel AddComment(string commentText, string commentatorId)
     {
-        IdeaCommentModel commentModel = new IdeaCommentModel(commentText, commentatorId, commentatorUsername);
+        IdeaCommentModel commentModel = new IdeaCommentModel(commentText, commentatorId);
         Comments.Add(commentModel);
         return commentModel;
     }

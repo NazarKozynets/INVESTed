@@ -10,9 +10,11 @@ public class ModeratorProfileStrategy : IProfileStrategy
     {
         return new GetUserProfileModel
         {
+            UserId = targetUser.Id,
             Username = targetUser.Username,
             Email = targetUser.Email,
-            CanEdit = true,
+            AvatarUrl = targetUser.AvatarUrl,
+            CanEdit = isOwner,
         };
     }
 

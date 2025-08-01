@@ -153,13 +153,18 @@ public class IdeaService
                 .Distinct()
                 .ToList();
 
+            var usernamesMap = await _profileService.GetUsernamesByIdsAsync(commentatorIds);
             var avatarMap = await _profileService.GetAvatarUrlsByIdsAsync(commentatorIds);
-
+            
             foreach (var comment in idea.Comments)
             {
-                if (avatarMap.TryGetValue(comment.CommentatorId, out var avatar))
+                if (usernamesMap.TryGetValue(comment.CommentatorId, out var comUsername))
                 {
-                    comment.CommentatorAvatarUrl = avatar;
+                    comment.CommentatorUsername = comUsername;
+                }
+                if (avatarMap.TryGetValue(comment.CommentatorId, out var comAvatar))
+                {
+                    comment.CommentatorAvatarUrl = comAvatar;
                 }
             }
             
@@ -419,7 +424,7 @@ public class IdeaService
 
             var strategy = IdeaStrategyFactory.GetIdeaStrategy(currentUser.Role);
 
-            var result = strategy.AddCommentToIdea(idea, data.CommentText, currentUser.Id, currentUser.Username);
+            var result = strategy.AddCommentToIdea(idea, data.CommentText, currentUser.Id);
 
             if (result is { newComment: not null, resultMes: CommentIdeaResult.Success })
             {
@@ -544,8 +549,7 @@ public class IdeaService
             }
 
             var filter = Builders<IdeaModel>.Filter.And(
-                Builders<IdeaModel>.Filter.Regex(i => i.IdeaName, new BsonRegularExpression(query, "i")),
-                Builders<IdeaModel>.Filter.Eq(i => i.Status, IdeaStatus.Open)
+                Builders<IdeaModel>.Filter.Regex(i => i.IdeaName, new BsonRegularExpression(query, "i"))
             );
 
             var sortDirection = sortOrder.ToLower() == "asc" ? 1 : -1;
@@ -570,7 +574,8 @@ public class IdeaService
                 {
                     Id = i.Id,
                     IdeaName = i.IdeaName,
-                    CreatorId = i.CreatorId
+                    CreatorId = i.CreatorId,
+                    IsClosed = i.Status == IdeaStatus.Closed,
                 })
                 .ToListAsync();
 

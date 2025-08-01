@@ -181,7 +181,7 @@ public class ProfileService
         try
         {
             var currentUser = await _authService.GetUserFromClaimsAsync(userClaims);
-
+            
             if (currentUser == null || string.IsNullOrWhiteSpace(currentUser.Id))
                 return (null, "INVALID_CREDENTIALS");
 

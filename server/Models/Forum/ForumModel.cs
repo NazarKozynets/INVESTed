@@ -15,8 +15,8 @@ public class ForumCommentModel : IdeaCommentModel
     [BsonElement("isHelpful")]
     public bool IsHelpful { get; private set; } = false;
 
-    public ForumCommentModel(string commentText, string commentatorId, string commentatorUsername)
-        : base(commentText, commentatorId, commentatorUsername)
+    public ForumCommentModel(string commentText, string commentatorId)
+        : base(commentText, commentatorId)
     {
     }
 
@@ -73,9 +73,9 @@ public class ForumModel
         ImageUrl = imageUrl;
     }
 
-    public ForumCommentModel AddComment(string commentText, string commentatorId, string commentatorUsername)
+    public ForumCommentModel AddComment(string commentText, string commentatorId)
     {
-        ForumCommentModel commentModel = new ForumCommentModel(commentText, commentatorId, commentatorUsername);
+        ForumCommentModel commentModel = new ForumCommentModel(commentText, commentatorId);
         Comments.Add(commentModel);
         return commentModel;
     }

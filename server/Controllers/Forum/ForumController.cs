@@ -177,4 +177,24 @@ public class ForumController : ControllerBase
 
         return Ok(res);
     }
+
+    [HttpPatch("close/{forumId}")]
+    public async Task<ActionResult<object>> CloseForum(string forumId)
+    {
+        string? error = await _forumService.CloseForumAsync(forumId, User);
+
+        if (error != null)
+        {
+            return error switch
+            {
+                "INVALID_ID" => BadRequest(new { error }),
+                "NOT_FOUND" => NotFound(new { error }),
+                "INVALID_CREDENTIALS" => BadRequest(new { error }),
+                "NOT_ENOUGH_ACCESS" => Forbid(),
+                _ => StatusCode(500, new { error })
+            };
+        }
+        
+        return  Ok(forumId);
+    }
 }

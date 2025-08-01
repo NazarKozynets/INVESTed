@@ -60,18 +60,16 @@ public class ClientForumStrategy : ForumStrategy
     }
 
     public override (ForumCommentModel? newComment, CommentForumResult resultMes) AddCommentToForum(
-        ForumModel forumToAdd, string commentText, string commentatorId, string commentatorUsername)
+        ForumModel forumToAdd, string commentText, string commentatorId)
     {
         if (string.IsNullOrWhiteSpace(commentText))
             return (null, CommentForumResult.EmptyComment);
         if (string.IsNullOrWhiteSpace(commentatorId))
             return (null, CommentForumResult.EmptyCommentedBy);
-        if (string.IsNullOrWhiteSpace(commentatorUsername))
-            return (null, CommentForumResult.EmptyCommentedBy);
         if (commentText.Length > 500)
             return (null, CommentForumResult.CommentTooLong);
         
-        var newComment = forumToAdd.AddComment(commentText, commentatorId, commentatorUsername);
+        var newComment = forumToAdd.AddComment(commentText, commentatorId);
         return (newComment, CommentForumResult.Success);
     }
 }
