@@ -36,3 +36,10 @@ export const closeForum = async (forumId: string) => {
       "patch"
   )
 }
+
+export const changeCommentHelpfulStatus = async (commentId: string) => {
+  return await useRequest(
+      `forum/comment-change-helpful-status/${commentId}`,
+      "patch"
+  )
+}

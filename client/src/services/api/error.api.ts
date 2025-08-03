@@ -43,7 +43,7 @@ const getHttpStatusMessage = (status?: number): string => {
     case 401:
       return "Unauthorized. Please login again.";
     case 403:
-      return "Forbidden. You don't have permission for this action.";
+      return "You don't have permission for this action.";
     case 404:
       return "Resource not found.";
     case 409:

@@ -110,8 +110,8 @@
       display: flex;
       flex-direction: column;
 
-      &--reply {
-        margin-left: 32px;
+      &.helpful {
+        border: 2px solid forestgreen;
       }
 
       &-header {
@@ -135,6 +135,33 @@
 
         &:hover {
           color: #007bff;
+        }
+      }
+
+      &-status {
+        display: flex;
+        align-items: center;
+        align-self: center;
+        justify-content: center;
+        height: 17px;
+        user-select: none;
+        cursor: pointer;
+
+        &.helpful {
+          img {
+            width: 17px;
+            height: 17px;
+            transform: scaleX(-1) rotate(180deg);
+            filter: brightness(0) invert(1);
+          }
+        }
+
+        &.unhelpful {
+          img {
+            width: 17px;
+            height: 17px;
+            filter: brightness(0) invert(1);
+          }
         }
       }
 
@@ -172,6 +199,22 @@
         &:hover {
           text-decoration: underline;
           cursor: pointer;
+        }
+      }
+
+      &-helpful-response {
+        font-size: 14px;
+        text-align: right;
+        align-self: flex-end;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: yellow;
+
+        img {
+          margin-bottom: 3px;
+          width: 22px;
+          height: 22px;
         }
       }
 

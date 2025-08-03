@@ -16,6 +16,8 @@ export const IdeaError = {
   FUNDING_AMOUNT_GREATER_THAN_TARGET:
     "Your funding amount is greater than Idea's target amount",
 
+  CLOSING_FAILED: "Failed to close this idea",
+
   NOT_FOUND: "Idea not found.",
 } as const;
 

@@ -7,6 +7,8 @@ import {UserProfileIcon} from "../../../components/features/profile-icon/UserPro
 import {formatDate} from "../../../utils/functions/formatters.ts";
 import {motion} from "framer-motion";
 import trashIcon from "../../../assets/trash.svg";
+import likeIcon from "../../../assets/like.svg";
+import crownIcon from "../../../assets/crown.png";
 import {format} from "date-fns";
 import {
     AddCommentRequest,
@@ -16,15 +18,19 @@ import {toast} from "react-toastify";
 import React, {useState} from "react";
 import {TextInput} from "../../../components/ui/text-input/TextInput.tsx";
 import {
-    addCommentToForum, closeForum,
+    addCommentToForum, changeCommentHelpfulStatus, closeForum,
     deleteCommentFromForum,
 } from "../../../services/api/forum/forum-actions.api.ts";
 import Button from "../../../components/ui/button/Button.tsx";
+import {UserRole} from "../../../types/auth.types.ts";
 
 export const ForumDetails = () => {
     const queryClient = useQueryClient();
     const {authState} = useAuth();
     const {forumId} = useParams();
+
+    const userRole = authState.userData?.role as UserRole || "Client";
+    const userId = authState.userData?.userId;
 
     const [commentText, setCommentText] = useState("");
 
@@ -88,7 +94,21 @@ export const ForumDetails = () => {
         },
         onError: (error) => {
             console.error(error);
-            toast.error("Failed to add comment.");
+        },
+    });
+
+    const changeCommentHelpfulStatusMutation = useMutation({
+        mutationFn: (commentId: string) => {
+            if (!commentId?.trim())
+                return Promise.reject(new Error("Empty commentId"));
+            return changeCommentHelpfulStatus(commentId.trim());
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ["forum-details", forumId]});
+            toast.success("Comment status changed!");
+        },
+        onError: (error) => {
+            console.error(error);
         },
     });
 
@@ -111,7 +131,7 @@ export const ForumDetails = () => {
                     return (
                         <motion.div
                             key={`${comment.commentatorId}-${comment.commentDate}-${index}`}
-                            className={`forum-details__comment ${depth > 0 ? "forum-details__comment--reply" : ""}`}
+                            className={`forum-details__comment ${comment.isHelpful ? "helpful" : ""}`}
                             initial={{opacity: 0, y: 10}}
                             animate={{opacity: 1, y: 0}}
                             transition={{duration: 0.3, delay: index * 0.1}}
@@ -131,10 +151,20 @@ export const ForumDetails = () => {
                                                          avatarUrl={comment.commentatorAvatarUrl}/>
                                         <span>{comment.commentatorUsername}</span>
                                     </div>
-                                    {!forum?.isClosed && authState?.userData?.userId === comment.commentatorId && (
+                                    {!forum?.isClosed && forum?.canEdit && (
+                                        <div
+                                            className={`forum-details__comment-status ${comment.isHelpful ? "helpful" : "unhelpful"}`}
+                                            onClick={() => changeCommentHelpfulStatusMutation.mutate(comment.id)}
+                                            title={`Mark as ${comment.isHelpful ? "unhelpful" : "helpful"}`}
+                                        >
+                                            <img src={likeIcon} alt=""/>
+                                        </div>
+                                    )}
+                                    {!forum?.isClosed && (userId === comment.commentatorId || userRole !== "Client") && (
                                         <div
                                             className="forum-details__comment-delete"
                                             onClick={() => deleteCommentMutation.mutate(comment.id)}
+                                            title="Delete comment"
                                         >
                                             <img src={trashIcon} alt=""/>
                                         </div>
@@ -147,6 +177,12 @@ export const ForumDetails = () => {
                             <p className="forum-details__comment-text">
                                 {comment.commentText}
                             </p>
+                            {comment.isHelpful && (
+                                <div className="forum-details__comment-helpful-response">
+                                    <p>HELPFUL RESPONSE</p>
+                                    <img src={crownIcon}/>
+                                </div>
+                            )}
                         </motion.div>
                     );
                 }

@@ -30,7 +30,6 @@ export const Header = () => {
   const moderatorDropdownOptions = ["Ideas", "Forums", "Clients"];
 
   const getDropdownOptions = () => {
-    console.log(userRole, 'role')
     switch (userRole) {
       case "Client":
         return clientDropdownOptions;

@@ -10,6 +10,9 @@ export const ForumError = {
   COMMENT_TOO_LONG: "Looks like your comment is too long",
   UNABLE_TO_COMMENT: "You don't have access to comment this forum!",
 
+  DELETE_FAILED: "Failed to delete comment",
+  FAILED_CHANGING_HELPFUL_STATUS: "Can't change comment status now!",
+
   NOT_FOUND: "Forum not found.",
   UNKNOWN_ERROR: "Something went wrong on our side",
   SERVER_ERROR: "Something went wrong on our side",
