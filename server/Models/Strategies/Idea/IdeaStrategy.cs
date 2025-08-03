@@ -80,7 +80,7 @@ public abstract class IdeaStrategy
             return (null, CommentIdeaResult.EmptyComment);
         if (string.IsNullOrWhiteSpace(commentatorId))
             return (null, CommentIdeaResult.EmptyCommentedBy);
-        if (commentText.Length > 500)
+        if (commentText.Length > 2000)
             return (null, CommentIdeaResult.CommentTooLong);
 
         var newComment = ideaToAdd.AddComment(commentText, commentatorId);
@@ -110,5 +110,10 @@ public abstract class IdeaStrategy
         (decimal, IdeaFundingHistoryElementModel) updatedAlreadyCollected =
             idea.AddElementToFundingHistory(fundedById, fundedByUsername, fundingAmount);
         return (updatedAlreadyCollected.Item1, updatedAlreadyCollected.Item2, InvestIdeaResult.Success);
+    }
+
+    public virtual bool CanCloseIdea(string creatorId, string currentUserId)
+    {
+        return true;
     }
 }

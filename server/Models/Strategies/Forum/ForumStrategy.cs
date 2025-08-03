@@ -38,7 +38,7 @@ public abstract class ForumStrategy
             creatorUsername: forum.CreatorUsername ?? null,
             creatorAvatarUrl: forum.CreatorAvatarUrl,
             createdAt: forum.CreatedAt,
-            canEdit: isOwner,
+            canEdit: true,
             imageUrl: forum.ImageUrl ?? null,
             isClosed: forum.Status == ForumStatus.Closed
         );
@@ -52,16 +52,29 @@ public abstract class ForumStrategy
     public virtual (ForumCommentModel? newComment, CommentForumResult resultMes) AddCommentToForum(
         ForumModel forumToAdd, string commentText, string commentatorId)
     {
-        return (null, CommentForumResult.NotEnoughAccess);
+        if (string.IsNullOrWhiteSpace(commentText))
+            return (null, CommentForumResult.EmptyComment);
+        if (string.IsNullOrWhiteSpace(commentatorId))
+            return (null, CommentForumResult.EmptyCommentedBy);
+        if (commentText.Length > 2000)
+            return (null, CommentForumResult.CommentTooLong);
+        
+        var newComment = forumToAdd.AddComment(commentText, commentatorId);
+        return (newComment, CommentForumResult.Success);
     }
     
     public virtual bool CanDeleteCommentFromForum(string commentCreatorId, string currentUserId)
     {
-        return commentCreatorId == currentUserId;
+        return true;
     }
 
     public virtual bool CanCloseForum(bool isOwner)
     {
-        return isOwner; 
+        return true; 
+    }
+
+    public virtual bool CanChangeCommentHelpfulStatus(bool isOwner)
+    {
+        return true;
     }
 }

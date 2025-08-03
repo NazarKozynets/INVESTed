@@ -271,7 +271,7 @@ public class ForumService
             {
                 if (commentatorsUsernameMap.TryGetValue(comment.CommentatorId, out var comUsername))
                 {
-                    comment.CommentatorAvatarUrl = comUsername;
+                    comment.CommentatorUsername = comUsername;
                 }
                 if (commentatorsAvatarMap.TryGetValue(comment.CommentatorId, out var comAvatar))
                 {
@@ -521,6 +521,54 @@ public class ForumService
         {
             _logger.LogError(e, "Unexpected error in CloseForumAsync");
             return e.Message;
+        }
+    }
+
+    public async Task<(bool? newCommentHelpfulStatus, string?)> ChangeCommentHelpfulStatusAsync(string commentId, ClaimsPrincipal userClaims)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(commentId))
+                return (null, "INVALID_ID");
+
+            var currentUser = await _authService.GetUserFromClaimsAsync(userClaims);
+            if (currentUser == null || string.IsNullOrEmpty(currentUser.Id) ||
+                string.IsNullOrEmpty(currentUser.Username)) return (null, "INVALID_CREDENTIALS");
+
+            var filter = Builders<ForumModel>.Filter.And(
+                Builders<ForumModel>.Filter.ElemMatch(i => i.Comments, c => c.Id == commentId),
+                Builders<ForumModel>.Filter.Eq(i => i.Status, ForumStatus.Open)
+            );
+
+            var forum = await _forumsCollection.Find(filter).FirstOrDefaultAsync();
+            if (forum == null) return (null, "NOT_FOUND");
+
+            ForumCommentModel comment = forum.Comments.FirstOrDefault(c => c.Id == commentId);
+
+            if (comment == null)
+                return (null, "COMMENT_NOT_FOUND");
+
+            var strategy = ForumStrategyFactory.GetForumStrategy(currentUser.Role);
+
+            bool canChangeCommentHelpfulStatus = strategy.CanChangeCommentHelpfulStatus(forum.CreatorId == currentUser.Id);
+            
+            if (!canChangeCommentHelpfulStatus) return (null, "NOT_ENOUGH_ACCESS");
+
+            bool newCommentHelpfulStatus = !comment.IsHelpful;
+
+            var update =  Builders<ForumModel>.Update.Set("comments.$.isHelpful", newCommentHelpfulStatus);
+            
+            var updateResult = await _forumsCollection.UpdateOneAsync(filter, update);
+
+            if (updateResult.ModifiedCount == 0)
+                return (null, "FAILED_CHANGING_HELPFUL_STATUS");
+
+            return (newCommentHelpfulStatus, null);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Unexpected error in MarkCommentAsHelpfulAsync");
+            return (null, e.Message);
         }
     }
 }

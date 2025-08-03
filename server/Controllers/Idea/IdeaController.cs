@@ -226,4 +226,25 @@ public class IdeaController : ControllerBase
             limit
         });
     }
+    
+    [HttpPatch("close/{ideaId}")]
+    public async Task<ActionResult<object>> CloseIdea(string ideaId)
+    {
+        var (res, error) = await _ideaService.CloseIdeaAsync(ideaId, User);
+
+        if (res == null && error != null)
+        {
+            return error switch
+            {
+                "INVALID_ID" => BadRequest(new { error }),
+                "NOT_FOUND" => NotFound(new { error }),
+                "INVALID_CREDENTIALS" => BadRequest(new { error }),
+                "NOT_ENOUGH_ACCESS" => Forbid(),
+                "CLOSING_FAILED" => StatusCode(409, new { error }),
+                _ => StatusCode(500, new { error })
+            };
+        }
+
+        return Ok(res);
+    }
 }

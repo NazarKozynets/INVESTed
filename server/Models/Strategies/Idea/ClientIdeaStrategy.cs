@@ -29,4 +29,9 @@ public class ClientIdeaStrategy : IdeaStrategy
             canEdit: isOwner ?? false
         ));
     }
+
+    public override bool CanCloseIdea(string creatorId, string currentUserId)
+    {
+        return creatorId == currentUserId;
+    }
 }

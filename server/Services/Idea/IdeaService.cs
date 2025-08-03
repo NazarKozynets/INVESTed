@@ -615,4 +615,43 @@ public class IdeaService
             return (null, 0, "SERVER_ERROR");
         }
     }
+
+    public async Task<(bool? res, string? error)> CloseIdeaAsync(string ideaId, ClaimsPrincipal userClaims)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(ideaId))
+                return (null, "INVALID_ID");
+
+            var currentUser = await _authService.GetUserFromClaimsAsync(userClaims);
+            if (currentUser == null || string.IsNullOrEmpty(currentUser.Id) ||
+                string.IsNullOrEmpty(currentUser.Username)) return (null, "INVALID_CREDENTIALS");
+
+            var idea = await _ideasCollection.Find(i => i.Id == ideaId).FirstOrDefaultAsync();
+            if (idea == null) return (null, "NOT_FOUND");
+
+            var strategy = IdeaStrategyFactory.GetIdeaStrategy(currentUser.Role);
+
+            bool canDelete = strategy.CanCloseIdea(idea.CreatorId, currentUser.Id);
+
+            if (!canDelete) return (null, "NOT_ENOUGH_ACCESS");
+
+            var update = Builders<IdeaModel>.Update.Set(i => i.Status, IdeaStatus.Closed);
+
+            var updateResult = await _ideasCollection.UpdateOneAsync(
+                Builders<IdeaModel>.Filter.Eq(i => i.Id, idea.Id),
+                update
+            );
+
+            if (updateResult.ModifiedCount == 0)
+                return (false, "CLOSING_FAILED");
+
+            return (true, null);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Unexpected error in CloseIdeaAsync");
+            return (false, e.Message);
+        }
+    }
 }

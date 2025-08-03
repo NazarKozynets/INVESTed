@@ -19,16 +19,6 @@ public class ForumCommentModel : IdeaCommentModel
         : base(commentText, commentatorId)
     {
     }
-
-    public void MarkAsHelpful()
-    {
-        IsHelpful = true;
-    }
-
-    public void UnmarkAsHelpful()
-    {
-        IsHelpful = false;
-    }
 }
 
 public class ForumModel

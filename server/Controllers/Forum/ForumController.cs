@@ -197,4 +197,26 @@ public class ForumController : ControllerBase
         
         return  Ok(forumId);
     }
+    
+    [HttpPatch("comment-change-helpful-status/{commentId}")]
+    public async Task<ActionResult<object>> ChangeCommentHelpfulStatus(string commentId)
+    {
+        var (newCommentHelpfulStatus, error) = await _forumService.ChangeCommentHelpfulStatusAsync(commentId, User);
+
+        if (error != null)
+        {
+            return error switch
+            {
+                "INVALID_ID" => BadRequest(new { error }),
+                "NOT_FOUND" => NotFound(new { error }),
+                "INVALID_CREDENTIALS" => BadRequest(new { error }),
+                "NOT_ENOUGH_ACCESS" => Forbid(),
+                "FAILED_CHANGING_HELPFUL_STATUS" => StatusCode(409, new { error }),
+                "COMMENT_NOT_FOUND" => NotFound(new { error }),
+                _ => StatusCode(500, new { error })
+            };
+        }
+        
+        return  Ok(newCommentHelpfulStatus);
+    }
 }

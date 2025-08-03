@@ -58,18 +58,19 @@ public class ClientForumStrategy : ForumStrategy
             isClosed: forum.Status == ForumStatus.Closed
         );
     }
-
-    public override (ForumCommentModel? newComment, CommentForumResult resultMes) AddCommentToForum(
-        ForumModel forumToAdd, string commentText, string commentatorId)
+    
+    public override bool CanDeleteCommentFromForum(string commentCreatorId, string currentUserId)
     {
-        if (string.IsNullOrWhiteSpace(commentText))
-            return (null, CommentForumResult.EmptyComment);
-        if (string.IsNullOrWhiteSpace(commentatorId))
-            return (null, CommentForumResult.EmptyCommentedBy);
-        if (commentText.Length > 500)
-            return (null, CommentForumResult.CommentTooLong);
-        
-        var newComment = forumToAdd.AddComment(commentText, commentatorId);
-        return (newComment, CommentForumResult.Success);
+        return commentCreatorId == currentUserId;
+    }
+    
+    public override bool CanCloseForum(bool isOwner)
+    {
+        return isOwner; 
+    }
+    
+    public override bool CanChangeCommentHelpfulStatus(bool isOwner)
+    {
+        return isOwner;
     }
 }
