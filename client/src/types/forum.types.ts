@@ -13,6 +13,9 @@ export const ForumError = {
   DELETE_FAILED: "Failed to delete comment",
   FAILED_CHANGING_HELPFUL_STATUS: "Can't change comment status now!",
 
+  CREATE_BANNED: "You are banned!",
+  BANNED: "Owner is banned, so u can't interact with this forum",
+
   NOT_FOUND: "Forum not found.",
   UNKNOWN_ERROR: "Something went wrong on our side",
   SERVER_ERROR: "Something went wrong on our side",
@@ -74,6 +77,7 @@ export interface ForumType {
   createdAt: string;
   isClosed: boolean;
   comments: ForumCommentModel[];
+  isOwnerBanned: boolean;
   creatorUsername?: string | null;
   creatorAvatarUrl?: string | null;
   canEdit?: boolean;

@@ -4,19 +4,22 @@ export const IdeaError = {
   ALREADY_RATED: "You have already rated this idea!",
   INVALID_RATING: "Invalid rate for this idea",
   RATE_YOUR_IDEA: "You can't rate your idea",
-  UNABLE_TO_RATE: "You don't have access to rate this idea!",
+  UNABLE_TO_RATE: "You can't rate this idea!",
 
   EMPTY_COMMENT: "Comment cannot be empty!",
   COMMENT_TOO_LONG: "Looks like your comment is too long",
-  UNABLE_TO_COMMENT: "You don't have access to comment this idea!",
+  UNABLE_TO_COMMENT: "You can't comment this idea!",
 
   INVALID_FUNDING_AMOUNT: "Looks like your funding amount number isn't normal!",
   INVEST_YOUR_IDEA: "You can't invest your idea",
-  UNABLE_TO_INVEST: "You don't have access to invest this idea!",
+  UNABLE_TO_INVEST: "You can't to invest this idea!",
   FUNDING_AMOUNT_GREATER_THAN_TARGET:
     "Your funding amount is greater than Idea's target amount",
 
   CLOSING_FAILED: "Failed to close this idea",
+
+  CREATE_BANNED: "You are banned!",
+  BANNED: "Owner is banned, so u can't interact with this idea",
 
   NOT_FOUND: "Idea not found.",
 } as const;
@@ -65,6 +68,7 @@ export interface IdeaType {
   creatorUsername?: string | null;
   creatorAvatarUrl?: string | null;
   isClosed: boolean;
+  isOwnerBanned: boolean;
 }
 
 export interface GetLimitedAmountOfSortedIdeasResponse {

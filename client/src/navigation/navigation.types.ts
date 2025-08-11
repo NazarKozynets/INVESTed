@@ -1,5 +1,5 @@
 import { ComponentType } from "react";
-import {UserRole} from "../types/auth.types.ts";
+import { UserRole } from "../types/auth.types.ts";
 
 export type TypeRootStackParamList = {
   Auth: undefined;

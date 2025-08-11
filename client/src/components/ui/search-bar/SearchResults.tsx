@@ -18,7 +18,9 @@ export const SearchResults = ({
   if (!isVisible || resultsObjects?.length === 0) return null;
 
   return (
-    <div className={`search-results ${normalizeResult(resultsObjects[0]).type}`}>
+    <div
+      className={`search-results ${normalizeResult(resultsObjects[0]).type}`}
+    >
       {resultsObjects.map((item, index) => {
         const normalized = normalizeResult(item);
         return (
@@ -26,10 +28,13 @@ export const SearchResults = ({
             key={index}
             onClick={() => onSelect(normalized.id)}
             className="search-results__item"
-            style={{color: normalized?.isClosed ? "red" : "white"}}
+            style={{ color: normalized?.isClosed ? "red" : "white" }}
           >
             <div className="search-results__item-creator">
-              <UserProfileIcon username={normalized.creatorUsername} avatarUrl={normalized.creatorAvatarUrl}/>
+              <UserProfileIcon
+                username={normalized.creatorUsername}
+                avatarUrl={normalized.creatorAvatarUrl}
+              />
               <p>{normalized.creatorUsername}</p>
             </div>
             <div className="search-results__item-idea">

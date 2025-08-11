@@ -26,7 +26,12 @@ export const Header = () => {
   const username = authState.userData?.username;
   const userRole = authState.userData?.role ?? "Client";
 
-  const clientDropdownOptions = ["Ideas", "Start Idea", "Forums", "Create Forum"];
+  const clientDropdownOptions = [
+    "Ideas",
+    "Start Idea",
+    "Forums",
+    "Create Forum",
+  ];
   const moderatorDropdownOptions = ["Ideas", "Forums", "Clients"];
 
   const getDropdownOptions = () => {
@@ -35,8 +40,10 @@ export const Header = () => {
         return clientDropdownOptions;
       case "Moderator":
         return moderatorDropdownOptions;
+      case "Admin":
+        return moderatorDropdownOptions;
     }
-  }
+  };
 
   const getInitialOption = () => {
     const path = location.pathname.toLowerCase();
@@ -120,7 +127,12 @@ export const Header = () => {
         />
       </div>
       <div id="user-pfp" ref={profileButtonRef} onClick={toggleProfileMenu}>
-        {username && <UserProfileIcon username={username} avatarUrl={authState.userData?.avatarUrl}/>}
+        {username && (
+          <UserProfileIcon
+            username={username}
+            avatarUrl={authState.userData?.avatarUrl}
+          />
+        )}
         {profileMenuVisible && (
           <div className="dropdown-menu" ref={profileMenuRef}>
             <div className="dropdown-menu__item">

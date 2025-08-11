@@ -3,6 +3,9 @@ const ProfileError = {
   UNAUTHORIZED: "You cannot edit this profile",
   EXISTING_EMAIL: "Email already in use",
   EXISTING_USERNAME: "Username already taken",
+
+  NOT_ENOUGH_ACCESS: "You cannot edit this profile",
+  ADMIN_ADMIN: "You can't ban administrator",
 } as const;
 
 type ProfileErrorCode = keyof typeof ProfileError;
@@ -26,6 +29,7 @@ export interface GetProfileResponseData {
   totalForumsAmount: number | null;
   totalClosedForumsAmount: number | null;
   helpfulAnswersAmount: number | null;
+  isBanned: boolean;
   canEdit: boolean;
 }
 

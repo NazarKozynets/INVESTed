@@ -31,15 +31,12 @@ export const deleteCommentFromForum = async (commentId: string) => {
 };
 
 export const closeForum = async (forumId: string) => {
-  return await useRequest(
-      `forum/close/${forumId}`,
-      "patch"
-  )
-}
+  return await useRequest(`forum/close/${forumId}`, "patch");
+};
 
 export const changeCommentHelpfulStatus = async (commentId: string) => {
   return await useRequest(
-      `forum/comment-change-helpful-status/${commentId}`,
-      "patch"
-  )
-}
+    `forum/comment-change-helpful-status/${commentId}`,
+    "patch",
+  );
+};

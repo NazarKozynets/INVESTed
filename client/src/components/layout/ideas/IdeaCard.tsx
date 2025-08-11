@@ -26,7 +26,7 @@ export const IdeaCard = ({ idea, progressPercentage }: IdeaCardProps) => {
       className="idea-card"
       style={{ border: idea.isClosed ? "2px solid red" : "1px solid #ccc" }}
       onClick={() => {
-        window.location.href = `/ideas/details/${idea.ideaId}`;
+        window.open(`/ideas/details/${idea.ideaId}`, "_blank");
       }}
     >
       <div className="idea-card__header">
@@ -36,13 +36,18 @@ export const IdeaCard = ({ idea, progressPercentage }: IdeaCardProps) => {
         {idea.creatorUsername && (
           <div
             className="idea-card__header-user"
+            style={{ color: idea.isOwnerBanned ? "red" : "white" }}
             onClick={(e) => {
               e.stopPropagation();
               window.location.href = `/profile/${idea.creatorUsername}`;
             }}
           >
             <h3>{idea.creatorUsername}</h3>
-            <UserProfileIcon username={idea.creatorUsername} avatarUrl={idea.creatorAvatarUrl}/>
+            <UserProfileIcon
+              username={idea.creatorUsername}
+              avatarUrl={idea.creatorAvatarUrl}
+              isOwnerBanned={idea.isOwnerBanned}
+            />
           </div>
         )}
       </div>
@@ -57,7 +62,10 @@ export const IdeaCard = ({ idea, progressPercentage }: IdeaCardProps) => {
         >
           <div
             className="idea-card__progress-bar"
-            style={{ width: `${progressPercentage}%`, backgroundColor: idea.isClosed ? "red" : "#4a90e2" }}
+            style={{
+              width: `${progressPercentage}%`,
+              backgroundColor: idea.isClosed ? "red" : "#4a90e2",
+            }}
           />
           <AnimatePresence>
             {isHovered && (

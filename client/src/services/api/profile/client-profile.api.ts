@@ -19,3 +19,12 @@ export const updateProfileFields = async (
   if (!data.id) throw new Error("Something went wrong");
   return await useRequest(`profile/update/fields`, "put", data);
 };
+
+export const banUser = async (userId: string) => {
+  if (!userId) throw new Error("Invalid userId!");
+  const res = await useRequest<{ isBanned: boolean }>(
+    `profile/ban-status/${userId}`,
+    "patch",
+  );
+  return res.isBanned;
+};

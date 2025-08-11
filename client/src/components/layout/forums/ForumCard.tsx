@@ -20,24 +20,40 @@ export const ForumCard = ({ forum }: ForumCardProps) => {
       className="forum-card"
       style={{ border: forum.isClosed ? "2px solid red" : "1px solid #ccc" }}
       onClick={() => {
-        window.location.href = `/forums/details/${forum.forumId}`;
+        window.open(`/forums/details/${forum.forumId}`, "_blank");
       }}
     >
       <div className="forum-card__header">
-        <div style={{display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%"}}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            width: "100%",
+          }}
+        >
           {forum.creatorUsername && (
             <div
               className="forum-card__header-user"
+              style={{ color: forum.isOwnerBanned ? "red" : "white" }}
               onClick={(e) => {
                 e.stopPropagation();
                 window.location.href = `/profile/${forum.creatorUsername}`;
               }}
             >
-              <UserProfileIcon username={forum?.creatorUsername} avatarUrl={forum?.creatorAvatarUrl} />
+              <UserProfileIcon
+                username={forum?.creatorUsername}
+                avatarUrl={forum?.creatorAvatarUrl}
+                isOwnerBanned={forum.isOwnerBanned}
+              />
               <h3>{forum.creatorUsername}</h3>
             </div>
           )}
-          {forum.isClosed && <div style={{ color: "red", fontSize: 18, fontWeight: 600 }}>Closed</div>}
+          {forum.isClosed && (
+            <div style={{ color: "red", fontSize: 18, fontWeight: 600 }}>
+              Closed
+            </div>
+          )}
         </div>
       </div>
       <h2 className="forum-card__title">{forum.forumTitle}</h2>

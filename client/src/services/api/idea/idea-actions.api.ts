@@ -30,7 +30,7 @@ export const deleteCommentFromIdea = async (commentId: string) => {
 
 export const closeIdea = async (ideaId: string) => {
   return await useRequest(`idea/close/${encodeURIComponent(ideaId)}`, "patch");
-}
+};
 
 export const searchIdeas = async (
   query: string,

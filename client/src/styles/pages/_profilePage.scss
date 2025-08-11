@@ -1,6 +1,13 @@
 .section-profile {
   margin-top: 30px;
   width: 100%;
+
+  &__banned-title {
+    text-align: center;
+    color: red;
+    font-size: 24px;
+    font-weight: 700;
+  }
 }
 
 .public-profile-form {
@@ -111,7 +118,6 @@
       width: 150px;
       height: 150px;
       overflow: hidden;
-      border-radius: 50%;
       backdrop-filter: blur(10px);
       background-color: rgba(10, 15, 25, 0.8);
 
@@ -126,6 +132,8 @@
       padding: 0;
 
       p {
+        min-width: 300px;
+        text-align: center;
         font-size: 16px;
       }
 
@@ -138,6 +146,46 @@
     .update-account-settings-btn {
       font-size: 16px;
       height: 40px;
+    }
+  }
+
+  .account-admin-settings {
+    margin: 0 auto;
+    width: 30%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 25px 0;
+
+    #element {
+      border: 2px solid white;
+      padding: 0 20px;
+      border-radius: 15px;
+      display: flex;
+      justify-content: space-between;
+      backdrop-filter: blur(10px);
+      background-color: rgba(10, 15, 25, 0.8);
+      align-items: center;
+      gap: 10px;
+      user-select: none;
+      cursor: pointer;
+      width: 200px;
+      max-width: 35%;
+      transition: 0.2s;
+
+      p {
+        font-size: 16px;
+      }
+
+      img {
+        width: 22px;
+        height: 22px;
+        filter: brightness(0) invert(1);
+      }
+
+      &:hover {
+        scale: 1.05;
+      }
     }
   }
 }
