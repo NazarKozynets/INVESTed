@@ -29,7 +29,6 @@ public class IdeaController : ControllerBase
             return error switch
             {
                 "IDEA_NAME_TAKEN" => Conflict(new { error }),
-                "SERVER_ERROR" => StatusCode(500, new { error }),
                 _ => StatusCode(500, new { error }),
             };
         }

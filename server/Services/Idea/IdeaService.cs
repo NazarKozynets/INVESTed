@@ -46,6 +46,13 @@ public class IdeaService
             if (currentUserIdResult.error != null || currentUserIdResult.id == null)
                 return (null, currentUserIdResult.error);
 
+            var (isBanned, error) = await _profileService.GetUserBanStatusById(currentUserIdResult.id);
+            if (error != null) 
+                return (null, error);
+
+            if (isBanned == true)
+                return (null, "CREATE_BANNED");
+            
             var currentUserRoleResult = await _profileService.GetThisUserRoleAsync(userClaims);
             if (currentUserRoleResult.error != null || currentUserRoleResult.role == null)
                 return (null, currentUserRoleResult.error);
@@ -110,12 +117,21 @@ public class IdeaService
             if (currentUserId.error != null || currentUserId.id == null)
                 return (null, currentUserId.error);
 
+            var (isOwnerBanned, error) = await _profileService.GetUserBanStatusById(creatorId);
+            if (error != null)
+                return (null, error);
+
             var currentUserRole = await _profileService.GetThisUserRoleAsync(userClaims);
             if (currentUserRole.error != null || currentUserRole.role == null)
                 return (null, currentUserRole.error);
 
             var filter = Builders<IdeaModel>.Filter.Eq(idea => idea.CreatorId, creatorId);
             var ideas = await _ideasCollection.Find(filter).ToListAsync();
+
+            foreach (var idea in ideas)
+            {
+                idea.IsOwnerBanned = isOwnerBanned;
+            }
 
             return (IdeaStrategyFactory.GetIdeaStrategy(currentUserRole.role.Value)
                 .GetAllUserIdeas(ideas, currentUserId.id == creatorId), null);
@@ -146,6 +162,9 @@ public class IdeaService
 
             var (avatarUrl, avatarError) = await _profileService.GetAvatarUrlById(idea.CreatorId);
             idea.CreatorAvatarUrl = avatarError == null ? avatarUrl : null;
+
+            var (isOwnerBanned, isOwnerBannedError) = await _profileService.GetUserBanStatusById(idea.CreatorId);
+            idea.IsOwnerBanned = isOwnerBannedError == null ? isOwnerBanned : false;
 
             var commentatorIds = idea.Comments
                 .Select(c => c.CommentatorId)
@@ -257,11 +276,13 @@ public class IdeaService
                 {
                     idea.CreatorUsername = profile.Username;
                     idea.CreatorAvatarUrl = profile.AvatarUrl ?? null;
+                    idea.IsOwnerBanned = profile.IsBanned;
                 }
                 else
                 {
                     idea.CreatorUsername = null;
                     idea.CreatorAvatarUrl = null;
+                    idea.IsOwnerBanned = false;
                 }
             }
 
@@ -293,6 +314,12 @@ public class IdeaService
                 .FirstOrDefaultAsync();
             if (idea == null) return (null, "NOT_FOUND");
 
+            var (isOwnerBanned, isOwnerBannedError) = await _profileService.GetUserBanStatusById(idea.CreatorId);
+            if (isOwnerBannedError != null) 
+                return (null, isOwnerBannedError);
+            if (isOwnerBanned == true) 
+                return (null, "BANNED");
+            
             var currentUser = await _authService.GetUserFromClaimsAsync(userClaims);
             if (currentUser == null || string.IsNullOrEmpty(currentUser.Id) ||
                 string.IsNullOrEmpty(currentUser.Username)) return (null, "INVALID_CREDENTIALS");
@@ -357,6 +384,12 @@ public class IdeaService
                 .FirstOrDefaultAsync();
             if (idea == null) return (false, "NOT_FOUND");
 
+            var (isOwnerBanned, isOwnerBannedError) = await _profileService.GetUserBanStatusById(idea.CreatorId);
+            if (isOwnerBannedError != null) 
+                return (false, isOwnerBannedError);
+            if (isOwnerBanned == true) 
+                return (false, "BANNED");
+            
             var currentUserIdResult = await _profileService.GetThisUserIdAsync(userClaims);
             if (currentUserIdResult.error != null || currentUserIdResult.id == null)
                 return (false, currentUserIdResult.error);
@@ -418,6 +451,12 @@ public class IdeaService
                 .FirstOrDefaultAsync();
             if (idea == null) return (null, "NOT_FOUND");
 
+            var (isOwnerBanned, isOwnerBannedError) = await _profileService.GetUserBanStatusById(idea.CreatorId);
+            if (isOwnerBannedError != null) 
+                return (null, isOwnerBannedError);
+            if (isOwnerBanned == true) 
+                return (null, "BANNED");
+            
             var currentUser = await _authService.GetUserFromClaimsAsync(userClaims);
             if (currentUser == null || string.IsNullOrEmpty(currentUser.Id) ||
                 string.IsNullOrEmpty(currentUser.Username)) return (null, "INVALID_CREDENTIALS");
@@ -478,6 +517,12 @@ public class IdeaService
             var idea = await _ideasCollection.Find(filter).FirstOrDefaultAsync();
             if (idea == null) return (null, "NOT_FOUND");
 
+            var (isOwnerBanned, isOwnerBannedError) = await _profileService.GetUserBanStatusById(idea.CreatorId);
+            if (isOwnerBannedError != null) 
+                return (null, isOwnerBannedError);
+            if (isOwnerBanned == true) 
+                return (null, "BANNED");
+            
             IdeaCommentModel comment = idea.Comments.FirstOrDefault(c => c.Id == commentId);
 
             if (comment == null)
@@ -583,7 +628,7 @@ public class IdeaService
 
             var usersDict = await _profileService.GetUsernamesByIdsAsync(creatorIds);
             var avatarsDict = await _profileService.GetAvatarUrlsByIdsAsync(creatorIds);
-
+            
             foreach (var idea in ideas)
             {
                 idea.CreatorUsername = usersDict.TryGetValue(idea.CreatorId, out var username)
@@ -630,6 +675,12 @@ public class IdeaService
             var idea = await _ideasCollection.Find(i => i.Id == ideaId).FirstOrDefaultAsync();
             if (idea == null) return (null, "NOT_FOUND");
 
+            var (isOwnerBanned, isOwnerBannedError) = await _profileService.GetUserBanStatusById(idea.CreatorId);
+            if (isOwnerBannedError != null) 
+                return (null, isOwnerBannedError);
+            if (isOwnerBanned == true) 
+                return (null, "BANNED");
+            
             var strategy = IdeaStrategyFactory.GetIdeaStrategy(currentUser.Role);
 
             bool canDelete = strategy.CanCloseIdea(idea.CreatorId, currentUser.Id);

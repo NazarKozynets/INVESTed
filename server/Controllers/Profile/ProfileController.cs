@@ -43,20 +43,19 @@ public class ProfileController : ControllerBase
             return error switch
             {
                 "INVALID_CREDENTIALS" => Unauthorized(new { error }),
-                "INVALID_ID" => NotFound(new { error }),
+                "INVALID_ID" => BadRequest(new { error }),
                 "USER_NOT_FOUND" => NotFound(new { error }),
-                "UNAUTHORIZED" => StatusCode(403, new { error }),
+                "UNAUTHORIZED" => Forbid(),
                 "EMPTY_DATA" => BadRequest(new { error }),
                 "EXISTING_USERNAME" => Conflict(new { error = "EXISTING_USERNAME" }),
                 "EXISTING_EMAIL" => Conflict(new { error = "EXISTING_EMAIL" }),
-                "SERVER_ERROR" => StatusCode(500, new { error }),
                 _ => StatusCode(500, new { error }),
             };
         }
 
         if (data is Dictionary<string, object> dict && dict.TryGetValue("token", out var tokenValue))
         {
-            var token = tokenValue.ToString();
+            var token = tokenValue?.ToString();
             if (!string.IsNullOrEmpty(token))
             {
                 Response.Cookies.Append("accessToken", token, new CookieOptions
@@ -67,11 +66,28 @@ public class ProfileController : ControllerBase
                     Expires = DateTime.UtcNow.AddHours(1),
                     Path = "/"
                 });
-                
-                return Ok(data);
             }
         }
+
+        return Ok(data);
+    }
+
+    [HttpPatch("ban-status/{userId}")]
+    public async Task<ActionResult<object>> ChangeUserBanStatus(string userId)
+    {
+        var (res, newStatus, error) = await _profileService.ChangeUserBanStatusAsync(userId, User);
         
-        return StatusCode(500, new { error = "SERVER_ERROR" });
+        if (error != null || !res)
+        {
+            return error switch
+            {
+                "INVALID_ID" => BadRequest(new { error }),
+                "USER_NOT_FOUND" => NotFound(new { error }),
+                "NOT_ENOUGH_ACCESS" => Forbid(),
+                _ => StatusCode(500, new { error }),
+            };
+        }
+
+        return Ok(new { isBanned = newStatus });
     }
 }

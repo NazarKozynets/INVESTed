@@ -37,6 +37,7 @@ public class ClientForumStrategy : ForumStrategy
             comments: forum.Comments,
             createdAt: forum.CreatedAt,
             isClosed: forum.Status == ForumStatus.Closed,
+            isOwnerBanned: forum.IsOwnerBanned ?? false,
             imageUrl: forum.ImageUrl ?? null,
             canEdit: isOwner ?? false
         ));
@@ -53,6 +54,7 @@ public class ClientForumStrategy : ForumStrategy
             creatorUsername: forum.CreatorUsername ?? null,
             creatorAvatarUrl: forum.CreatorAvatarUrl,
             createdAt: forum.CreatedAt,
+            isOwnerBanned: forum.IsOwnerBanned ?? false,
             canEdit: isOwner,
             imageUrl: forum.ImageUrl ?? null,
             isClosed: forum.Status == ForumStatus.Closed

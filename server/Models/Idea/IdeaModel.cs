@@ -116,6 +116,7 @@ public class IdeaModel
 
     [BsonIgnore] public string? CreatorUsername { get; set; }
     [BsonIgnore] public string? CreatorAvatarUrl { get; set; }
+    [BsonIgnore] public bool? IsOwnerBanned { get; set; }
 
     public IdeaModel(string creatorId, string ideaName, string ideaDescription, decimal targetAmount,
         DateTime fundingDeadline)

@@ -138,7 +138,7 @@ public class ProfileService
 
             var strategy = ProfileStrategyFactory.GetProfileStrategy(currentUser.Role);
 
-            if (!strategy.CanUpdateProfile(currentUser, targetUser))
+            if (!strategy.CanUpdateProfile(currentUser.Id == targetUser.Id))
                 return (null, "UNAUTHORIZED");
 
             if (string.IsNullOrWhiteSpace(data.Username) && string.IsNullOrWhiteSpace(data.Email) && string.IsNullOrWhiteSpace(data.AvatarUrl))
@@ -156,18 +156,28 @@ public class ProfileService
                 Builders<UserModel>.Filter.Eq(u => u.Id, objectId.ToString()),
                 targetUser);
 
-            var newToken = _authService.GenerateJwtToken(
-                targetUser.Username,
-                targetUser.Email,
-                targetUser.Role,
-                targetUser.AvatarUrl!,
-                targetUser.Id);
-
-            return (new Dictionary<string, object>
+            if (currentUser.Id == targetUser.Id)
             {
-                ["message"] = "PROFILE_UPDATED",
-                ["token"] = newToken.token
-            }, null);
+                var newToken = _authService.GenerateJwtToken(
+                    targetUser.Username,
+                    targetUser.Email,
+                    targetUser.Role,
+                    targetUser.AvatarUrl!,
+                    targetUser.Id);
+                
+                return (new Dictionary<string, object>
+                {
+                    ["message"] = "PROFILE_UPDATED",
+                    ["token"] = newToken.token
+                }, null);
+            }
+            else
+            {
+                return (new Dictionary<string, object>
+                {
+                    ["message"] = "PROFILE_UPDATED",
+                }, null);
+            }
         }
         catch (Exception ex)
         {
@@ -211,7 +221,7 @@ public class ProfileService
             return (null, "SERVER_ERROR");
         }
     }
-    
+
     public async Task<(string? username, string? error)> GetUsernameById(string id)
     {
         try
@@ -265,7 +275,24 @@ public class ProfileService
 
         return users.ToDictionary(u => u.Id, u => u.AvatarUrl);
     }
+    
+    public async Task<(bool? isBanned, string? error)> GetUserBanStatusById(string id)
+    {
+        try
+        {
+            var user = await _usersCollection.Find(u => u.Id == id).FirstOrDefaultAsync();
+            
+            if (user == null) return (null, "USER_NOT_FOUND");
 
+            return (user.IsBanned, null);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error getting ban status by id");
+            return (null, "SERVER_ERROR");
+        }
+    }
+    
     public async Task<(double? averageIdeaRating, string? error)> GetUserAverageIdeaRating(string userId)
     {
         try
@@ -380,6 +407,49 @@ public class ProfileService
         {
             _logger.LogError(ex, "Error getting user total closed forums amount");
             return (null, "SERVER_ERROR");
+        }
+    }
+    
+    public async Task<(bool res, bool? newStatus, string? error)> ChangeUserBanStatusAsync(string userId, ClaimsPrincipal userClaims)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+                return (false, null, "INVALID_ID");
+
+            var userToUpdate = await _usersCollection.Find(u => u.Id == userId).FirstOrDefaultAsync();
+            
+            if (userToUpdate == null)
+                return (false, null, "USER_NOT_FOUND");
+            
+            var currentUserRole = await GetThisUserRoleAsync(userClaims);
+            if (currentUserRole.error != null || currentUserRole.role == null)
+                return (false, null, currentUserRole.error);
+            
+            if (userToUpdate.Role == UserRole.Admin &&  currentUserRole.role == UserRole.Admin)
+                return (false, null, "ADMIN_ADMIN");
+
+            bool canBan = ProfileStrategyFactory.GetProfileStrategy(currentUserRole.role.Value).CanBanUser();
+            
+            if (!canBan)
+                return (false, null, "NOT_ENOUGH_ACCESS");
+
+            var update = Builders<UserModel>.Update.Set(u => u.IsBanned, !userToUpdate.IsBanned);
+
+            var updatedUser = await _usersCollection.FindOneAndUpdateAsync(
+                u => u.Id == userId,
+                update,
+                new FindOneAndUpdateOptions<UserModel> { ReturnDocument = ReturnDocument.After});
+            
+            if (updatedUser == null) 
+                return (false, null, "SERVER_ERROR");
+            
+            return (true, updatedUser.IsBanned, null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error changing {userId} ban status", userId);
+            return (false, null, "SERVER_ERROR");
         }
     }
 }

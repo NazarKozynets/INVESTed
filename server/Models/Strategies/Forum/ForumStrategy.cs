@@ -22,6 +22,7 @@ public abstract class ForumStrategy
             comments: forum.Comments,
             createdAt: forum.CreatedAt,
             isClosed: forum.Status == ForumStatus.Closed,
+            isOwnerBanned: forum.IsOwnerBanned ?? false,
             canEdit: true
         ));
     }
@@ -40,6 +41,7 @@ public abstract class ForumStrategy
             createdAt: forum.CreatedAt,
             canEdit: true,
             imageUrl: forum.ImageUrl ?? null,
+            isOwnerBanned: forum.IsOwnerBanned ?? false,
             isClosed: forum.Status == ForumStatus.Closed
         );
     }

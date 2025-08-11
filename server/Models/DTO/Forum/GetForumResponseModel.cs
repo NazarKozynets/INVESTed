@@ -13,6 +13,7 @@ public class GetForumResponseModel
     public bool CanEdit { get; set; }
     public bool IsClosed { get; set; }
     public List<ForumCommentModel> Comments { get; set; }
+    public bool IsOwnerBanned { get; set; }
     public string? ImageUrl { get; set; }
     public string? CreatorUsername { get; set; }
     public string? CreatorAvatarUrl { get; set; }
@@ -23,6 +24,7 @@ public class GetForumResponseModel
         string forumTitle,
         string forumDescription,
         DateTime createdAt,
+        bool isOwnerBanned = false,
         bool canEdit = false,
         bool isClosed = false,
         List<ForumCommentModel>? comments = null,
@@ -35,6 +37,7 @@ public class GetForumResponseModel
         ForumTitle = forumTitle;
         ForumDescription = forumDescription;
         CreatedAt = createdAt;
+        IsOwnerBanned = isOwnerBanned;
         CanEdit = canEdit;
         IsClosed = isClosed;
         Comments = comments ?? new List<ForumCommentModel>();

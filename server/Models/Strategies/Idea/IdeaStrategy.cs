@@ -27,6 +27,7 @@ public abstract class IdeaStrategy
             idea.FundingDeadline,
             idea.Rating,
             idea.GetAverageRating(),
+            isOwnerBanned: idea.IsOwnerBanned ?? false,
             isClosed: idea.Status == IdeaStatus.Closed,
             canEdit: true
         ));
@@ -47,6 +48,7 @@ public abstract class IdeaStrategy
             comments: idea.Comments,
             creatorUsername: idea.CreatorUsername ?? null,
             creatorAvatarUrl: idea.CreatorAvatarUrl,
+            isOwnerBanned: idea.IsOwnerBanned ?? false,
             canEdit: isOwner,
             isClosed: idea.Status == IdeaStatus.Closed
         );

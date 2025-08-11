@@ -17,6 +17,7 @@ namespace server.Models.DTO.Idea
         public bool CanEdit { get; set; }
         public List<IdeaCommentModel>? Comments { get; set; }
         public bool IsClosed { get; set; }
+        public bool IsOwnerBanned { get; set; }
 
         public GetIdeaResponseModel(
             string ideaId,
@@ -27,11 +28,12 @@ namespace server.Models.DTO.Idea
             DateTime fundingDeadline,
             List<IdeaRatingModel> rating,
             double averageRating,
+            bool isOwnerBanned = false,
             List<IdeaCommentModel>? comments = null,
             bool canEdit = false,
+            bool isClosed = false,
             string? creatorUsername = null,
-            string? creatorAvatarUrl = null,
-            bool isClosed = false)
+            string? creatorAvatarUrl = null)
         {
             IdeaId = ideaId;
             IdeaName = ideaName;
@@ -41,11 +43,12 @@ namespace server.Models.DTO.Idea
             FundingDeadline = fundingDeadline;
             Rating = rating;
             AverageRating = averageRating;
+            IsOwnerBanned = isOwnerBanned;
             Comments = comments ?? new List<IdeaCommentModel>(); 
             CanEdit = canEdit;
+            IsClosed = isClosed;
             CreatorUsername = creatorUsername;
             CreatorAvatarUrl = creatorAvatarUrl;
-            IsClosed = isClosed;
         }
     }
 }

@@ -15,12 +15,13 @@ public class ClientProfileStrategy : IProfileStrategy
             Email = isOwner ? targetUser.Email : null,
             AvatarUrl = targetUser.AvatarUrl,
             CanEdit = isOwner,
+            IsBanned = targetUser.IsBanned
         };
     }
 
-    public bool CanUpdateProfile(UserModel targetUser, UserModel currentUser)
+    public bool CanUpdateProfile(bool isOwner)
     {
-        return targetUser.Id == currentUser.Id;
+        return isOwner;
     }
 
     public void UpdateProfile(UserModel targetUser, UpdateProfileFieldsModel newProfileData)
@@ -36,5 +37,10 @@ public class ClientProfileStrategy : IProfileStrategy
         }
         
         targetUser.SetAvatarUrl(newProfileData.AvatarUrl!);
+    }
+
+    public bool CanBanUser()
+    {
+        return false;
     }
 }

@@ -24,6 +24,8 @@ public class UserModel
 
     [BsonElement("role")] public UserRole Role { get; private set; }
     
+    [BsonElement("isBanned")]  public bool IsBanned { get; private set; }
+    
     [BsonElement("avatarUrl")]  public string? AvatarUrl { get; private set; }
 
     public string? RefreshToken { get; private set; }
@@ -34,12 +36,13 @@ public class UserModel
     
     public UserModel() {} 
 
-    public UserModel(string username, string password, string email, UserRole role, string? avatarUrl = null)
+    public UserModel(string username, string password, string email, UserRole role, bool isBanned = false, string? avatarUrl = null)
     {
         SetUsername(username);
         SetPassword(password);
         SetEmail(email);
         Role = role;
+        IsBanned = isBanned;
         AvatarUrl = avatarUrl;
     }
 

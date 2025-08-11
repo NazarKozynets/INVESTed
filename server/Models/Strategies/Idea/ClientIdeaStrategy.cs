@@ -25,6 +25,7 @@ public class ClientIdeaStrategy : IdeaStrategy
             idea.FundingDeadline,
             idea.Rating,
             idea.GetAverageRating(),
+            isOwnerBanned: idea.IsOwnerBanned ?? false,
             isClosed: idea.Status == IdeaStatus.Closed,
             canEdit: isOwner ?? false
         ));

@@ -12,4 +12,5 @@ public class GetUserProfileModel
     public int? TotalForumsAmount { get; set; }
     public int? TotalClosedForumsAmount { get; set; }
     public bool CanEdit { get; set; }
+    public bool IsBanned { get; set; }
 }

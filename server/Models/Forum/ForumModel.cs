@@ -50,6 +50,7 @@ public class ForumModel
 
     [BsonIgnore] public string? CreatorUsername { get; set; }
     [BsonIgnore] public string? CreatorAvatarUrl { get; set; }
+    [BsonIgnore] public bool? IsOwnerBanned { get; set; }
 
     public ForumModel(string creatorId, string title, string description, string? imageUrl = null)
     {

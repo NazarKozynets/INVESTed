@@ -6,6 +6,7 @@ namespace server.Models.Interfaces;
 public interface IProfileStrategy
 {
     GetUserProfileModel GetProfile(UserModel targetUser, bool isOwner);
-    bool CanUpdateProfile(UserModel targetUser, UserModel currentUser);
+    bool CanUpdateProfile(bool isOwner);
     void UpdateProfile(UserModel targetUser, UpdateProfileFieldsModel newProfileData);
+    bool CanBanUser();
 }

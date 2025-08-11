@@ -20,6 +20,7 @@ public class ModeratorIdeaStrategy : IdeaStrategy
             comments: idea.Comments,
             creatorUsername: idea.CreatorUsername ?? null,
             creatorAvatarUrl: idea.CreatorAvatarUrl,
+            isOwnerBanned: idea.IsOwnerBanned ?? false,
             canEdit: true,
             isClosed: idea.Status == IdeaStatus.Closed
         );

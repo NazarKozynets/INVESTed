@@ -19,7 +19,9 @@ public class AdminIdeaStrategy : IdeaStrategy
             idea.Rating,
             idea.GetAverageRating(),
             comments: idea.Comments,
+            isOwnerBanned: idea.IsOwnerBanned ?? false,
             creatorUsername: idea.CreatorUsername ?? null,
+            creatorAvatarUrl: idea.CreatorAvatarUrl,
             canEdit: true,
             isClosed: idea.Status == IdeaStatus.Closed
         );

@@ -47,6 +47,13 @@ public class ForumService
             if (currentUserIdResult.error != null || currentUserIdResult.id == null)
                 return (null, currentUserIdResult.error);
 
+            var (isBanned, error) = await _profileService.GetUserBanStatusById(currentUserIdResult.id);
+            if (error != null) 
+                return (null, error);
+
+            if (isBanned == true)
+                return (null, "CREATE_BANNED");
+            
             var currentUserRoleResult = await _profileService.GetThisUserRoleAsync(userClaims);
             if (currentUserRoleResult.error != null || currentUserRoleResult.role == null)
                 return (null, currentUserRoleResult.error);
@@ -197,13 +204,17 @@ public class ForumService
             var currentUserId = await _profileService.GetThisUserIdAsync(userClaims);
             if (currentUserId.error != null || currentUserId.id == null)
                 return (null, currentUserId.error);
-
+            
             var currentUserRole = await _profileService.GetThisUserRoleAsync(userClaims);
             if (currentUserRole.error != null || currentUserRole.role == null)
                 return (null, currentUserRole.error);
 
             var filter = Builders<ForumModel>.Filter.Eq(f => f.CreatorId, creatorId);
             var forums = await _forumsCollection.Find(filter).ToListAsync();
+            
+            var (isOwnerBanned, error) = await _profileService.GetUserBanStatusById(creatorId);
+            if (error != null) 
+                return (null, error);
 
             var strategy = ForumStrategyFactory.GetForumStrategy(currentUserRole.role.Value);
             var formattedForums = strategy.GetAllUserForums(forums, currentUserId.id == creatorId).ToList();
@@ -215,7 +226,7 @@ public class ForumService
 
             var usernamesMap = await _profileService.GetUsernamesByIdsAsync(creatorIds);
             var avatarUrlsMap = await _profileService.GetAvatarUrlsByIdsAsync(creatorIds);
-
+            
             foreach (var forum in formattedForums)
             {
                 if (usernamesMap.TryGetValue(forum.CreatorId, out var username))
@@ -223,6 +234,8 @@ public class ForumService
 
                 if (avatarUrlsMap.TryGetValue(forum.CreatorId, out var avatarUrl))
                     forum.CreatorAvatarUrl = avatarUrl;
+                
+                forum.IsOwnerBanned = isOwnerBanned ?? false;
             }
 
             return (formattedForums, null);
@@ -252,6 +265,9 @@ public class ForumService
             if (currentUserRole.error != null || currentUserRole.role == null)
                 return (null, currentUserRole.error);
 
+            var (isOwnerBanned, isOwnerBannedError) = await _profileService.GetUserBanStatusById(forum.CreatorId);
+            forum.IsOwnerBanned = isOwnerBannedError == null ? isOwnerBanned : false;
+            
             var (username, usernameError) = await _profileService.GetUsernameById(forum.CreatorId);
             forum.CreatorUsername = usernameError == null ? username : null;
 
@@ -356,11 +372,13 @@ public class ForumService
                 {
                     forum.CreatorUsername = profile.Username;
                     forum.CreatorAvatarUrl = profile.AvatarUrl ?? null;
+                    forum.IsOwnerBanned = profile.IsBanned;
                 }
                 else
                 {
                     forum.CreatorUsername = null;
                     forum.CreatorAvatarUrl = null;
+                    forum.IsOwnerBanned = false;
                 }
             }
 
@@ -392,6 +410,12 @@ public class ForumService
                 .FirstOrDefaultAsync();
             if (forum == null) return (null, "NOT_FOUND");
 
+            var (isOwnerBanned, isOwnerBannedError) = await _profileService.GetUserBanStatusById(forum.CreatorId);
+            if (isOwnerBannedError != null) 
+                return (null, isOwnerBannedError);
+            if (isOwnerBanned == true) 
+                return (null, "BANNED");
+            
             var currentUser = await _authService.GetUserFromClaimsAsync(userClaims);
             if (currentUser == null || string.IsNullOrEmpty(currentUser.Id) ||
                 string.IsNullOrEmpty(currentUser.Username)) return (null, "INVALID_CREDENTIALS");
@@ -452,6 +476,12 @@ public class ForumService
             var forum = await _forumsCollection.Find(filter).FirstOrDefaultAsync();
             if (forum == null) return (null, "NOT_FOUND");
 
+            var (isOwnerBanned, isOwnerBannedError) = await _profileService.GetUserBanStatusById(forum.CreatorId);
+            if (isOwnerBannedError != null) 
+                return (null, isOwnerBannedError);
+            if (isOwnerBanned == true) 
+                return (null, "BANNED");
+            
             ForumCommentModel comment = forum.Comments.FirstOrDefault(c => c.Id == commentId);
 
             if (comment == null)

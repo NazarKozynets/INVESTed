@@ -15,12 +15,13 @@ public class AdminProfileStrategy : IProfileStrategy
             Email = targetUser.Email,
             AvatarUrl = targetUser.AvatarUrl,
             CanEdit = true,
+            IsBanned = targetUser.IsBanned
         };
     }
 
-    public bool CanUpdateProfile(UserModel targetUser, UserModel currentUser)
+    public bool CanUpdateProfile(bool isOwner)
     {
-        return targetUser.Role != UserRole.Admin || targetUser.Id == currentUser.Id;
+        return true;
     }
 
     public void UpdateProfile(UserModel targetUser, UpdateProfileFieldsModel newProfileData)
@@ -39,5 +40,10 @@ public class AdminProfileStrategy : IProfileStrategy
         {
             targetUser.SetRole(newProfileData.Role.Value);
         }
+    }
+    
+    public bool CanBanUser()
+    {
+        return true;
     }
 }
