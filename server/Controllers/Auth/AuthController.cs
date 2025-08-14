@@ -151,7 +151,7 @@ public class AuthController : ControllerBase
 
             var result = await _authService.ResetPasswordAsync(model.Token, model.NewPassword);
             if (!result.success)
-                return StatusCode(400, new { error = "INVALID_OR_EXPIRED_TOKEN_RESET_PASSWORD" });
+                return BadRequest(new { error = "INVALID_OR_EXPIRED_TOKEN_RESET_PASSWORD" });
 
             return Ok(new { message = "Password reset successfully" });
         }

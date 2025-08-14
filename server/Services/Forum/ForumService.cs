@@ -432,9 +432,9 @@ public class ForumService
                     update
                 );
 
-                if (updateResult.MatchedCount == 0)
+                if (updateResult.IsModifiedCountAvailable && updateResult.ModifiedCount == 0)
                 {
-                    _logger.LogWarning("Failed to update forum with ID {ForumId}: Not found in database", forum.Id);
+                    _logger.LogWarning("Failed to update forum with ID {ForumId}: modified count = 0", forum.Id);
                     return (null, "UPDATE_FAILED");
                 }
             }

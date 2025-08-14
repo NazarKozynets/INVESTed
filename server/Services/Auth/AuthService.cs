@@ -92,6 +92,18 @@ public class AuthService
         }
     }
 
+    public static string GenerateUrlSafeToken(int size = 32)
+    {
+        var bytes = new byte[size];
+        using var rng = RandomNumberGenerator.Create();
+        rng.GetBytes(bytes);
+
+        return Convert.ToBase64String(bytes)
+            .TrimEnd('=')   
+            .Replace('+', '-')  
+            .Replace('/', '_');
+    }
+    
     public async Task<(bool success, string? error)> InitiatePasswordResetAsync(string email)
     {
         try
@@ -103,19 +115,20 @@ public class AuthService
             if (user is null)
                 return (false, "EMAIL_NOT_FOUND");
 
-            var resetToken = GenerateRefreshToken();
+            var resetToken = GenerateUrlSafeToken(32);
             var resetTokenExpiry = DateTime.UtcNow.AddHours(
                 _configuration.GetValue<int>("PasswordReset:TokenExpiryInHours", 24));
 
             user.SetPasswordResetToken(resetToken, resetTokenExpiry);
-
             await _usersCollection.ReplaceOneAsync(u => u.Id == user.Id, user);
 
-            var res = await _provider.GetRequiredService<EmailService>().SendMailAboutResettingPasswordAsync(user.Email, resetToken);
+            var emailResult = await _provider
+                .GetRequiredService<EmailService>()
+                .SendMailAboutResettingPasswordAsync(user.Email, resetToken);
 
-            if (res.error != null)
-                return (false, res.error);
-            
+            if (emailResult.error != null)
+                return (false, emailResult.error);
+
             return (true, null);
         }
         catch (Exception ex)
@@ -132,14 +145,20 @@ public class AuthService
             var user = await _usersCollection
                 .Find(u => u.PasswordResetToken == token)
                 .FirstOrDefaultAsync();
-
-            if (user is null || user.PasswordResetTokenExpiry <= DateTime.UtcNow)
+this._logger.LogInformation("token: {token} \npassword: {pass}", token, newPassword);
+            if (user is null 
+                || !user.PasswordResetTokenExpiry.HasValue 
+                || DateTime.SpecifyKind(user.PasswordResetTokenExpiry.Value, DateTimeKind.Utc) <= DateTime.UtcNow)
+            {
                 return (false, "INVALID_OR_EXPIRED_TOKEN");
+            }
 
             user.SetPassword(BCrypt.Net.BCrypt.HashPassword(newPassword));
+
             user.ClearPasswordResetToken();
 
             await _usersCollection.ReplaceOneAsync(u => u.Id == user.Id, user);
+
             return (true, null);
         }
         catch (Exception ex)

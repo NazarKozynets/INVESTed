@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using server.Models.DTO.Profile;
-using server.models.user;
 using server.Services.Profile;
 
 namespace server.Controllers.Profile;
@@ -49,6 +48,8 @@ public class ProfileController : ControllerBase
                 "EMPTY_DATA" => BadRequest(new { error }),
                 "EXISTING_USERNAME" => Conflict(new { error = "EXISTING_USERNAME" }),
                 "EXISTING_EMAIL" => Conflict(new { error = "EXISTING_EMAIL" }),
+                // 423 code for banned resource
+                "UPDATE_BANNED_ACCOUNT" => StatusCode(423, new { error }),
                 _ => StatusCode(500, new { error }),
             };
         }
@@ -89,5 +90,26 @@ public class ProfileController : ControllerBase
         }
 
         return Ok(new { isBanned = newStatus });
+    }
+
+    [HttpPatch("update-role")]
+    public async Task<ActionResult<object>> UpdateUserRole(UpdateUserRoleModel data)
+    {
+        var (res, error) = await _profileService.UpdateUserRoleAsync(data, User);
+
+        if (error != null || !res)
+        {
+            return error switch
+            {
+                "INVALID_ID" => BadRequest(new { error }),
+                "INVALID_ROLE" => BadRequest(new { error }),
+                "USER_NOT_FOUND" => NotFound(new { error }),
+                "NOT_ENOUGH_ACCESS" => Forbid(),
+                "UPDATE_FAILED" => Conflict(new { error = "UPDATE_FAILED" }),
+                _ => StatusCode(500, new { error }),
+            };
+        }
+        
+        return Ok();
     }
 }

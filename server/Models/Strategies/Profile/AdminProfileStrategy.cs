@@ -11,6 +11,7 @@ public class AdminProfileStrategy : IProfileStrategy
         return new GetUserProfileModel
         {
             UserId = targetUser.Id,
+            UserRole = targetUser.Role,
             Username = targetUser.Username,
             Email = targetUser.Email,
             AvatarUrl = targetUser.AvatarUrl,
@@ -43,6 +44,11 @@ public class AdminProfileStrategy : IProfileStrategy
     }
     
     public bool CanBanUser()
+    {
+        return true;
+    }
+
+    public bool CanUpdateRole(UserRole targetUserRole, UserRole newRole)
     {
         return true;
     }

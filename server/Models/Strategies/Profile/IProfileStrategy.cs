@@ -9,4 +9,5 @@ public interface IProfileStrategy
     bool CanUpdateProfile(bool isOwner);
     void UpdateProfile(UserModel targetUser, UpdateProfileFieldsModel newProfileData);
     bool CanBanUser();
+    bool CanUpdateRole(UserRole targetUserRole, UserRole newRole);
 }

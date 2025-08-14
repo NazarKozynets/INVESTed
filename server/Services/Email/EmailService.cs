@@ -1,5 +1,6 @@
 ﻿using System.Net.Mail;
 using System.Net;
+using System.Security.Cryptography;
 using server.services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -67,7 +68,7 @@ public class EmailService
             throw new Exception("Failed to send email.", ex);
         }
     }
-
+    
     public async Task<(bool success, string? error)> SendMailAboutResettingPasswordAsync(string to, string token)
     {
         try

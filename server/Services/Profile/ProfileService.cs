@@ -136,6 +136,9 @@ public class ProfileService
             if (targetUser == null)
                 return (null, "USER_NOT_FOUND");
 
+            if (targetUser.IsBanned)
+                return (null, "UPDATE_BANNED_ACCOUNT");
+
             var strategy = ProfileStrategyFactory.GetProfileStrategy(currentUser.Role);
 
             if (!strategy.CanUpdateProfile(currentUser.Id == targetUser.Id))
@@ -450,6 +453,51 @@ public class ProfileService
         {
             _logger.LogError(ex, "Error changing {userId} ban status", userId);
             return (false, null, "SERVER_ERROR");
+        }
+    }
+
+    public async Task<(bool res, string? error)> UpdateUserRoleAsync(UpdateUserRoleModel data, ClaimsPrincipal userClaims)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(data.Id))
+                return (false, "INVALID_ID");
+            if (!Enum.IsDefined(typeof(UserRole), data.NewRole))
+                return (false, "INVALID_ROLE");
+            
+            var userToUpdate = await _usersCollection.Find(u => u.Id == data.Id).FirstOrDefaultAsync();
+            
+            if (userToUpdate == null)
+                return (false, "USER_NOT_FOUND");
+            
+            var currentUserRole = await GetThisUserRoleAsync(userClaims);
+            if (currentUserRole.error != null || currentUserRole.role == null)
+                return (false, currentUserRole.error);
+            
+            bool canUpdateRole = ProfileStrategyFactory.GetProfileStrategy(currentUserRole.role.Value).CanUpdateRole(userToUpdate.Role, data.NewRole);
+            
+            if (!canUpdateRole)
+                return (false, "NOT_ENOUGH_ACCESS");
+            
+            var update = Builders<UserModel>.Update.Set(u => u.Role, data.NewRole);
+            
+            var updateResult = await _usersCollection.UpdateOneAsync(
+                Builders<UserModel>.Filter.Eq(u => u.Id, data.Id),
+                update
+            );
+            
+            if (updateResult.IsModifiedCountAvailable && updateResult.ModifiedCount == 0)
+            {
+                _logger.LogWarning("Failed to update user with ID {UserId}: modified count = 0", data.Id);
+                return (false, "UPDATE_FAILED");
+            }
+            
+            return (true, null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating {userId} user role",  data.Id);
+            return (false, "SERVER_ERROR");
         }
     }
 }

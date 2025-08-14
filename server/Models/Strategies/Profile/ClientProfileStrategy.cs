@@ -35,11 +35,16 @@ public class ClientProfileStrategy : IProfileStrategy
         {
             targetUser.SetEmail(newProfileData.Email);
         }
-        
+
         targetUser.SetAvatarUrl(newProfileData.AvatarUrl!);
     }
 
     public bool CanBanUser()
+    {
+        return false;
+    }
+
+    public bool CanUpdateRole(UserRole targetUserRole, UserRole newRole)
     {
         return false;
     }

@@ -11,10 +11,11 @@ public class ModeratorProfileStrategy : IProfileStrategy
         return new GetUserProfileModel
         {
             UserId = targetUser.Id,
+            UserRole = targetUser.Role,
             Username = targetUser.Username,
             Email = targetUser.Email,
             AvatarUrl = targetUser.AvatarUrl,
-            CanEdit = isOwner,
+            CanEdit = true,
             IsBanned = targetUser.IsBanned
         };
     }
@@ -40,5 +41,17 @@ public class ModeratorProfileStrategy : IProfileStrategy
     public bool CanBanUser()
     {
         return true;
+    }
+    
+    public bool CanUpdateRole(UserRole targetUserRole, UserRole newRole)
+    {
+        switch (targetUserRole)
+        {
+            case UserRole.Client when newRole == UserRole.Moderator:
+            case UserRole.Moderator when newRole == UserRole.Client:
+                return true;
+            default:
+                return false;
+        }
     }
 }
