@@ -1,4 +1,14 @@
 export type UserRole = "Client" | "Moderator" | "Admin";
+export const userRoleMap: Record<UserRole, number> = {
+  Client: 0,
+  Moderator: 1,
+  Admin: 2,
+};
+export const userRoleMapReverse: Record<number, UserRole> = {
+  0: "Client",
+  1: "Moderator",
+  2: "Admin",
+};
 
 export const AuthError = {
   EMAIL_EXISTS: "Email already registered",
@@ -28,6 +38,7 @@ export interface UserData {
   username: string;
   email: string;
   role: UserRole;
+  isBanned: boolean;
   avatarUrl?: string | null;
   expiresIn?: string;
 }
@@ -45,8 +56,9 @@ export interface AuthResponseData {
     username: string;
     email: string;
     role: UserRole;
-    avatarUrl?: string | null;
+    isBanned: boolean;
     expiresIn: string;
+    avatarUrl?: string | null;
   };
 }
 

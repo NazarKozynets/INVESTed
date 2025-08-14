@@ -73,25 +73,6 @@ export const SignupForm = ({
         navigate("/home");
       }
     } catch (error) {
-      let errorMessage = "Registration failed";
-
-      if (error instanceof Error) {
-        if (error.message.startsWith("username:")) {
-          errorMessage = error.message.replace("username: ", "");
-        } else if (error.message.startsWith("email:")) {
-          errorMessage = error.message.replace("email: ", "");
-        } else if (error.message.startsWith("password:")) {
-          errorMessage = error.message.replace("password: ", "");
-        } else {
-          errorMessage = error.message;
-        }
-      }
-
-      toast.error(errorMessage, {
-        autoClose: 5000,
-        toastId: "signup-error",
-      });
-
       console.error("Signup error:", error);
     }
   };

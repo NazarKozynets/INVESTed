@@ -36,13 +36,18 @@ export const requestPasswordReset = async (email: string): Promise<boolean> => {
 };
 
 export const resetPassword = async (
-  token: string,
-  newPassword: string,
+    token: string,
+    newPassword: string,
 ): Promise<boolean> => {
+  token = decodeURIComponent(token).trim().replace(/\s+/g, "");
+
+  console.log(token, 'token');
+  console.log(newPassword, 'newPassword');
+
   const res: { message: string } = await useRequest(
-    "auth/reset-password",
-    "post",
-    { token, newPassword },
+      "auth/reset-password",
+      "post",
+      { token, newPassword },
   );
 
   return res.message === "Password reset successfully";

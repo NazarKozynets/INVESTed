@@ -137,7 +137,7 @@ export const CreateForum = () => {
             className={`in-out-form-container ${isForumReady ? "visible" : ""}`}
           >
             <Button
-              text="Start idea"
+              text="Create forum"
               className="start-idea-submit-btn"
               onClick={handleSubmit}
             />

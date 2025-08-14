@@ -1,8 +1,9 @@
 import { useRequest } from "../../../utils/hooks/useRequest.ts";
 import {
   GetProfileResponseData,
-  UpdateProfileFieldsRequestData,
+  UpdateProfileFieldsRequestData, UpdateUserRoleRequestData,
 } from "../../../types/profile.types.ts";
+import {UserRole, userRoleMap} from "../../../types/auth.types.ts";
 
 export const getProfileData = async (
   username: string,
@@ -28,3 +29,16 @@ export const banUser = async (userId: string) => {
   );
   return res.isBanned;
 };
+
+export const updateUserRole = async (
+    data: { userId: string; newRole: UserRole },
+)=> {
+  if (!data.userId) throw new Error("Something went wrong");
+
+  const payload: UpdateUserRoleRequestData = {
+    id: data.userId,
+    newRole: userRoleMap[data.newRole],
+  };
+
+  return await useRequest(`profile/update-role`, "patch", payload);
+}

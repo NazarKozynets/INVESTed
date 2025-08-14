@@ -157,7 +157,7 @@
     justify-content: space-between;
     padding: 25px 0;
 
-    #element {
+    .admin-button {
       border: 2px solid white;
       padding: 0 20px;
       border-radius: 15px;
@@ -172,6 +172,7 @@
       width: 200px;
       max-width: 35%;
       transition: 0.2s;
+      position: relative;
 
       p {
         font-size: 16px;
@@ -186,6 +187,41 @@
       &:hover {
         scale: 1.05;
       }
+    }
+  }
+}
+
+.admin-button__dropdown-menu {
+  position: absolute;
+  background-color: rgba(10, 15, 25, 0.95);
+  user-select: none;
+  border: 1px solid white;
+  border-radius: 15px;
+  margin-top: 10px;
+  z-index: 9999;
+  overflow: hidden;
+  display: block;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+
+  &--item {
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    font-size: 16px;
+    transform-origin: top;
+    transition: all 0.2s ease;
+
+    &.selected {
+      background-color: rgba(255, 255, 255, 0.1);
+      font-weight: bold;
+    }
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+      color: white;
+      transform: scale(1.05);
+      //box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
     }
   }
 }

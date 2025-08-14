@@ -3,7 +3,9 @@ const ProfileError = {
   UNAUTHORIZED: "You cannot edit this profile",
   EXISTING_EMAIL: "Email already in use",
   EXISTING_USERNAME: "Username already taken",
-
+  UPDATE_BANNED_ACCOUNT: "You cannot edit banned account",
+  INVALID_ROLE: "Looks like role you selected does not exist",
+  UPDATE_FAILED: "Update failed",
   NOT_ENOUGH_ACCESS: "You cannot edit this profile",
   ADMIN_ADMIN: "You can't ban administrator",
 } as const;
@@ -20,6 +22,7 @@ export const getProfileErrorMessage = (
 
 export interface GetProfileResponseData {
   userId: string;
+  userRole: number;
   username: string;
   email: string;
   avatarUrl: string | null;
@@ -39,4 +42,9 @@ export interface UpdateProfileFieldsRequestData {
   email?: string;
   password?: string;
   avatarUrl?: string;
+}
+
+export interface UpdateUserRoleRequestData {
+  id: string;
+  newRole: number;
 }
