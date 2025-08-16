@@ -54,4 +54,9 @@ public class ModeratorProfileStrategy : IProfileStrategy
                 return false;
         }
     }
+    
+    public IEnumerable<GetUserProfileModel>? GetProfiles(IEnumerable<UserModel> users)
+    {
+        return null;
+    }
 }

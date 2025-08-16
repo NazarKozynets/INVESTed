@@ -1,6 +1,6 @@
 ﻿namespace server.Models.DTO.Profile;
 
-public class SearchClientsForum
+public class SearchClientsModel
 {
     public string Id { get; set; }
     public string Username { get; set; }

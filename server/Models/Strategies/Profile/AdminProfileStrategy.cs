@@ -52,4 +52,9 @@ public class AdminProfileStrategy : IProfileStrategy
     {
         return true;
     }
+
+    public IEnumerable<GetUserProfileModel> GetProfiles(IEnumerable<UserModel> users)
+    {
+        return users.Select(user => GetProfile(user, true));
+    }
 }

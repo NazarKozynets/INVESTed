@@ -10,6 +10,7 @@ public enum UserRole
     Admin = 2
 }
 
+[BsonIgnoreExtraElements]
 public class UserModel
 {
     [BsonId]
@@ -33,6 +34,26 @@ public class UserModel
 
     public string? PasswordResetToken { get; private set; }
     public DateTime? PasswordResetTokenExpiry { get; private set; }
+    
+    [BsonIgnoreIfNull]
+    [BsonElement("totalFunding")]
+    public decimal? TotalFunding { get; set; }
+
+    [BsonIgnoreIfNull]
+    [BsonElement("totalIdeasAmount")]
+    public int? TotalIdeasAmount { get; set; }
+
+    [BsonIgnoreIfNull]
+    [BsonElement("totalForumsAmount")]
+    public int? TotalForumsAmount { get; set; }
+
+    [BsonIgnoreIfNull]
+    [BsonElement("totalClosedForumsAmount")]
+    public int? TotalClosedForumsAmount { get; set; }
+
+    [BsonIgnoreIfNull]
+    [BsonElement("averageIdeaRating")]
+    public double? AverageIdeaRating { get; set; }
     
     public UserModel() {} 
 

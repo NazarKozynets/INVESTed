@@ -112,4 +112,48 @@ public class ProfileController : ControllerBase
         
         return Ok();
     }
+
+    [HttpGet("get/clients")]
+    public async Task<ActionResult<object>> GetClients()
+    {
+        var (res, error) = await _profileService.GetClientsAsync(User);
+
+        if (error != null)
+        {
+            return error switch
+            {
+                "NOT_ENOUGH_ACCESS" => Forbid(),
+                "EMPTY_USERS" => StatusCode(204, new { error }),
+                _ => StatusCode(500, new { error }),
+            };
+        }
+        
+        return Ok(new {clients = res});
+    }
+    
+    [HttpGet("search")]
+    public async Task<ActionResult<object>> SearchClients(
+        [FromQuery] string query,
+        [FromQuery] int limit = 10)
+    {
+        var (clients, total, error) =
+            await _profileService.SearchClientsAsync(query, limit, User);
+
+        if (error != null)
+        {
+            return error switch
+            {
+                "INVALID_PARAMETERS" => BadRequest(new { error }),
+                "INVALID_QUERY" => BadRequest(new { error }),
+                _ => StatusCode(500, new { error })
+            };
+        }
+
+        return Ok(new
+        {
+            clients,
+            total,
+            limit
+        });
+    }
 }

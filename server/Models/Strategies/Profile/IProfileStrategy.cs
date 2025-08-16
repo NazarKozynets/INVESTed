@@ -1,4 +1,5 @@
-﻿using server.Models.DTO.Profile;
+﻿using System.Collections;
+using server.Models.DTO.Profile;
 using server.models.user;
 
 namespace server.Models.Interfaces;
@@ -10,4 +11,5 @@ public interface IProfileStrategy
     void UpdateProfile(UserModel targetUser, UpdateProfileFieldsModel newProfileData);
     bool CanBanUser();
     bool CanUpdateRole(UserRole targetUserRole, UserRole newRole);
+    IEnumerable<GetUserProfileModel>? GetProfiles(IEnumerable<UserModel> users);
 }

@@ -48,4 +48,9 @@ public class ClientProfileStrategy : IProfileStrategy
     {
         return false;
     }
+
+    public IEnumerable<GetUserProfileModel>? GetProfiles(IEnumerable<UserModel> users)
+    {
+        return null;
+    }
 }
