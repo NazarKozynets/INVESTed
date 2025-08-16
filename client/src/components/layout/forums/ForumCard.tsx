@@ -20,7 +20,7 @@ export const ForumCard = ({ forum }: ForumCardProps) => {
       className="forum-card"
       style={{ border: forum.isClosed ? "2px solid red" : "1px solid #ccc" }}
       onClick={() => {
-        window.open(`/forums/details/${forum.forumId}`, "_blank");
+          window.location.href = `/forums/details/${forum.forumId}`;
       }}
     >
       <div className="forum-card__header">

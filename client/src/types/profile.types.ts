@@ -8,6 +8,7 @@ const ProfileError = {
   UPDATE_FAILED: "Update failed",
   NOT_ENOUGH_ACCESS: "You cannot edit this profile",
   ADMIN_ADMIN: "You can't ban administrator",
+  EMPTY_USERS: "Didn't find any clients",
 } as const;
 
 type ProfileErrorCode = keyof typeof ProfileError;
@@ -47,4 +48,15 @@ export interface UpdateProfileFieldsRequestData {
 export interface UpdateUserRoleRequestData {
   id: string;
   newRole: number;
+}
+
+export interface GetClientsResponse {
+  clients: GetProfileResponseData[];
+}
+
+export interface ClientsSearchResult {
+  id: string;
+  username: string;
+  avatarUrl?: string | null;
+  isBanned: boolean;
 }

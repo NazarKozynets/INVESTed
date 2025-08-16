@@ -1,0 +1,22 @@
+.client-card {
+  border: 1px solid #ccc;
+  padding: 16px;
+  border-radius: 20px;
+  background-color: rgba(10, 15, 25, 0.8);
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  justify-content: left;
+  transition: all ease 0.2s;
+
+  &__content {
+    margin-left: 12px;
+  }
+
+  &:hover {
+    opacity: 0.8;
+    background-color: rgba(10, 15, 25, 0.5);
+  }
+}

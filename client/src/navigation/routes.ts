@@ -11,6 +11,7 @@ import { PaymentPage } from "../pages/ideas/idea-details/PaymentPage.tsx";
 import { CreateForum } from "../pages/forums/create-forum/CreateForum.tsx";
 import { ForumsAll } from "../pages/forums/all-forums/ForumsAll.tsx";
 import { ForumDetails } from "../pages/forums/forum-details/ForumDetails.tsx";
+import {ClientsAll} from "../pages/clients/all-clients/ClientsAll.tsx";
 
 export const routes: IRoute[] = [
   {
@@ -87,4 +88,10 @@ export const routes: IRoute[] = [
     component: ForumDetails,
     isProtected: true,
   },
+  {
+    name: "ClientsAll",
+    path: "/clients",
+    component: ClientsAll,
+    isProtected: true,
+  }
 ];

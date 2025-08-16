@@ -26,7 +26,7 @@ export const IdeaCard = ({ idea, progressPercentage }: IdeaCardProps) => {
       className="idea-card"
       style={{ border: idea.isClosed ? "2px solid red" : "1px solid #ccc" }}
       onClick={() => {
-        window.open(`/ideas/details/${idea.ideaId}`, "_blank");
+        window.location.href = `/ideas/details/${idea.ideaId}`;
       }}
     >
       <div className="idea-card__header">

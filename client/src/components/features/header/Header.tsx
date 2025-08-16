@@ -13,6 +13,7 @@ const dropdownRoutes: Record<string, string> = {
   "Start Idea": "/ideas/start",
   Forums: "/forums/all",
   "Create Forum": "/forums/create",
+  Clients: "/clients",
 };
 
 export const Header = () => {
@@ -32,7 +33,8 @@ export const Header = () => {
     "Forums",
     "Create Forum",
   ];
-  const moderatorDropdownOptions = ["Ideas", "Forums", "Clients"];
+  const moderatorDropdownOptions = ["Ideas", "Forums"];
+  const adminDropdownOptions = ["Ideas", "Forums", "Clients"];
 
   const getDropdownOptions = () => {
     switch (userRole) {
@@ -41,7 +43,7 @@ export const Header = () => {
       case "Moderator":
         return moderatorDropdownOptions;
       case "Admin":
-        return moderatorDropdownOptions;
+        return adminDropdownOptions;
     }
   };
 
@@ -51,6 +53,7 @@ export const Header = () => {
     if (path === "/ideas/start") return "Start Idea";
     if (path === "/forums/all") return "Forums";
     if (path === "/forums/create") return "Create Forum";
+    if (path === "/clients") return "Clients";
     return "Services";
   };
 

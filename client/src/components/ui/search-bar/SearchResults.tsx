@@ -37,9 +37,11 @@ export const SearchResults = ({
               />
               <p>{normalized.creatorUsername}</p>
             </div>
-            <div className="search-results__item-idea">
-              <p>{normalized.title}</p>
-            </div>
+            {normalized.type !== "user" && (
+                <div className="search-results__item-idea">
+                  <p>{normalized.title}</p>
+                </div>
+            )}
           </div>
         );
       })}

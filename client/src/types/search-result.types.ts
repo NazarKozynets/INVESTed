@@ -1,16 +1,17 @@
 import { IdeaSearchResult } from "./idea.types.ts";
 import { ForumSearchResult } from "./forum.types.ts";
+import {ClientsSearchResult} from "./profile.types.ts";
 
 type NormalizedSearchResult = {
   id: string;
-  title: string;
   creatorUsername: string;
   type: string;
   creatorAvatarUrl?: string | null;
+  title?: string;
   isClosed?: boolean;
 };
 
-export type RawSearchResult = IdeaSearchResult | ForumSearchResult;
+export type RawSearchResult = IdeaSearchResult | ForumSearchResult | ClientsSearchResult;
 
 export function normalizeResult(
   result: RawSearchResult,
@@ -35,6 +36,16 @@ export function normalizeResult(
       isClosed: result.isClosed,
       creatorAvatarUrl: result.creatorAvatarUrl,
     };
+  }
+
+  if ("isBanned" in result) {
+    return {
+      id: result.id,
+      creatorUsername: result.username,
+      creatorAvatarUrl: result.avatarUrl,
+      isClosed: result.isBanned,
+      type: "user",
+    }
   }
 
   throw new Error("Unknown result type");

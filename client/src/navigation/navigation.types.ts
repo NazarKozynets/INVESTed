@@ -14,6 +14,7 @@ export type TypeRootStackParamList = {
   CreateForum: undefined;
   ForumsAll: undefined;
   ForumDetails: undefined;
+  ClientsAll: undefined;
 };
 
 export interface IRoute {
